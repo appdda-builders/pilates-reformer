@@ -1,23 +1,220 @@
 "use server"
 
+import { z } from "zod"
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
-import { routes } from "@/lib/routes"
+import {
+  findUserByDisplayId,
+  createBookingForUser,
+  cancelBookingById,
+  userHasBookingForSlot,
+} from "@/lib/booking-service"
+import { validateBookingAgeForSlot } from "@/lib/booking-rules"
+import {
+  bookingDateAtNoon,
+  getDayOfWeekFromDateStr,
+} from "@/lib/booking-slot-options"
 
-export async function cancelBooking(formData: FormData): Promise<{ success: boolean; error?: string }> {
-  const id = formData.get("id") as string
-  if (!id) return { success: false, error: "ID requerido" }
+export type ActionState = {
+  success: boolean
+  error?: string
+  fieldErrors?: Record<string, string[]>
+  message?: string
+  bookedDate?: string
+}
 
-  try {
-    const db = getDb()
-    await db.update(schema.booking)
-      .set({ status: "cancelled", cancelledAt: new Date() })
-      .where(eq(schema.booking.id, id))
-    revalidatePath(routes.reservas)
-    return { success: true }
-  } catch {
-    return { success: false, error: "No se pudo cancelar la reserva" }
+const createBookingSchema = z.object({
+  displayId: z.string().min(3, "ID inválido"),
+  scheduleSlotId: z.string().min(1),
+  bookingDate: z.string().min(1),
+})
+
+export async function createBookingAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+    return { success: false, error: "No autorizado" }
   }
+
+  const parsed = createBookingSchema.safeParse({
+    displayId: formData.get("displayId"),
+    scheduleSlotId: formData.get("scheduleSlotId"),
+    bookingDate: formData.get("bookingDate"),
+  })
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors
+    const scheduleSlotId = formData.get("scheduleSlotId")
+    const missingSlot =
+      scheduleSlotId === null || String(scheduleSlotId).trim() === ""
+    return {
+      success: false,
+      fieldErrors,
+      error: missingSlot
+        ? "Elige un horario de la lista"
+        : "Revisa los datos del formulario",
+    }
+  }
+
+  const db = getDb()
+  const alumna = await findUserByDisplayId(db, parsed.data.displayId)
+  if (!alumna) {
+    return { success: false, error: "No encontramos un usuario con ese ID" }
+  }
+  if (alumna.role !== "alumno") {
+    return { success: false, error: "Ese ID no corresponde a un usuario" }
+  }
+
+  const bookingDow = getDayOfWeekFromDateStr(parsed.data.bookingDate)
+  if (bookingDow === null || bookingDow === 0) {
+    return { success: false, error: "No hay clases los domingos. Elige un día entre lunes y sábado." }
+  }
+
+  const [slotRow] = await db
+    .select({ dayOfWeek: schema.scheduleSlot.dayOfWeek })
+    .from(schema.scheduleSlot)
+    .where(eq(schema.scheduleSlot.id, parsed.data.scheduleSlotId))
+    .limit(1)
+
+  if (!slotRow || slotRow.dayOfWeek !== bookingDow) {
+    return { success: false, error: "La fecha no coincide con el día de esa clase" }
+  }
+
+  const bookingDate = bookingDateAtNoon(parsed.data.bookingDate)
+  const result = await createBookingForUser(db, {
+    userId: alumna.id,
+    scheduleSlotId: parsed.data.scheduleSlotId,
+    bookingDate,
+    birthdate: alumna.birthdate,
+  })
+
+  if (!result.ok) {
+    return { success: false, error: result.message }
+  }
+
+  revalidatePath("/dashboard/reservas")
+  revalidatePath("/dashboard")
+  return {
+    success: true,
+    message: `Reserva confirmada para ${result.userName}`,
+    bookedDate: parsed.data.bookingDate,
+  }
+}
+
+export async function checkBookingEligibilityAction(
+  displayId: string,
+  scheduleSlotId: string,
+  bookingDateStr: string,
+): Promise<{ ok: boolean; message?: string; alumnaName?: string }> {
+  const db = getDb()
+  const alumna = await findUserByDisplayId(db, displayId)
+  if (!alumna) {
+    return { ok: false, message: "ID no encontrado" }
+  }
+
+  const [slot] = await db
+    .select({
+      dayOfWeek: schema.scheduleSlot.dayOfWeek,
+      startTime: schema.scheduleSlot.startTime,
+      classType: schema.scheduleSlot.classType,
+    })
+    .from(schema.scheduleSlot)
+    .where(eq(schema.scheduleSlot.id, scheduleSlotId))
+    .limit(1)
+
+  if (!slot) {
+    return { ok: false, message: "Horario no válido" }
+  }
+
+  const bookingDate = new Date(`${bookingDateStr}T12:00:00`)
+  const check = validateBookingAgeForSlot(
+    alumna.birthdate,
+    slot.dayOfWeek,
+    slot.startTime,
+    bookingDate,
+    slot.classType,
+  )
+  if (!check.ok) {
+    return { ok: false, message: check.message }
+  }
+
+  const alreadyBooked = await userHasBookingForSlot(
+    db,
+    alumna.id,
+    scheduleSlotId,
+    bookingDate,
+  )
+  if (alreadyBooked) {
+    return {
+      ok: false,
+      message: "Esta persona ya tiene una reserva confirmada para esa clase en esa fecha",
+    }
+  }
+
+  return { ok: true, alumnaName: alumna.name }
+}
+
+export async function cancelBookingAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const id = formData.get("id")
+  if (typeof id !== "string") return { success: false, error: "ID inválido" }
+
+  const db = getDb()
+  const role = session.user.role ?? ""
+  const bypassPolicy = role === "root"
+  const result = await cancelBookingById(db, id, { bypassPolicy })
+
+  if (!result.ok) {
+    return { success: false, error: result.message }
+  }
+
+  revalidatePath("/dashboard/reservas")
+  revalidatePath("/dashboard/historico")
+  return { success: true }
+}
+
+export async function cancelBookingDirect(
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const id = formData.get("id")
+  if (typeof id !== "string") return { success: false, error: "ID inválido" }
+
+  const db = getDb()
+  const role = session.user.role ?? ""
+  const bypassPolicy = role === "root"
+  const result = await cancelBookingById(db, id, { bypassPolicy })
+
+  if (!result.ok) {
+    return { success: false, error: result.message }
+  }
+
+  revalidatePath("/dashboard/reservas")
+  revalidatePath("/dashboard/historico")
+  return { success: true }
 }

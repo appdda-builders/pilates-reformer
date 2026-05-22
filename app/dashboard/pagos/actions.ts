@@ -1,28 +1,60 @@
 "use server"
 
+import { z } from "zod"
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
-import { routes } from "@/lib/routes"
 
-export async function registerPayment(formData: FormData): Promise<{ success: boolean; error?: string }> {
-  const userId = formData.get("userId") as string
-  const amount = Number(formData.get("amount"))
-  const method = (formData.get("method") as string) ?? "efectivo"
-  if (!userId || isNaN(amount)) return { success: false, error: "Datos inválidos" }
+export type ActionState = {
+  success: boolean
+  error?: string
+  fieldErrors?: Record<string, string[]>
+}
 
-  try {
-    const db = getDb()
-    await db.insert(schema.payment).values({
-      id: crypto.randomUUID(),
-      userId,
-      amount,
-      method,
-      concept: formData.get("concept") as string | null,
-    })
-    revalidatePath(routes.pagos)
-    return { success: true }
-  } catch {
-    return { success: false, error: "No se pudo registrar el pago" }
+const createPaymentSchema = z.object({
+  userId: z.string().min(1),
+  amount: z.coerce.number().positive(),
+  method: z.enum(["efectivo", "transferencia", "terminal", "mensual", "semestral"]),
+  concept: z.string().optional(),
+  subscriptionId: z.string().optional(),
+})
+
+export async function createPaymentAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || session.user.role !== "admin") {
+    return { success: false, error: "No autorizado" }
   }
+
+  const parsed = createPaymentSchema.safeParse({
+    userId: formData.get("userId"),
+    amount: formData.get("amount"),
+    method: formData.get("method"),
+    concept: formData.get("concept") || undefined,
+    subscriptionId: formData.get("subscriptionId") || undefined,
+  })
+  if (!parsed.success) {
+    return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
+  }
+
+  const db = getDb()
+  await db.insert(schema.payment).values({
+    id: crypto.randomUUID(),
+    userId: parsed.data.userId,
+    amount: parsed.data.amount,
+    method: parsed.data.method,
+    status: "succeeded",
+    concept: parsed.data.concept ?? null,
+    subscriptionId: parsed.data.subscriptionId ?? null,
+  })
+
+  revalidatePath("/dashboard/pagos")
+  return { success: true }
 }

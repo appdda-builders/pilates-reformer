@@ -15,6 +15,11 @@ import {
 } from "@/lib/nav-permissions"
 import { routes } from "@/lib/routes"
 import { NoAccessPanel } from "@/components/features/admin/no-access-panel"
+import { getDb } from "@/lib/db"
+import * as schema from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
+import { WelcomeModal } from "./_welcome-modal"
+import { sendTodayBirthdayNotifications } from "@/lib/birthday-notifications"
 import { getStudioBranding } from "@/lib/studio-branding"
 
 export default async function DashboardLayout({
@@ -33,6 +38,8 @@ export default async function DashboardLayout({
 
   const u = session.user as {
     name?: string
+    firstName?: string | null
+    lastName?: string | null
     email?: string
     role?: string
     enabled?: boolean
@@ -41,11 +48,22 @@ export default async function DashboardLayout({
   if (u.enabled === false) {
     redirect("/login?inhabilitado=1")
   }
-
+  const fn = typeof u.firstName === "string" ? u.firstName.trim() : ""
+  const ln = typeof u.lastName === "string" ? u.lastName.trim() : ""
+  const fromParts = `${fn} ${ln}`.trim()
   const navName =
-    u.name != null && u.name !== "" ? u.name : "Usuario"
-  const navEmail = u.email ?? ""
+    fromParts !== ""
+      ? fromParts
+      : u != null && typeof u.name === "string" && u.name !== ""
+        ? u.name
+        : "User"
+  const navEmail =
+    u != null && typeof u.email === "string" && u.email !== "" ? u.email : ""
   const role = typeof u.role === "string" ? u.role : "alumno"
+  const isAlumno = role !== "admin" && role !== "coach" && role !== "root"
+
+  const db = getDb()
+  await sendTodayBirthdayNotifications(db)
 
   const [navPermissions, studioBranding] = await Promise.all([
     loadNavPermissions(),
@@ -59,6 +77,35 @@ export default async function DashboardLayout({
     !canAccessDashboardPath(role, pathname, navPermissions)
   ) {
     redirect(getFirstAllowedDashboardUrl(role, navPermissions))
+  }
+
+  // Fetch welcomeShown + policy message only for alumnos — avoids unnecessary DB calls for staff
+  let showWelcome = false
+  let welcomeTemplate = ""
+  let welcomeDisplayId = ""
+  if (isAlumno) {
+    const sessionDisplayId =
+      typeof (session.user as { displayId?: string }).displayId === "string"
+        ? (session.user as { displayId: string }).displayId.trim()
+        : ""
+    const [dbUser, policyRow] = await Promise.all([
+      db
+        .select({
+          welcomeShown: schema.user.welcomeShown,
+          displayId: schema.user.displayId,
+        })
+        .from(schema.user)
+        .where(eq(schema.user.id, session.user.id))
+        .limit(1),
+      db
+        .select({ welcomeMessage: schema.studioPolicy.welcomeMessage })
+        .from(schema.studioPolicy)
+        .limit(1),
+    ])
+    showWelcome = dbUser[0]?.welcomeShown === false
+    welcomeTemplate = policyRow[0]?.welcomeMessage ?? ""
+    const fromDb = dbUser[0]?.displayId?.trim() ?? ""
+    welcomeDisplayId = fromDb !== "" ? fromDb : sessionDisplayId
   }
 
   return (
@@ -77,6 +124,13 @@ export default async function DashboardLayout({
           </main>
         </SidebarInset>
       </DashboardProviders>
+      {showWelcome && (
+        <WelcomeModal
+          template={welcomeTemplate}
+          userName={navName}
+          displayId={welcomeDisplayId}
+        />
+      )}
     </SidebarProvider>
   )
 }

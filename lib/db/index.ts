@@ -12,6 +12,7 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
 export type SqliteDb = BetterSQLite3Database<typeof schemaSqlite>
 export type PgDb = PostgresJsDatabase<typeof schemaPg>
 export type AppDb = SqliteDb
+export type AnyDb = AppDb
 
 let cachedSqlite: SqliteDb | null = null
 let cachedPg: PgDb | null = null

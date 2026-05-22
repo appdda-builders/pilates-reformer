@@ -1,59 +1,55 @@
 export const dynamic = "force-dynamic"
 
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
+import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
-import { PageHeader } from "@/components/features/admin/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/shared/ui/card"
+import { eq } from "drizzle-orm"
+import { ConfigFormsClient } from "./config-forms"
+import { parseNavPermissionsJson } from "@/lib/nav-permissions"
 
 export default async function ConfiguracionPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (session == null) redirect("/login")
+
+  const role = session.user.role
+  if (role !== "admin" && role !== "root") redirect("/dashboard")
+
   const db = getDb()
-  const [policy] = await db.select().from(schema.studioPolicy).limit(1)
+  const [policy] = await db.select().from(schema.studioPolicy).where(eq(schema.studioPolicy.id, "main")).limit(1)
+
+  const values = {
+    studioName: policy?.studioName ?? "Pilates Studio",
+    logoUrl: policy?.logoUrl ?? null,
+    brandColor: policy?.brandColor ?? "#1b2d6e",
+    maxCapacity: policy?.maxCapacity ?? 10,
+    cancelHours: policy?.cancelHours ?? 12,
+    lateCancelPenalty: policy?.lateCancelPenalty ?? true,
+    noShowPenalty: policy?.noShowPenalty ?? true,
+    maxBookingsPerDay: policy?.maxBookingsPerDay ?? 1,
+    bookingWindowDays: policy?.bookingWindowDays ?? 7,
+    alertLastClassThreshold: policy?.alertLastClassThreshold ?? 2,
+    alertDaysBeforeExpiry: policy?.alertDaysBeforeExpiry ?? 3,
+    welcomeMessage:
+      policy?.welcomeMessage ??
+      "Te damos la bienvenida, {{nombre}}. Nos alegra tenerte en el estudio. Tu plan {{plan}} ya está activo.",
+    birthdayMessage:
+      policy?.birthdayMessage ??
+      "¡Feliz cumpleaños {{nombre}}! El equipo de {{estudio}} te desea un día increíble.",
+    maintenanceMode: policy?.maintenanceMode ?? false,
+  }
+
+  const navPermissions = parseNavPermissionsJson(policy?.navPermissions ?? null)
 
   return (
-    <div className="p-6 space-y-6">
-      <PageHeader title="Configuración" description="Ajustes generales del estudio" />
-
-      <div data-tour="config-tabs" className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">General</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Nombre del estudio</span>
-              <span className="font-medium">{policy?.studioName ?? "Pilates Studio"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Capacidad máxima</span>
-              <span>{policy?.maxCapacity ?? 8} personas</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total reformers</span>
-              <span>{policy?.totalReformers ?? 8}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Políticas de reserva</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Hrs para cancelar</span>
-              <span>{policy?.cancelHours ?? 12} hrs</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ventana de reserva</span>
-              <span>{policy?.bookingWindowDays ?? 7} días</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Máx. reservas/día</span>
-              <span>{policy?.maxBookingsPerDay ?? 1}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <ConfigFormsClient
+      policy={values}
+      isRoot={role === "root"}
+      navPermissions={navPermissions}
+    />
   )
 }

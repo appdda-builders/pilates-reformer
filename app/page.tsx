@@ -1,13 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import type { DateSelectArg, EventInput } from "@fullcalendar/core";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { FaMoon, FaSun } from "react-icons/fa6";
 import ContentDetail from "@/components/content-detail";
+import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
 import Image from "next/image";
 
 const LOGO_SRC = "/assets/logos/pilates-reformer-logo-001.jpeg";
@@ -24,6 +21,20 @@ const stagger = {
 };
 
 const cadenceOptions = ["Semanal", "Quincenal", "Mensual"];
+
+const morningSlots = [
+  "7:00 AM - 8:00 AM",
+  "8:00 AM - 9:00 AM",
+  "9:00 AM - 10:00 AM",
+  "10:00 AM - 11:00 AM",
+];
+
+const eveningSlots = [
+  "5:00 PM - 6:00 PM",
+  "6:00 PM - 7:00 PM",
+  "7:00 PM - 8:00 PM",
+  "8:00 PM - 9:00 PM",
+];
 
 const studioPlans = [
   {
@@ -82,48 +93,9 @@ const flow = [
 export default function Home() {
   const [navSolid, setNavSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<DateSelectArg | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState("");
   const [reservationName, setReservationName] = useState("");
   const [reservationPlan, setReservationPlan] = useState("Semanal");
-
-  const initialEvents = useMemo<EventInput[]>(() => {
-    const addDays = (days: number, hour: number) => {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      date.setHours(hour, 0, 0, 0);
-      return date;
-    };
-
-    return [
-      {
-        id: "e1",
-        title: "Reformer 1:1 · Sofia",
-        start: addDays(1, 8),
-        end: addDays(1, 9),
-      },
-      {
-        id: "e2",
-        title: "Reformer Duo · Laura",
-        start: addDays(2, 10),
-        end: addDays(2, 11),
-      },
-      {
-        id: "e3",
-        title: "Clase privada · Adri",
-        start: addDays(3, 18),
-        end: addDays(3, 19),
-      },
-      {
-        id: "e4",
-        title: "Evaluación inicial",
-        start: addDays(4, 9),
-        end: addDays(4, 10),
-      },
-    ];
-  }, []);
-
-  const [events, setEvents] = useState<EventInput[]>(initialEvents);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -135,18 +107,6 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)");
-    const handleMediaChange = () => setIsMobile(media.matches);
-    handleMediaChange();
-    media.addEventListener("change", handleMediaChange);
-    return () => media.removeEventListener("change", handleMediaChange);
-  }, []);
-
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
-    setSelectedSlot(selectInfo);
-  };
-
   const navLinks = [
     { href: "#planes", label: "Planes" },
     { href: "#horarios", label: "Horarios" },
@@ -157,21 +117,7 @@ export default function Home() {
 
   const handleReserve = () => {
     if (!selectedSlot) return;
-    const title = reservationName
-      ? `Reserva · ${reservationName}`
-      : `Reserva · ${reservationPlan}`;
-
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: `r-${Date.now()}`,
-        title,
-        start: selectedSlot.start,
-        end: selectedSlot.end,
-      },
-    ]);
-
-    setSelectedSlot(null);
+    setSelectedSlot("");
     setReservationName("");
   };
 
@@ -369,46 +315,16 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="relative flex flex-col gap-6 rounded-card border border-white/15 bg-white/10 p-8 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur"
+            className="relative flex min-h-[420px] flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="eyebrow eyebrow-on-dark">Inicio rápido</p>
-                <h2 className="text-2xl font-semibold font-display">
-                  Continuar configuración
-                </h2>
-              </div>
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-white/20 text-sm font-semibold">
-                02
-              </div>
+            <div className="shrink-0">
+              <p className="eyebrow eyebrow-on-dark">Inicio rápido</p>
+              <h2 className="text-2xl font-semibold font-display">
+                Continuar configuración
+              </h2>
             </div>
-            <div className="rounded-inner border border-white/10 bg-white/10 p-5">
-              <p className="text-sm font-semibold text-white/80">
-                Siguiente paso recomendado
-              </p>
-              <p className="text-xl font-semibold text-white">
-                Define horarios y capacidad
-              </p>
-              <p className="text-sm text-white/70">
-                Elige cuántas sesiones puede reservar cada plan y bloquea los
-                turnos del staff.
-              </p>
-            </div>
-            <div className="grid gap-3">
-              {flow.slice(0, 2).map((item) => (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-4 rounded-inner border border-white/10 bg-white/5 px-4 py-3"
-                >
-                  <div className="mt-1 h-2.5 w-2.5 rounded-full bg-green-mid" />
-                  <div>
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="text-xs text-white/70">{item.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5">
+            <SetupWeeklySchedule />
+            <button className="shrink-0 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5">
               Continuar
             </button>
           </motion.div>
@@ -607,35 +523,73 @@ export default function Home() {
                 Reservas en tiempo real para clientes y equipo.
               </h2>
               <p className="mt-3 text-base text-black/70">
-                El calendario permite seleccionar horarios, bloquear cupos y
-                mantener la disponibilidad siempre actualizada.
+                Elige un bloque matutino o vespertino, confirma la reserva y
+                mantén la disponibilidad siempre actualizada.
               </p>
             </motion.div>
 
             <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.2fr_0.8fr]">
               <motion.div
                 variants={fadeUp}
-                className="rounded-card border border-black/10 bg-white/90 p-3 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:p-4"
+                className="flex flex-col gap-4 rounded-card border border-black/10 bg-white/90 p-5 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:p-6"
               >
-                <FullCalendar
-                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                  initialView={isMobile ? "dayGridMonth" : "timeGridWeek"}
-                  height="auto"
-                  headerToolbar={{
-                    left: "prev,next",
-                    center: "title",
-                    right: isMobile ? "" : "dayGridMonth,timeGridWeek,timeGridDay",
-                  }}
-                  titleFormat={isMobile ? { month: "short", year: "numeric" } : undefined}
-                  events={events}
-                  nowIndicator
-                  selectable
-                  selectMirror
-                  select={handleDateSelect}
-                  dayMaxEvents
-                  slotMinTime="06:00:00"
-                  slotMaxTime="21:00:00"
-                />
+                <div>
+                  <p className="eyebrow eyebrow-muted">Horarios disponibles</p>
+                  <h3 className="mt-3 text-2xl font-semibold font-display">
+                    Selecciona un bloque
+                  </h3>
+                  <p className="mt-2 text-sm text-black/60">
+                    Clases de 60 minutos. Toca un horario para reservar.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-card border border-black/10 bg-white p-4 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-green-base">
+                      <FaSun />
+                      Matutino
+                    </div>
+                    <ul className="mt-3 space-y-2 text-sm text-black/70">
+                      {morningSlots.map((slot) => (
+                        <li key={slot}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`w-full rounded-inner border px-3 py-2 text-center transition ${selectedSlot === slot
+                              ? "border-green-base bg-green-base text-white"
+                              : "border-black/5 bg-[#f6f1ea]/70 hover:border-green-base/40"
+                              }`}
+                          >
+                            {slot}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-card border border-black/10 bg-white p-4 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-green-base">
+                      <FaMoon />
+                      Vespertino
+                    </div>
+                    <ul className="mt-3 space-y-2 text-sm text-black/70">
+                      {eveningSlots.map((slot) => (
+                        <li key={slot}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`w-full rounded-inner border px-3 py-2 text-center transition ${selectedSlot === slot
+                              ? "border-green-base bg-green-base text-white"
+                              : "border-black/5 bg-[#f6f1ea]/70 hover:border-green-base/40"
+                              }`}
+                          >
+                            {slot}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div
@@ -651,8 +605,8 @@ export default function Home() {
                   </h3>
                   <p className="mt-2 text-sm text-black/60">
                     {selectedSlot
-                      ? `Inicio: ${selectedSlot.start.toLocaleString()}`
-                      : "Elige un bloque en el calendario para reservar."}
+                      ? `Horario: ${selectedSlot}`
+                      : "Elige un bloque matutino o vespertino para reservar."}
                   </p>
                 </div>
 
@@ -685,7 +639,7 @@ export default function Home() {
                 <div className="rounded-inner border border-dashed border-black/15 bg-[#f6f1ea]/80 px-4 py-3 text-xs text-black/60">
                   {selectedSlot
                     ? "Reserva lista para confirmar. Se enviará recordatorio automático 24 h antes."
-                    : "Selecciona un horario y confirma para bloquear la sesión en el calendario."}
+                    : "Selecciona un horario y confirma para bloquear la sesión."}
                 </div>
 
                 <button
