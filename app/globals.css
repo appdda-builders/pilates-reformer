@@ -3,11 +3,21 @@
 :root {
   --background: #f6f1ea;
   --foreground: #1b1a18;
+  --green-base: #1d4d44;
+  --green-hover: #163a33;
+  --green-mid: #2f6b5f;
+  --r-card: 24px;
+  --r-inner: 14px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-green-base: var(--green-base);
+  --color-green-hover: var(--green-hover);
+  --color-green-mid: var(--green-mid);
+  --radius-card: var(--r-card);
+  --radius-inner: var(--r-inner);
   --font-sans: var(--font-body);
 }
 
@@ -23,6 +33,33 @@ body {
 
 .font-display {
   font-family: var(--font-display), "Times New Roman", serif;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.eyebrow-on-dark {
+  color: rgb(255 255 255 / 0.6);
+}
+
+.eyebrow-on-light {
+  color: color-mix(in srgb, var(--green-base) 60%, transparent);
+}
+
+.eyebrow-muted {
+  color: rgb(27 26 24 / 0.4);
+}
+
+.rounded-card {
+  border-radius: var(--r-card);
+}
+
+.rounded-inner {
+  border-radius: var(--r-inner);
 }
 
 @keyframes float {
@@ -46,11 +83,11 @@ body {
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: rgba(27, 26, 24, 0.04);
   --fc-today-bg-color: rgba(224, 122, 95, 0.12);
-  --fc-button-bg-color: #1d4d44;
+  --fc-button-bg-color: var(--green-base);
   --fc-button-border-color: transparent;
-  --fc-button-hover-bg-color: #163a33;
+  --fc-button-hover-bg-color: var(--green-hover);
   --fc-button-text-color: #ffffff;
-  --fc-event-bg-color: #2f6b5f;
+  --fc-event-bg-color: var(--green-mid);
   --fc-event-border-color: transparent;
   --fc-event-text-color: #ffffff;
   font-family: var(--font-body), sans-serif;
