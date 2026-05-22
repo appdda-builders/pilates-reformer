@@ -1,0 +1,18 @@
+export const pathSegmentLabels: Record<string, string> = {
+  dashboard: "Dashboard",
+  usuarios: "Usuarios",
+  clases: "Clases",
+  reservas: "Reservas",
+  pagos: "Pagos",
+  suscripciones: "Suscripciones",
+  planes: "Planes",
+  coaches: "Coaches",
+  attendance: "Asistencia",
+  schedule: "Mi Horario",
+  reportes: "Reportes",
+  politica: "Política del Estudio",
+  configuracion: "Configuración",
+  calendario: "Calendario",
+  devoluciones: "Devoluciones",
+  historico: "Histórico",
+}
