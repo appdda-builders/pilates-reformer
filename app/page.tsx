@@ -188,28 +188,22 @@ export default function Home() {
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className={`fixed left-1/2 top-3 z-50 w-[min(92vw,1180px)] -translate-x-1/2 rounded-full border pl-3 pr-4 py-2 backdrop-blur transition ${
-          navSolid
-            ? "border-black/10 bg-white/90 text-[#1b1a18] shadow-[0_12px_30px_rgba(27,26,24,0.12)]"
-            : "border-white/20 bg-white/10 text-white"
-        }`}
+        className={`fixed left-1/2 top-3 z-50 w-[min(92vw,1180px)] -translate-x-1/2 rounded-full border pl-3 pr-4 py-2 backdrop-blur transition ${navSolid
+          ? "border-black/10 bg-white/90 text-[#1b1a18] shadow-[0_12px_30px_rgba(27,26,24,0.12)]"
+          : "border-white/20 bg-white/10 text-white"
+          }`}
       >
         <div className="flex items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <a
               href="#top"
-              className={`grid h-14 w-14 place-items-center overflow-hidden rounded-full border ring-1 ${
-                navSolid
-                  ? "border-black/10 bg-white/80 ring-black/10"
-                  : "border-white/30 bg-white/15 ring-white/30"
-              }`}
+              className="relative h-14 w-14 overflow-hidden rounded-full"
             >
               <Image
                 src={LOGO_SRC}
                 alt="Pilates Reformer Studio 57"
-                width={50}
-                height={50}
-                className="h-full w-full object-contain p-1"
+                fill
+                className="object-cover"
                 priority
               />
             </a>
@@ -218,9 +212,8 @@ export default function Home() {
                 Pilates Reformer Studio
               </p>
               <p
-                className={`text-xs ${
-                  navSolid ? "text-black/60" : "text-white/70"
-                }`}
+                className={`text-xs ${navSolid ? "text-black/60" : "text-white/70"
+                  }`}
               >
                 Planes · Cobros · Reservas
               </p>
@@ -239,11 +232,10 @@ export default function Home() {
           </div>
           <div className="hidden items-center gap-3 lg:flex">
             <button
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                navSolid
-                  ? "bg-green-base text-white hover:bg-green-hover"
-                  : "bg-white text-[#1b1a18] hover:bg-white/90"
-              }`}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${navSolid
+                ? "bg-green-base text-white hover:bg-green-hover"
+                : "bg-white text-[#1b1a18] hover:bg-white/90"
+                }`}
             >
               Continuar
             </button>
@@ -253,27 +245,23 @@ export default function Home() {
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Abrir menú"
             aria-expanded={menuOpen}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition lg:hidden ${
-              navSolid
-                ? "border-black/10 bg-white/90 text-[#1b1a18]"
-                : "border-white/30 bg-white/10 text-white"
-            }`}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition lg:hidden ${navSolid
+              ? "border-black/10 bg-white/90 text-[#1b1a18]"
+              : "border-white/30 bg-white/10 text-white"
+              }`}
           >
             <span className="relative block h-4 w-4">
               <span
-                className={`absolute left-0 top-0 h-0.5 w-full rounded-full transition ${
-                  menuOpen ? "translate-y-1.5 rotate-45" : ""
-                } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-0 h-0.5 w-full rounded-full transition ${menuOpen ? "translate-y-1.5 rotate-45" : ""
+                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
               />
               <span
-                className={`absolute left-0 top-1.5 h-0.5 w-full rounded-full transition ${
-                  menuOpen ? "opacity-0" : ""
-                } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-1.5 h-0.5 w-full rounded-full transition ${menuOpen ? "opacity-0" : ""
+                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
               />
               <span
-                className={`absolute left-0 top-3 h-0.5 w-full rounded-full transition ${
-                  menuOpen ? "-translate-y-1.5 -rotate-45" : ""
-                } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-3 h-0.5 w-full rounded-full transition ${menuOpen ? "-translate-y-1.5 -rotate-45" : ""
+                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
               />
             </span>
           </button>
@@ -336,12 +324,12 @@ export default function Home() {
           style={{ backgroundImage: `url("${HERO_BG}")` }}
         />
         <div className="absolute inset-0 z-[1] bg-linear-to-b from-black/55 via-black/35 to-[#f6f1ea]" />
-        <div className="relative mx-auto flex min-h-[70vh] max-w-6xl flex-col gap-10 px-6 pb-20 pt-32 text-white sm:pt-36 lg:min-h-[82vh] lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pb-28 lg:pt-32">
+        <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col gap-10 px-6 pb-20 pt-32 text-white sm:pt-36 lg:min-h-[82vh] lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch lg:pb-28 lg:pt-32">
           <motion.div
             variants={stagger}
             initial="hidden"
             animate="show"
-            className="flex flex-col gap-8 my-30"
+            className="flex flex-col justify-center gap-8"
           >
             <motion.p variants={fadeUp} className="eyebrow eyebrow-on-dark">
               Sistema integral de membresías
@@ -355,7 +343,7 @@ export default function Home() {
             </motion.h1>
             <motion.p
               variants={fadeUp}
-              className="max-w-xl text-lg leading-relaxed text-white/80"
+              className="max-w-xl text-lg leading-relaxed text-white/95"
             >
               Construye una experiencia premium con planes semanales,
               quincenales y mensuales. Automatiza cobros y permite que tus
@@ -374,23 +362,6 @@ export default function Home() {
               >
                 Reservar ahora
               </a>
-            </motion.div>
-            <motion.div
-              variants={stagger}
-              className="mt-2 grid grid-cols-1 gap-4 border-t border-white/10 pt-4 sm:grid-cols-3"
-            >
-              {stats.map((item) => (
-                <motion.div
-                  key={item.label}
-                  variants={fadeUp}
-                  className="rounded-inner border border-white/15 bg-white/10 px-4 py-4 text-center shadow-sm"
-                >
-                  <p className="text-2xl font-semibold text-white">
-                    {item.value}
-                  </p>
-                  <p className="eyebrow eyebrow-on-dark">{item.label}</p>
-                </motion.div>
-              ))}
             </motion.div>
           </motion.div>
 
@@ -700,11 +671,10 @@ export default function Home() {
                         type="button"
                         key={plan}
                         onClick={() => setReservationPlan(plan)}
-                        className={`rounded-full border px-3 py-2 transition ${
-                          reservationPlan === plan
-                            ? "border-green-base bg-green-base text-white"
-                            : "border-black/10 bg-white text-black/70 hover:border-black/20"
-                        }`}
+                        className={`rounded-full border px-3 py-2 transition ${reservationPlan === plan
+                          ? "border-green-base bg-green-base text-white"
+                          : "border-black/10 bg-white text-black/70 hover:border-black/20"
+                          }`}
                       >
                         {plan}
                       </button>
@@ -727,45 +697,6 @@ export default function Home() {
                 </button>
               </motion.div>
             </div>
-          </motion.div>
-        </section>
-
-        <section id="contacto" className="scroll-mt-40">
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            className="grid gap-10 rounded-card border border-black/10 bg-white/90 p-10 shadow-[0_20px_40px_rgba(27,26,24,0.08)] lg:grid-cols-[1.2fr_0.8fr]"
-          >
-            <motion.div variants={fadeUp} className="flex flex-col gap-4">
-              <p className="eyebrow eyebrow-on-light">Lista para lanzar</p>
-              <h2 className="text-3xl font-semibold leading-tight md:text-4xl font-display">
-                Construyamos tu panel de control a medida.
-              </h2>
-              <p className="text-base text-black/70">
-                Esta base ya incluye planes, cobros y agenda. Podemos integrar
-                pagos, mensajes y reportes avanzados según tu flujo.
-              </p>
-            </motion.div>
-            <motion.div variants={fadeUp} className="flex flex-col gap-4">
-              <input
-                placeholder="Nombre del estudio"
-                className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-black/30 focus:outline-none"
-              />
-              <input
-                placeholder="Correo de contacto"
-                className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-black/30 focus:outline-none"
-              />
-              <textarea
-                placeholder="Cuéntanos qué necesitas integrar"
-                rows={4}
-                className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-black/30 focus:outline-none"
-              />
-              <button className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:-translate-y-0.5">
-                Solicitar propuesta
-              </button>
-            </motion.div>
           </motion.div>
         </section>
       </main>
