@@ -53,7 +53,7 @@ export function HeroScheduleCalendar(props: {
   }
 
   return (
-    <HeroGlassPanel className="flex h-full min-h-[352px] min-w-0 w-full max-w-full flex-col overflow-hidden p-[1.1rem] sm:p-[1.65rem]">
+    <HeroGlassPanel className="flex h-full min-h-88 min-w-0 w-full max-w-full flex-col overflow-hidden p-[1.1rem] sm:p-[1.65rem]">
       <div className="mb-[1.1rem] flex items-center justify-between gap-2">
         <div className="text-left">
           <p className="font-display text-xl leading-tight">Horario semanal</p>

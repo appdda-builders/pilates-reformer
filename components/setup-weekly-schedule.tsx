@@ -32,7 +32,11 @@ function enrollmentKey(slotId: string, dateStr: string) {
   return `${slotId}|${dateStr}`
 }
 
-export default function SetupWeeklySchedule() {
+export default function SetupWeeklySchedule({
+  onSelectClass,
+}: {
+  onSelectClass?: () => void
+} = {}) {
   const [weekOffset, setWeekOffset] = useState(0)
   const slots: PublicScheduleSlot[] = demoScheduleSlots
   const enrollments = demoEnrollments
@@ -51,9 +55,6 @@ export default function SetupWeeklySchedule() {
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-white/80">
-            Define horarios y capacidad
-          </p>
           <p className="font-display text-xl leading-tight">Horario semanal</p>
           <p className="text-xs font-semibold text-white/70">{weekLabel}</p>
         </div>
@@ -120,21 +121,24 @@ export default function SetupWeeklySchedule() {
                       key={`${day.dayOfWeek}-${time}`}
                       className="border-b border-white/10 p-1 text-center"
                     >
-                      <span className="relative inline-flex" title={title}>
-                        <span className="relative inline-flex h-7 min-w-[3.25rem] items-center justify-center rounded-md bg-green-base px-2 text-[10px] font-bold text-white sm:h-8 sm:text-xs">
-                          Clase
-                          <span
-                            className={`absolute -top-1.5 -right-2 flex h-4 min-w-[1.65rem] items-center justify-center rounded-full px-1 text-[8px] font-bold leading-none sm:text-[9px] ${enrolled > 0
-                              ? full
-                                ? "bg-red-600 text-white"
-                                : "bg-red-500 text-white"
-                              : "bg-white/30 text-white"
-                              }`}
-                          >
-                            {enrolled}/{slot.capacity}
-                          </span>
+                      <button
+                        type="button"
+                        onClick={onSelectClass}
+                        title={title}
+                        className="relative inline-flex h-7 min-w-[3.25rem] cursor-pointer items-center justify-center rounded-md bg-green-base px-2 text-[10px] font-bold text-white transition hover:bg-green-hover sm:h-8 sm:text-xs"
+                      >
+                        Clase
+                        <span
+                          className={`absolute -top-1.5 -right-2 flex h-4 min-w-[1.65rem] items-center justify-center rounded-full px-1 text-[8px] font-bold leading-none sm:text-[9px] ${enrolled > 0
+                            ? full
+                              ? "bg-red-600 text-white"
+                              : "bg-red-500 text-white"
+                            : "bg-white/30 text-white"
+                            }`}
+                        >
+                          {enrolled}/{slot.capacity}
                         </span>
-                      </span>
+                      </button>
                     </td>
                   )
                 })}

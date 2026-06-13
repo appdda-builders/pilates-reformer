@@ -10,7 +10,7 @@ Esta guía explica cómo entrar y explorar el **sistema de gestión** con los da
 
 Pueden hacer clic, crear cambios de prueba y salir cuando gusten. Es reversible: los datos viven en la base de datos de demo, no en producción real.
 
-> El **landing** (`/`) muestra la marca **Pilates Reformer Studio** (demo de producto Appstract).  
+> El **landing** (`/`) muestra la marca **Studio 57 · Pilates reformer** (demo de producto Appstract).  
 > Tras cargar el seed, el **dashboard** usa el nombre de estudio **Zenda Abuné** (configuración en `studio_policy`).
 
 ---

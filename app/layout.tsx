@@ -14,7 +14,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Pilates Reformer Studio",
+  title: "Studio 57 · Pilates reformer",
   description:
     "Base para gestionar planes, cobros y reservas en un estudio de pilates reformer.",
   icons: {

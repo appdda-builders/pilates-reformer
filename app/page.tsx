@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaMoon, FaSun } from "react-icons/fa6";
 import ContentDetail from "@/components/content-detail";
 import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
 import Image from "next/image";
@@ -20,7 +19,11 @@ const stagger = {
   show: { transition: { staggerChildren: 0.12 } },
 };
 
-const cadenceOptions = ["Semanal", "Quincenal", "Mensual"];
+const cadenceConfig = [
+  { label: "Semanal", period: "semana", weeks: 1 },
+  { label: "Quincenal", period: "quincena", weeks: 2 },
+  { label: "Mensual", period: "mes", weeks: 4 },
+] as const;
 
 const morningSlots = [
   "7:00 AM - 8:00 AM",
@@ -39,8 +42,7 @@ const eveningSlots = [
 const studioPlans = [
   {
     name: "Plan Equilibrio",
-    frequency: "3 clases por semana",
-    schedule: "Lunes, Miércoles y Viernes · Martes, Jueves y Sábado",
+    classesPerWeek: 3,
     prices: {
       Semanal: "$400",
       Quincenal: "$700",
@@ -50,8 +52,7 @@ const studioPlans = [
   },
   {
     name: "Plan Vitalidad",
-    frequency: "5 clases por semana",
-    schedule: "Lunes a Viernes",
+    classesPerWeek: 5,
     prices: {
       Semanal: "$650",
       Quincenal: "$1150",
@@ -91,40 +92,38 @@ const flow = [
 ];
 
 export default function Home() {
-  const [navSolid, setNavSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState("");
-  const [reservationName, setReservationName] = useState("");
-  const [reservationPlan, setReservationPlan] = useState("Semanal");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setNavSolid(window.scrollY > 80);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedCadence, setSelectedCadence] = useState<
+    Record<string, (typeof cadenceConfig)[number]["label"]>
+  >(() =>
+    Object.fromEntries(studioPlans.map((plan) => [plan.name, "Semanal"]))
+  );
 
   const navLinks = [
     { href: "#planes", label: "Planes" },
-    { href: "#horarios", label: "Horarios" },
+    { href: "#nosotros", label: "Nosotros" },
     { href: "#agenda", label: "Agenda" },
     { href: "#cobros", label: "Cobros" },
-    { href: "#contacto", label: "Contacto" },
   ];
 
   const handleReserve = () => {
-    if (!selectedSlot) return;
+    if (!selectedSlot || !selectedDate) return;
     setSelectedSlot("");
-    setReservationName("");
+    setSelectedDate("");
+  };
+
+  const scrollToAgenda = () => {
+    document
+      .getElementById("agenda")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <div
       id="top"
-      className="relative min-h-screen overflow-hidden bg-[#f6f1ea] text-[#1b1a18]"
+      className="relative min-h-screen overflow-clip bg-[#f9f0e3] text-[#1b1a18]"
     >
       <div className="pointer-events-none absolute -left-20 top-40 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,rgba(47,107,95,0.25),transparent_70%)] blur-3xl" />
       <div className="pointer-events-none absolute right-[-120px] top-[-60px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(47,79,79,0.35),transparent_70%)] blur-3xl animate-float" />
@@ -134,34 +133,25 @@ export default function Home() {
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className={`fixed left-1/2 top-3 z-50 w-[min(92vw,1180px)] -translate-x-1/2 rounded-full border pl-3 pr-4 py-2 backdrop-blur transition ${navSolid
-          ? "border-black/10 bg-white/90 text-[#1b1a18] shadow-[0_12px_30px_rgba(27,26,24,0.12)]"
-          : "border-white/20 bg-white/10 text-white"
-          }`}
+        className={`fixed left-1/2 top-0 z-50 w-full -translate-x-1/2  border pl-3 pr-4 py-2  backdrop-blur transition border-black/10 bg-white/95 text-[#1b1a18] shadow-[0_12px_30px_rgba(27,26,24,0.12)]`}
       >
-        <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center justify-between gap-6 max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <a
               href="#top"
-              className="relative h-14 w-14 overflow-hidden rounded-full"
+              className="relative h-14 w-14 overflow-hidden border border-black/10"
             >
               <Image
                 src={LOGO_SRC}
-                alt="Pilates Reformer Studio 57"
+                alt="Studio 57 · Pilates Reformer"
                 fill
-                className="object-cover"
+                className="object-cover shadow-lg shadow-black/20"
                 priority
               />
             </a>
             <div>
               <p className="text-sm font-semibold tracking-wide">
-                Pilates Reformer Studio
-              </p>
-              <p
-                className={`text-xs ${navSolid ? "text-black/60" : "text-white/70"
-                  }`}
-              >
-                Planes · Cobros · Reservas
+                Studio 57 · Pilates Reformer
               </p>
             </div>
           </div>
@@ -175,15 +165,8 @@ export default function Home() {
                 {link.label}
               </a>
             ))}
-          </div>
-          <div className="hidden items-center gap-3 lg:flex">
-            <button
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${navSolid
-                ? "bg-green-base text-white hover:bg-green-hover"
-                : "bg-white text-[#1b1a18] hover:bg-white/90"
-                }`}
-            >
-              Continuar
+            <button className="rounded-full bg-green-base px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-hover">
+              Iniciar sesión
             </button>
           </div>
           <button
@@ -191,23 +174,20 @@ export default function Home() {
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Abrir menú"
             aria-expanded={menuOpen}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition lg:hidden ${navSolid
-              ? "border-black/10 bg-white/90 text-[#1b1a18]"
-              : "border-white/30 bg-white/10 text-white"
-              }`}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition lg:hidden border-black/20 bg-white/90 text-[#1b1a18]`}
           >
             <span className="relative block h-4 w-4">
               <span
-                className={`absolute left-0 top-0 h-0.5 w-full rounded-full transition ${menuOpen ? "translate-y-1.5 rotate-45" : ""
-                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-0 h-0.5 w-full rounded-full transition bg-[#1b1a18] ${menuOpen ? "translate-y-1.5 rotate-45" : ""
+                  }`}
               />
               <span
-                className={`absolute left-0 top-1.5 h-0.5 w-full rounded-full transition ${menuOpen ? "opacity-0" : ""
-                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-1.5 h-0.5 w-full rounded-full transition bg-[#1b1a18] ${menuOpen ? "opacity-0" : ""
+                  }`}
               />
               <span
-                className={`absolute left-0 top-3 h-0.5 w-full rounded-full transition ${menuOpen ? "-translate-y-1.5 -rotate-45" : ""
-                  } ${navSolid ? "bg-[#1b1a18]" : "bg-white"}`}
+                className={`absolute left-0 top-3 h-0.5 w-full rounded-full transition bg-[#1b1a18] ${menuOpen ? "-translate-y-1.5 -rotate-45" : ""
+                  }`}
               />
             </span>
           </button>
@@ -220,7 +200,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-60 bg-black/30 backdrop-blur-sm lg:hidden"
             onClick={() => setMenuOpen(false)}
           >
             <motion.div
@@ -257,7 +237,7 @@ export default function Home() {
                 ))}
               </div>
               <button className="mt-5 w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover">
-                Continuar
+                Iniciar Sesión
               </button>
             </motion.div>
           </motion.div>
@@ -269,7 +249,7 @@ export default function Home() {
           className="absolute inset-0 z-0 bg-[#1b1a18] bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url("${HERO_BG}")` }}
         />
-        <div className="absolute inset-0 z-[1] bg-linear-to-b from-black/55 via-black/35 to-[#f6f1ea]" />
+        <div className="absolute inset-0 z-1 bg-linear-to-b from-black/55 via-black/35 to-[#f9f0e3]" />
         <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col gap-10 px-6 pb-20 pt-32 text-white sm:pt-36 lg:min-h-[82vh] lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch lg:pb-28 lg:pt-32">
           <motion.div
             variants={stagger}
@@ -277,36 +257,41 @@ export default function Home() {
             animate="show"
             className="flex flex-col justify-center gap-8"
           >
-            <motion.p variants={fadeUp} className="eyebrow eyebrow-on-dark">
-              Sistema integral de membresías
-            </motion.p>
+            <motion.h1
+            variants={fadeUp}
+            className="text-center text-4xl text-[#f9ecda] font-semibold leading-tight font-display">
+              Bienvenido
+              <br />
+              Tu cambio comienza en:
+            </motion.h1>
+            <motion.div
+              variants={fadeUp}
+              className="mx-auto h-24 w-24 object-cover"
+              >
+              <Image
+                src={LOGO_SRC}
+                alt="Studio 57 · Pilates Reformer"
+                width={64}
+                height={64}
+                className="h-20 w-20 shadow-lg shadow-black/20 object-cover mx-auto m-1"
+                priority
+              />
+            </motion.div>
             <motion.h1
               variants={fadeUp}
-              className="text-4xl font-semibold leading-tight text-balance md:text-5xl lg:text-6xl font-display"
+              className="text-center text-4xl font-semibold leading-tight font-display"
             >
-              Organiza tu estudio, tus planes y cada reserva desde un solo
-              panel.
+              Studio 57 · Pilates Reformer
             </motion.h1>
-            <motion.p
-              variants={fadeUp}
-              className="max-w-xl text-lg leading-relaxed text-white/95"
-            >
-              Construye una experiencia premium con planes semanales,
-              quincenales y mensuales. Automatiza cobros y permite que tus
-              clientes reserven en segundos.
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
+            <motion.h2 variants={fadeUp} className="text-center text-xl font-semibold text-white/80">
+            Lázaro Cárdenas - Michoacán, México
+            </motion.h2>
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-4 justify-center">
               <a
-                href="#planes"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/20 transition hover:-translate-y-0.5"
+                href="#weekly"
+                className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20"
               >
-                Ver planes
-              </a>
-              <a
-                href="#agenda"
-                className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-white/70"
-              >
-                Reservar ahora
+                Clase Muestra
               </a>
             </motion.div>
           </motion.div>
@@ -315,16 +300,16 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="relative flex min-h-[420px] flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
+            key="weekly"
+            id="weekly"
+            className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <div className="shrink-0">
-              <p className="eyebrow eyebrow-on-dark">Inicio rápido</p>
-              <h2 className="text-2xl font-semibold font-display">
-                Continuar configuración
-              </h2>
-            </div>
-            <SetupWeeklySchedule />
-            <button className="shrink-0 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5">
+            <SetupWeeklySchedule onSelectClass={scrollToAgenda} />
+            <button
+              type="button"
+              onClick={scrollToAgenda}
+              className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
+            >
               Continuar
             </button>
           </motion.div>
@@ -340,76 +325,90 @@ export default function Home() {
             viewport={{ once: true, amount: 0.2 }}
             className="flex flex-col gap-10"
           >
-            <motion.div variants={fadeUp} className="max-w-2xl">
-              <p className="eyebrow eyebrow-on-light">Planes Studio 57</p>
+            <motion.div variants={fadeUp} className="max-w-2xl mt-10">
+              <p className="eyebrow eyebrow-on-light">Nuestros planes</p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight md:text-4xl font-display">
-                Elige tu frecuencia de práctica
+                Elige tus clases
               </h2>
               <p className="mt-3 text-base text-black/70">
-                Aparte de las frecuencias de cobro, estos son los planes que
-                puedes ofrecer en el estudio con sus precios por modalidad.
+                Clases de pilates reformer diseñadas para fortalecer tu cuerpo, mejorar tu postura y aumentar tu flexibilidad. Elige el plan que mejor se adapte a tus objetivos y estilo de vida.
               </p>
             </motion.div>
 
             <div className="grid gap-8">
-              {studioPlans.map((plan) => (
-                <motion.article
-                  key={plan.name}
-                  variants={fadeUp}
-                  className="grid gap-6 overflow-hidden rounded-card border border-black/10 bg-white/90 shadow-[0_20px_40px_rgba(27,26,24,0.08)] lg:grid-cols-[1.05fr_0.95fr]"
-                >
-                  <div className="relative min-h-[240px]">
-                    <div
-                      className="absolute inset-0 bg-[#d8cfc2] bg-cover bg-center"
-                      style={{ backgroundImage: `url('${plan.image}')` }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-black/30 via-transparent to-transparent" />
-                  </div>
-                  <div className="flex flex-col justify-between gap-6 p-6">
-                    <div>
-                      <h3 className="text-2xl font-semibold font-display">
-                        {plan.name}
-                      </h3>
-                      <p className="mt-2 text-sm font-semibold text-green-base">
-                        {plan.frequency}
-                      </p>
-                      <p className="mt-1 text-sm text-black/60">
-                        {plan.schedule}
-                      </p>
+              {studioPlans.map((plan) => {
+                const activeCadence =
+                  cadenceConfig.find(
+                    (cadence) => cadence.label === selectedCadence[plan.name]
+                  ) ?? cadenceConfig[0];
+
+                return (
+                  <motion.article
+                    key={plan.name}
+                    variants={fadeUp}
+                    className="grid grid-cols-[0.85fr_1.15fr] gap-3 overflow-hidden lg:rounded-card border border-black/10 bg-white/90 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:gap-6 lg:grid-cols-[1.05fr_0.95fr]"
+                  >
+                    <div className="relative aspect-5/4 self-center overflow-hidden">
+                      <div
+                        className="absolute inset-0 bg-[#d8cfc2] bg-cover bg-center ml-2 md:ml-4 lg:mx-0"
+                        style={{ backgroundImage: `url('${plan.image}')` }}
+                      />
                     </div>
-                    <div className="grid gap-2 text-sm">
-                      {cadenceOptions.map((cadence) => (
-                        <div
-                          key={cadence}
-                          className="flex items-center justify-between rounded-inner border border-black/5 bg-[#f6f1ea]/80 px-4 py-3"
-                        >
-                          <span className="eyebrow text-black/50">
-                            {cadence}
-                          </span>
-                          <span className="text-lg font-semibold text-green-base">
-                            {plan.prices[cadence as keyof typeof plan.prices]}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="flex flex-col justify-between gap-5 p-4 sm:p-6">
+                      <div>
+                        <h3 className="text-xl font-semibold font-display sm:text-2xl">
+                          {plan.name}
+                        </h3>
+                        <p className="mt-2 text-sm font-semibold text-green-base">
+                          {plan.classesPerWeek * activeCadence.weeks} clases por{" "}
+                          {activeCadence.period}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 text-sm">
+                        {cadenceConfig.map((cadence) => {
+                          const isActive = cadence.label === activeCadence.label;
+                          return (
+                            <button
+                              key={cadence.label}
+                              type="button"
+                              onClick={() =>
+                                setSelectedCadence((prev) => ({
+                                  ...prev,
+                                  [plan.name]: cadence.label,
+                                }))
+                              }
+                              aria-pressed={isActive}
+                              className={`flex items-center justify-between gap-2 rounded-inner border px-3 py-2.5 text-left transition sm:px-4 sm:py-3 ${
+                                isActive
+                                  ? "border-green-base bg-green-base/10 ring-1 ring-green-base/30"
+                                  : "border-black/5 bg-[#f6f1ea]/80 hover:border-green-base/40"
+                              }`}
+                            >
+                              <span className="eyebrow text-black/50">
+                                {cadence.label}
+                              </span>
+                              <span className="text-lg font-semibold text-green-base">
+                                {plan.prices[cadence.label]}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        className="mt-1 w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover"
+                      >
+                        Obtener Clases
+                      </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {cadenceOptions.map((cadence) => (
-                        <span
-                          key={cadence}
-                          className="eyebrow rounded-full border border-black/10 bg-white px-3 py-1 text-black/50"
-                        >
-                          {cadence}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </motion.article>
-              ))}
+                  </motion.article>
+                );
+              })}
             </div>
 
             <motion.div
               variants={fadeUp}
-              className="flex items-center justify-between rounded-card border border-black/10 bg-white/80 px-6 py-5"
+              className="flex items-center justify-between lg:rounded-card border border-black/10 bg-white/80 px-6 py-5"
             >
               <p className="eyebrow eyebrow-muted">Precio por clase</p>
               <p className="text-2xl font-semibold text-green-base">$140</p>
@@ -418,6 +417,50 @@ export default function Home() {
         </section>
 
         <ContentDetail />
+
+        <section id="quienes-somos" className="scroll-mt-40">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]"
+          >
+            <motion.div variants={fadeUp} className="flex flex-col gap-6">
+              <p className="eyebrow eyebrow-on-light">Quiénes somos</p>
+              <h2 className="text-3xl font-semibold leading-tight md:text-4xl font-display">
+                Studio 57 · Pilates Reformer
+              </h2>
+              <p className="text-base text-black/70">
+                Somos un estudio de Pilates Reformer en Lázaro Cárdenas,
+                Michoacán, dedicado a acompañarte en tu cambio físico y mental.
+                Creemos que el movimiento consciente transforma cuerpos y vidas,
+                por eso cada clase está diseñada para que avances a tu propio
+                ritmo, con seguridad y resultados reales.
+              </p>
+              <p className="text-base text-black/70">
+                Nuestras máquinas y el acompañamiento personalizado se adaptan a
+                tu nivel, ya sea que estés comenzando o busques llevar tu
+                práctica más lejos. Aquí encontrarás un espacio cálido para
+                fortalecer tu cuerpo, mejorar tu postura y reconectar contigo.
+              </p>
+            </motion.div>
+
+            <motion.div
+              variants={fadeUp}
+              className="relative h-80 overflow-hidden rounded-card border border-black/10 bg-[#d8cfc2] shadow-[0_25px_50px_rgba(27,26,24,0.15)] md:h-112 lg:order-last"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    "url('/assets/gallery/pilates-reformer-gallery-004.jpeg')",
+                }}
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-green-base/40 via-transparent to-transparent" />
+            </motion.div>
+          </motion.div>
+        </section>
 
         <section id="cobros" className="scroll-mt-40">
           <motion.div
@@ -430,29 +473,31 @@ export default function Home() {
             <motion.div variants={fadeUp} className="flex flex-col gap-6">
               <p className="eyebrow eyebrow-on-light">Cobros y renovaciones</p>
               <h2 className="text-3xl font-semibold leading-tight md:text-4xl font-display">
-                Automatiza los ingresos y evita seguimiento manual.
+                Datos para transferencia bancaria.
               </h2>
-              <p className="text-base text-black/70">
-                Diseña políticas de reprogramación, pagos recurrentes y
-                renovaciones automáticas. Todo conectado al calendario.
-              </p>
-              <div className="grid gap-4">
-                {flow.map((item, index) => (
-                  <motion.div
-                    key={item.title}
+              <motion.div
+                    key="bank-info"
                     variants={fadeUp}
                     className="flex items-start gap-5 rounded-inner border border-black/5 bg-white/80 px-6 py-5"
-                  >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-base text-sm font-semibold text-white">
-                      0{index + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{item.title}</p>
-                      <p className="text-xs text-black/60">{item.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-base text-sm font-semibold text-white">
+                  <span>Az</span>
+                </div>
+                <div>
+                    <p className="text-base text-black/70">
+                      Banco: Banco Azteca
+                    </p>
+                    <p className="text-base text-black/70">
+                      Cuenta: 5263-5401-5974-3604
+                    </p>
+                    <p className="text-base text-black/70">
+                      Titular: ADALBERTO RESENDIZ RAGEL
+                    </p>
+                    <p className="text-base text-black/70">
+                      Motivo: Nombre completo
+                    </p>
+                </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -460,50 +505,32 @@ export default function Home() {
               className="flex flex-col gap-4 rounded-card border border-black/10 bg-white/90 p-6 shadow-[0_20px_40px_rgba(27,26,24,0.1)]"
             >
               <div>
-                <p className="eyebrow eyebrow-muted">Resumen mensual</p>
+                <p className="eyebrow eyebrow-muted">Se parte de Studio 57</p>
                 <h3 className="mt-3 text-2xl font-semibold font-display">
-                  Febrero · 2026
+                  Disfruta de todos los beneficios de nuestras clases.
                 </h3>
               </div>
               <div className="grid gap-3">
-                <div className="rounded-inner border border-black/5 bg-[#f6f1ea]/80 px-5 py-4">
-                  <p className="eyebrow text-black/50">Ingresos proyectados</p>
-                  <p className="text-2xl font-semibold text-green-base">
-                    $6,420
-                  </p>
-                  <p className="text-xs text-black/60">
-                    24 membresías activas
-                  </p>
-                </div>
                 <div className="rounded-inner border border-black/5 bg-white px-5 py-4">
-                  <p className="eyebrow text-black/50">Cobros pendientes</p>
-                  <p className="text-2xl font-semibold text-green-mid">
-                    $380
-                  </p>
-                  <p className="text-xs text-black/60">
-                    3 clientes por confirmar
-                  </p>
-                </div>
-                <div className="rounded-inner border border-black/5 bg-white px-5 py-4">
-                  <p className="eyebrow text-black/50">Renovaciones próximas</p>
+                  <p className="eyebrow text-black/50">Agenda tu clase</p>
                   <p className="text-lg font-semibold">
-                    9 miembros en 7 días
+                    ¿Aún no tienes cuenta?
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-black/60">
                     <span className="rounded-full bg-[#f6f1ea] px-3 py-1">
-                      Semanal · 4
+                      Reserva tu clase muestra gratuita
                     </span>
                     <span className="rounded-full bg-[#f6f1ea] px-3 py-1">
-                      Quincenal · 3
+                      Realiza tu primer pago y únete a nuestra comunidad de bienestar.
                     </span>
                     <span className="rounded-full bg-[#f6f1ea] px-3 py-1">
-                      Mensual · 2
+                      Configura tus cobros para mantener tu progreso sin interrupciones.
                     </span>
                   </div>
                 </div>
               </div>
               <button className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5">
-                Configurar cobros
+                Ver Cuenta
               </button>
             </motion.div>
           </motion.div>
@@ -515,200 +542,194 @@ export default function Home() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
-            className="flex flex-col gap-12"
+            className="overflow-hidden rounded-card border border-green-base/15 shadow-[0_25px_60px_rgba(27,26,24,0.12)]"
           >
-            <motion.div variants={fadeUp} className="max-w-2xl">
-              <p className="eyebrow eyebrow-on-light">Agenda inteligente</p>
-              <h2 className="mt-4 text-3xl font-semibold leading-tight md:text-4xl font-display">
-                Reservas en tiempo real para clientes y equipo.
+            <motion.div
+              variants={fadeUp}
+              className="bg-green-base px-6 py-12 text-center text-white sm:py-16"
+            >
+              <p className="eyebrow eyebrow-on-dark mx-auto">Agenda</p>
+              <h2 className="mt-3 text-4xl font-semibold leading-tight font-display">
+                Agendar clase
               </h2>
-              <p className="mt-3 text-base text-black/70">
-                Elige un bloque matutino o vespertino, confirma la reserva y
-                mantén la disponibilidad siempre actualizada.
+              <p className="mt-4 text-base text-white/80">
+                Elige fecha y horario. Al confirmar iniciarás sesión para
+                identificar tu reserva.
+              </p>
+              <p className="text-base text-white/80">
+                Los planes son mensuales y las clases no son acumulables.
               </p>
             </motion.div>
 
-            <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="bg-[#f9f0e3] px-6 py-12 sm:py-16">
               <motion.div
                 variants={fadeUp}
-                className="flex flex-col gap-4 rounded-card border border-black/10 bg-white/90 p-5 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:p-6"
+                className="mx-auto w-full max-w-md overflow-hidden rounded-card border border-green-base/30 bg-white shadow-[0_20px_40px_rgba(27,26,24,0.1)]"
               >
-                <div>
-                  <p className="eyebrow eyebrow-muted">Horarios disponibles</p>
-                  <h3 className="mt-3 text-2xl font-semibold font-display">
-                    Selecciona un bloque
+                <div className="border-b border-green-base/10 bg-green-base/10 px-6 py-5 text-center">
+                  <h3 className="text-lg font-semibold text-green-base font-display">
+                    Reserva tu clase
                   </h3>
-                  <p className="mt-2 text-sm text-black/60">
-                    Clases de 60 minutos. Toca un horario para reservar.
+                </div>
+
+                <div className="flex flex-col gap-5 p-6">
+                  <p className="text-sm text-black/60">
+                    Al confirmar, iniciarás sesión con tu ID y contraseña para
+                    identificar tu reserva.
                   </p>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-card border border-black/10 bg-white p-4 shadow-sm">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-green-base">
-                      <FaSun />
-                      Matutino
-                    </div>
-                    <ul className="mt-3 space-y-2 text-sm text-black/70">
-                      {morningSlots.map((slot) => (
-                        <li key={slot}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedSlot(slot)}
-                            className={`w-full rounded-inner border px-3 py-2 text-center transition ${selectedSlot === slot
-                              ? "border-green-base bg-green-base text-white"
-                              : "border-black/5 bg-[#f6f1ea]/70 hover:border-green-base/40"
-                              }`}
-                          >
-                            {slot}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="agenda-fecha"
+                      className="text-sm font-semibold"
+                    >
+                      Fecha de la clase
+                    </label>
+                    <input
+                      id="agenda-fecha"
+                      type="date"
+                      value={selectedDate}
+                      onChange={(event) => setSelectedDate(event.target.value)}
+                      className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-green-base focus:outline-none focus:ring-1 focus:ring-green-base/30"
+                    />
                   </div>
 
-                  <div className="rounded-card border border-black/10 bg-white p-4 shadow-sm">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-green-base">
-                      <FaMoon />
-                      Vespertino
-                    </div>
-                    <ul className="mt-3 space-y-2 text-sm text-black/70">
-                      {eveningSlots.map((slot) => (
-                        <li key={slot}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedSlot(slot)}
-                            className={`w-full rounded-inner border px-3 py-2 text-center transition ${selectedSlot === slot
-                              ? "border-green-base bg-green-base text-white"
-                              : "border-black/5 bg-[#f6f1ea]/70 hover:border-green-base/40"
-                              }`}
-                          >
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="agenda-horario"
+                      className="text-sm font-semibold"
+                    >
+                      Horario
+                    </label>
+                    <select
+                      id="agenda-horario"
+                      value={selectedSlot}
+                      onChange={(event) => setSelectedSlot(event.target.value)}
+                      className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-green-base focus:outline-none focus:ring-1 focus:ring-green-base/30"
+                    >
+                      <option value="">Elige clase y hora</option>
+                      <optgroup label="Matutino">
+                        {morningSlots.map((slot) => (
+                          <option key={slot} value={slot}>
                             {slot}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Vespertino">
+                        {eveningSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
                   </div>
-                </div>
-              </motion.div>
 
-              <motion.div
-                variants={fadeUp}
-                className="flex h-full flex-col justify-between gap-6 rounded-card border border-black/10 bg-white/90 p-5 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:p-6"
-              >
-                <div>
-                  <p className="eyebrow eyebrow-muted">Reserva rápida</p>
-                  <h3 className="mt-3 text-2xl font-semibold font-display">
-                    {selectedSlot
-                      ? "Confirma la sesión"
-                      : "Selecciona un horario"}
-                  </h3>
-                  <p className="mt-2 text-sm text-black/60">
-                    {selectedSlot
-                      ? `Horario: ${selectedSlot}`
-                      : "Elige un bloque matutino o vespertino para reservar."}
+                  <p className="text-sm text-black/50">
+                    {selectedDate && selectedSlot
+                      ? `Reservarás el ${selectedDate} · ${selectedSlot}.`
+                      : "Completa la fecha y el horario."}
                   </p>
-                </div>
 
-                <div className="grid gap-4">
-                  <label className="eyebrow eyebrow-muted">Cliente</label>
-                  <input
-                    value={reservationName}
-                    onChange={(event) => setReservationName(event.target.value)}
-                    placeholder="Nombre del cliente"
-                    className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-black/30 focus:outline-none"
-                  />
-                  <label className="eyebrow eyebrow-muted">Frecuencia</label>
-                  <div className="grid grid-cols-3 gap-2 text-xs font-semibold">
-                    {cadenceOptions.map((plan) => (
-                      <button
-                        type="button"
-                        key={plan}
-                        onClick={() => setReservationPlan(plan)}
-                        className={`rounded-full border px-3 py-2 transition ${reservationPlan === plan
-                          ? "border-green-base bg-green-base text-white"
-                          : "border-black/10 bg-white text-black/70 hover:border-black/20"
-                          }`}
-                      >
-                        {plan}
-                      </button>
-                    ))}
-                  </div>
+                  <button
+                    onClick={handleReserve}
+                    disabled={!selectedDate || !selectedSlot}
+                    className="w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover disabled:cursor-not-allowed disabled:bg-green-base/40 disabled:shadow-none"
+                  >
+                    Confirmar reserva
+                  </button>
                 </div>
-
-                <div className="rounded-inner border border-dashed border-black/15 bg-[#f6f1ea]/80 px-4 py-3 text-xs text-black/60">
-                  {selectedSlot
-                    ? "Reserva lista para confirmar. Se enviará recordatorio automático 24 h antes."
-                    : "Selecciona un horario y confirma para bloquear la sesión."}
-                </div>
-
-                <button
-                  onClick={handleReserve}
-                  disabled={!selectedSlot}
-                  className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-black/20 disabled:shadow-none"
-                >
-                  Confirmar reserva
-                </button>
               </motion.div>
             </div>
           </motion.div>
         </section>
       </main>
 
-      <footer className="border-t border-black/5 bg-white/80">
+      <footer className="relative z-10 border-t border-white/10 bg-black text-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-black/10 bg-white">
+              <div className="grid h-16 w-16 overflow-hidden border border-white/15">
                 <Image
                   src={LOGO_SRC}
-                  alt="Pilates Reformer Studio 57"
+                  alt="Studio 57 · Pilates Reformer"
                   width={40}
                   height={40}
-                  className="h-full w-full object-contain p-0.5"
+                  className="h-full w-full object-cover shadow-lg shadow-white/20"
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold">Pilates Reformer Studio</p>
-                <p className="text-xs text-black/60">
-                  Planes · Cobros · Reservas
-                </p>
+                <p className="text-sm font-semibold">Studio 57 · Pilates Reformer</p>
               </div>
             </div>
-            <p className="text-sm text-black/60">
-              Una base elegante para gestionar membresías, control de pagos y
-              reservas en tiempo real.
-            </p>
           </div>
-          <div className="flex flex-col gap-2 text-sm text-black/70">
-            <p className="eyebrow eyebrow-muted">Explorar</p>
-            <a href="#planes" className="transition hover:text-green-base">
+          <div className="flex flex-col gap-2 text-sm text-white/70">
+            <p className="text-amber-100">Contacto</p>
+            <span>+52 55 1234 5678</span>
+          </div>
+          <div className="flex flex-col gap-3 text-sm text-white/70">
+            <p className="text-amber-100">Social</p>
+            <span>hola@pilatesreformer.com</span>
+          </div>
+          <div className="flex flex-col">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-4 rounded-card border border-white/10 bg-white/10 p-4 text-sm text-white/70 shadow-[0_20px_40px_rgba(27,26,24,0.1)] backdrop-blur"
+            >
+              <p className="text-amber-100">Ubicación</p>
+              <p>Av. Lázaro Cárdenas 123, Col. Centro, Lázaro Cárdenas, Michoacán</p>
+              <div className="mt-3 overflow-hidden rounded-inner border border-white/10">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3795.3043480185247!2d-102.1976358!3d17.964571900000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x84315df7e23a5e4d%3A0x52378ed977416fe4!2sStudio%2057%20Pilates%20Reformer%20LZC!5e0!3m2!1ses!2smx!4v1781316731996!5m2!1ses!2smx"
+                  width="100%"
+                  height="200"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Ubicación Studio 57 Pilates Reformer"
+                  className="block w-full grayscale"
+                />
+              </div>
+            </motion.div>
+          </div>
+          <div className="flex flex-col gap-2 text-sm text-white/70">
+            <p className="text-amber-100">Explorar</p>
+            <a href="#planes" className="transition hover:text-white">
               Planes
             </a>
-            <a href="#agenda" className="transition hover:text-green-base">
+            <a href="#nosotros" className="transition hover:text-white">
+              Nosotros
+            </a>
+            <a href="#agenda" className="transition hover:text-white">
               Agenda
             </a>
-            <a href="#cobros" className="transition hover:text-green-base">
+            <a href="#cobros" className="transition hover:text-white">
               Cobros
             </a>
           </div>
-          <div className="flex flex-col gap-3 text-sm text-black/70">
-            <p className="eyebrow eyebrow-muted">Contacto</p>
-            <span>hola@pilatesreformer.com</span>
-            <span>+52 55 1234 5678</span>
-            <button className="mt-2 rounded-full bg-green-base px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-hover">
-              Agendar demo
-            </button>
+          <div className="flex flex-col gap-3 text-sm text-white/70">
+            <p className="text-amber-100">Agenda</p>
+            <p>
+              Ven y conócenos en nuestro estudio para una clase muestra gratuita.
+              con pilates puedes transformar tu bienestar y alcanzar tus objetivos de salud.
+              <br /><br />
+              ¡Te esperamos con los brazos abiertos!
+            </p>
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-4 justify-center">
+              <a
+              href="#weekly"
+              className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20">
+                Clase Muestra
+              </a>
+            </motion.div>
           </div>
         </div>
-        <div className="border-t border-black/5">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-xs text-black/50 md:flex-row md:items-center md:justify-between">
-            <p>© 2026 Pilates Reformer Studio. Todos los derechos reservados.</p>
-            <div className="flex flex-wrap gap-4">
-              <span>Políticas</span>
-              <span>Privacidad</span>
-              <span>Soporte</span>
-            </div>
+        <div className="border-t border-white/10">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
+            <p>© 2026 | Studio 57 · Pilates Reformer.</p>
           </div>
         </div>
       </footer>
