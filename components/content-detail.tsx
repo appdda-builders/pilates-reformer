@@ -17,7 +17,7 @@ const eveningSlots = [
   "8:00 PM - 9:00 PM",
 ];
 
-const HORARIOS_BG = "/assets/gallery/pilates-reformer-gallery-003.jpeg";
+const HORARIOS_BG = `${process.env.NEXT_PUBLIC_S3}pilates_7.jpg`;
 
 export default function ContentDetail() {
   return (

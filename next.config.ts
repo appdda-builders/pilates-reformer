@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
         pathname: "/assets/**",
       },
     ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "studio57.s3.us-east-1.amazonaws.com",
+        pathname: "/**",
+      },
+    ],
   },
   async redirects() {
     return []

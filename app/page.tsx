@@ -1,13 +1,16 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
+import { FaPlayCircle, FaRegStopCircle } from "react-icons/fa";
 import ContentDetail from "@/components/content-detail";
 import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
+import HeroVideo from "@/components/hero-video";
+import AboutTeam from "@/components/about-team";
 import Image from "next/image";
+import Link from "next/link";
 
-const LOGO_SRC = "/assets/logos/pilates-reformer-logo-001.jpeg";
-const HERO_BG = "/assets/gallery/pilates-reformer-gallery-005.jpeg";
+const LOGO_SRC = `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -48,7 +51,7 @@ const studioPlans = [
       Quincenal: "$700",
       Mensual: "$1350",
     },
-    image: "/assets/gallery/pilates-reformer-gallery-001.jpeg",
+    image: `${process.env.NEXT_PUBLIC_S3}pilates_3.jpg`,
   },
   {
     name: "Plan Vitalidad",
@@ -58,7 +61,7 @@ const studioPlans = [
       Quincenal: "$1150",
       Mensual: "$2200",
     },
-    image: "/assets/gallery/pilates-reformer-gallery-002.jpeg",
+    image: `${process.env.NEXT_PUBLIC_S3}pilates_2.jpg`,
   },
 ];
 
@@ -100,6 +103,22 @@ export default function Home() {
   >(() =>
     Object.fromEntries(studioPlans.map((plan) => [plan.name, "Semanal"]))
   );
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+  const [heroVideoPlaying, setHeroVideoPlaying] = useState(true);
+
+  const toggleHeroVideo = () => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video
+        .play()
+        .then(() => setHeroVideoPlaying(true))
+        .catch(() => setHeroVideoPlaying(false));
+    } else {
+      video.pause();
+      setHeroVideoPlaying(false);
+    }
+  };
 
   const navLinks = [
     { href: "#planes", label: "Planes" },
@@ -165,9 +184,12 @@ export default function Home() {
                 {link.label}
               </a>
             ))}
-            <button className="rounded-full bg-green-base px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-hover">
+            <Link
+              href="/login"
+              className="rounded-full bg-green-base px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-hover"
+            >
               Iniciar sesión
-            </button>
+            </Link>
           </div>
           <button
             type="button"
@@ -236,20 +258,27 @@ export default function Home() {
                   </a>
                 ))}
               </div>
-              <button className="mt-5 w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="mt-5 block w-full rounded-full bg-green-base px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-green-hover"
+              >
                 Iniciar Sesión
-              </button>
+              </Link>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <header className="relative isolate min-h-[70vh] overflow-hidden lg:min-h-[82vh]">
+        <HeroVideo videoRef={heroVideoRef} onPlayingChange={setHeroVideoPlaying} />
         <div
-          className="absolute inset-0 z-0 bg-[#1b1a18] bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url("${HERO_BG}")` }}
+          className="pointer-events-none absolute inset-0 z-1"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.28) 22%, rgba(249,240,227,0.2) 48%, rgba(249,240,227,0.6) 70%, rgba(249,240,227,0.9) 85%, #f9f0e3 100%)",
+          }}
         />
-        <div className="absolute inset-0 z-1 bg-linear-to-b from-black/55 via-black/35 to-[#f9f0e3]" />
         <div className="relative z-10 mx-auto flex min-h-[70vh] max-w-6xl flex-col gap-10 px-6 pb-20 pt-32 text-white sm:pt-36 lg:min-h-[82vh] lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch lg:pb-28 lg:pt-32">
           <motion.div
             variants={stagger}
@@ -266,14 +295,14 @@ export default function Home() {
             </motion.h1>
             <motion.div
               variants={fadeUp}
-              className="mx-auto h-24 w-24 object-cover"
+              className="m-auto h-24 w-24 object-cover flex justify-center items-center p-2 rounded-full overflow-hidden bg-white"
               >
               <Image
                 src={LOGO_SRC}
                 alt="Studio 57 · Pilates Reformer"
-                width={64}
-                height={64}
-                className="h-20 w-20 shadow-lg shadow-black/20 object-cover mx-auto m-1"
+                width={70}
+                height={70}
+                className="h-20 w-20 object-cover mx-auto m-1"
                 priority
               />
             </motion.div>
@@ -286,7 +315,26 @@ export default function Home() {
             <motion.h2 variants={fadeUp} className="text-center text-xl font-semibold text-white/80">
             Lázaro Cárdenas - Michoacán, México
             </motion.h2>
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-4 justify-center">
+            <motion.button
+              variants={fadeUp}
+              type="button"
+              onClick={toggleHeroVideo}
+              aria-label={heroVideoPlaying ? "Detener video" : "Reproducir video"}
+              className="mx-auto flex items-center justify-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/70"
+            >
+              {heroVideoPlaying ? (
+                <>
+                  <FaRegStopCircle size={26} />
+                  <span>Detener</span>
+                </>
+              ) : (
+                <>
+                  <FaPlayCircle size={26} />
+                  <span>Reproducir</span>
+                </>
+              )}
+            </motion.button>
+            <motion.div variants={fadeUp} className="flex lg:hidden flex-wrap gap-4 justify-center">
               <a
                 href="#weekly"
                 className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20"
@@ -398,7 +446,7 @@ export default function Home() {
                         type="button"
                         className="mt-1 w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover"
                       >
-                        Obtener Clases
+                        Adquirir Plan
                       </button>
                     </div>
                   </motion.article>
@@ -416,8 +464,8 @@ export default function Home() {
           </motion.div>
         </section>
 
+        <AboutTeam />
         <ContentDetail />
-
         <section id="quienes-somos" className="scroll-mt-40">
           <motion.div
             variants={stagger}
@@ -454,7 +502,7 @@ export default function Home() {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{
                   backgroundImage:
-                    "url('/assets/gallery/pilates-reformer-gallery-004.jpeg')",
+                    `url('${process.env.NEXT_PUBLIC_S3}material.jpg')`,
                 }}
               />
               <div className="absolute inset-0 bg-linear-to-t from-green-base/40 via-transparent to-transparent" />

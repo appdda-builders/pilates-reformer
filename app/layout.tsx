@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   description:
     "Base para gestionar planes, cobros y reservas en un estudio de pilates reformer.",
   icons: {
-    icon: [{ url: "/assets/logos/pilates-reformer-logo-001.jpeg", type: "image/jpeg" }],
-    apple: [{ url: "/assets/logos/pilates-reformer-logo-001.jpeg", type: "image/jpeg" }],
+    icon: [{ url: `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`, type: "image/jpeg" }],
+    apple: [{ url: `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`, type: "image/jpeg" }],
   },
 };
 

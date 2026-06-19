@@ -150,8 +150,12 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
               <Button className="w-full" type="submit" disabled={overlayActive}>
                 {overlayActive ? "Ingresando..." : "Continuar"}
               </Button>
+              <p className="text-sm text-center text-muted-foreground">
+                ¿No tienes cuenta?{" "}
+                <Link href={routes.registry} className="text-primary hover:underline">Crear cuenta</Link>
+              </p>
               <p className="text-xs text-center text-muted-foreground">
-                <Link href="/" className="text-primary hover:underline">Regresar al sitio</Link>
+                <Link href="/" className="text-primary hover:underline">Regresar a Studio 57</Link>
               </p>
             </CardFooter>
           </form>

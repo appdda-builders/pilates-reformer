@@ -21,15 +21,14 @@ export function DashboardBrand(props: {
   return (
     <div className={cn("flex items-center gap-3", props.className)}>
       <div
-        className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg"
-        style={{ backgroundColor: LOGO_MARK_BG }}
+        className="relative h-12 w-12 shrink-0 rounded-full p-5 bg-white overflow-hidden"
       >
         <Image
           src={logoSrc}
           alt=""
           fill
           sizes="40px"
-          className="object-cover scale-[1.55]"
+          className="object-cover"
           unoptimized={logoSrc.startsWith("http")}
         />
       </div>
