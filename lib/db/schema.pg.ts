@@ -18,7 +18,7 @@ export const user = pgTable("user", {
   role: text("role").notNull().default("alumno"),
   phone: text("phone"),
   displayId: text("display_id").unique(),
-  idPrefix: text("id_prefix").notNull().default("ZA"),
+  idPrefix: text("id_prefix").notNull().default("ST"),
   birthdate: text("birthdate"),
   notes: text("notes"),
   enabled: boolean("enabled").notNull().default(true),

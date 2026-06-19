@@ -79,16 +79,16 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 
 | Nombre | Correo | ID en sistema | Contraseña |
 |--------|--------|---------------|------------|
-| Irene Salazar | `irene.salazar@demo.pilates.mx` | **ZA1001** | `demo-alumno-99` |
-| Beatriz Montiel | `beatriz.montiel@demo.pilates.mx` | **ZA1002** | `demo-alumno-99` |
-| Luciana Fajardo | `luciana.fajardo@demo.pilates.mx` | **ZA1003** | `demo-alumno-99` |
-| Greta Ibáñez | `greta.ibanez@demo.pilates.mx` | **ZA1004** | `demo-alumno-99` |
-| Helena Duarte | `helena.duarte@demo.pilates.mx` | **ZA1005** | `demo-alumno-99` |
-| Rebeca Toscano | `rebeca.toscano@demo.pilates.mx` | **ZA1006** | `demo-alumno-99` |
-| Alma Delgado | `alma.delgado@demo.pilates.mx` | **ZA1007** | `demo-alumno-99` |
-| Jimena Solís | `jimena.solis@demo.pilates.mx` | **ZA1008** | `demo-alumno-99` |
+| Irene Salazar | `irene.salazar@demo.pilates.mx` | **ST1001** | `demo-alumno-99` |
+| Beatriz Montiel | `beatriz.montiel@demo.pilates.mx` | **ST1002** | `demo-alumno-99` |
+| Luciana Fajardo | `luciana.fajardo@demo.pilates.mx` | **ST1003** | `demo-alumno-99` |
+| Greta Ibáñez | `greta.ibanez@demo.pilates.mx` | **ST1004** | `demo-alumno-99` |
+| Helena Duarte | `helena.duarte@demo.pilates.mx` | **ST1005** | `demo-alumno-99` |
+| Rebeca Toscano | `rebeca.toscano@demo.pilates.mx` | **ST1006** | `demo-alumno-99` |
+| Alma Delgado | `alma.delgado@demo.pilates.mx` | **ST1007** | `demo-alumno-99` |
+| Jimena Solís | `jimena.solis@demo.pilates.mx` | **ST1008** | `demo-alumno-99` |
 
-> Prefijo de folios: **ZA** (ej. ZA1001). **Greta (ZA1004)** tiene plan **Total Pass** (membresía ilimitada de demo).
+> Prefijo de folios: **ST** (ej. ST1001). **Greta (ST1004)** tiene plan **Total Pass** (membresía ilimitada de demo).
 
 ---
 
@@ -124,14 +124,14 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 
 | Alumna | ID | Plan activo | Notas demo |
 |--------|-----|-------------|------------|
-| Irene Salazar | ZA1001 | Conecta y Fortalece | 6 clases restantes |
-| Beatriz Montiel | ZA1002 | Inicia tu camino | 3 clases restantes |
-| Luciana Fajardo | ZA1003 | Activa tu grandeza interior | 10% descuento demo |
-| Greta Ibáñez | ZA1004 | Total Pass | Ilimitado |
-| Helena Duarte | ZA1005 | Clase Descubre | 0 clases (paquete agotado) |
-| Rebeca Toscano | ZA1006 | Reinventa tu ser | 18 clases restantes |
-| Alma Delgado | ZA1007 | Conecta (cancelada) | Membresía cancelada + devolución demo |
-| Jimena Solís | ZA1008 | Clase Descubre | Plan vencido (alertas de vencimiento) |
+| Irene Salazar | ST1001 | Conecta y Fortalece | 6 clases restantes |
+| Beatriz Montiel | ST1002 | Inicia tu camino | 3 clases restantes |
+| Luciana Fajardo | ST1003 | Activa tu grandeza interior | 10% descuento demo |
+| Greta Ibáñez | ST1004 | Total Pass | Ilimitado |
+| Helena Duarte | ST1005 | Clase Descubre | 0 clases (paquete agotado) |
+| Rebeca Toscano | ST1006 | Reinventa tu ser | 18 clases restantes |
+| Alma Delgado | ST1007 | Conecta (cancelada) | Membresía cancelada + devolución demo |
+| Jimena Solís | ST1008 | Clase Descubre | Plan vencido (alertas de vencimiento) |
 
 ---
 
@@ -174,7 +174,7 @@ Coaches en turnos: **Elena Morales** y **Lucía Paredes**. Clase: **Pilates Refo
 | Sección del menú | Qué verán |
 |------------------|-----------|
 | **Dashboard** | Resumen, métricas y gráfica de reservas |
-| **Usuarios** | Lista con IDs ZA1001…ZA1008 y detalle por alumna |
+| **Usuarios** | Lista con IDs ST1001…ST1008 y detalle por alumna |
 | **Clases** | Horarios y tipos (Reformer) |
 | **Reservas** | Citas de la semana de demostración |
 | **Pagos** | Cobros y egresos de ejemplo |
@@ -222,7 +222,7 @@ Fuera del login, el landing de producto incluye:
 
 - **Ricardo, Patricia, Elena, Lucía, Irene, Beatriz…** son personas **inventadas** para la demo.
 - **Planes y precios** del seed reflejan el negocio tipo Zenda; el landing muestra otros planes como vitrina Appstract.
-- Los códigos **ZA1001–ZA1008** muestran cómo se verán los folios cuando el estudio use datos reales.
+- Los códigos **ST1001–ST1008** muestran cómo se verán los folios cuando el estudio use datos reales.
 
 ---
 

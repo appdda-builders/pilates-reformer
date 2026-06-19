@@ -16,19 +16,19 @@ BEGIN;
 -- ── 1. user ───────────────────────────────────────────────────────────────────
 
 INSERT INTO "user" ("id","name","email","email_verified","role","phone","display_id","id_prefix","birthdate","notes","enabled","welcome_shown","created_at","updated_at") VALUES
-('user-root-demo','Operador Sistema','operador@demo.pilates.mx',true,'root',NULL,NULL,'ZA',NULL,NULL,true,true,now(),now()),
-('user-admin-demo-1','Ricardo Méndez','ricardo.mendez@demo.pilates.mx',true,'admin','5588001101',NULL,'ZA',NULL,NULL,true,true,now(),now()),
-('user-admin-demo-2','Patricia Núñez','patricia.nunez@demo.pilates.mx',true,'admin','5588001102',NULL,'ZA',NULL,NULL,true,true,now(),now()),
-('user-coach-demo-1','Elena Morales','elena.morales@demo.pilates.mx',true,'coach','5588002201',NULL,'ZA',NULL,NULL,true,true,now(),now()),
-('user-coach-demo-2','Lucía Paredes','lucia.paredes@demo.pilates.mx',true,'coach','5588002202',NULL,'ZA',NULL,NULL,true,true,now(),now()),
-('user-alum-demo-1','Irene Salazar','irene.salazar@demo.pilates.mx',true,'alumno','5588113301','ZA1001','ZA','1991-04-12',NULL,true,false,now(),now()),
-('user-alum-demo-2','Beatriz Montiel','beatriz.montiel@demo.pilates.mx',true,'alumno','5588113302','ZA1002','ZA','1987-09-03',NULL,true,false,now(),now()),
-('user-alum-demo-3','Luciana Fajardo','luciana.fajardo@demo.pilates.mx',true,'alumno','5588113303','ZA1003','ZA','1995-01-28',NULL,true,false,now(),now()),
-('user-alum-demo-4','Greta Ibáñez','greta.ibanez@demo.pilates.mx',true,'alumno','5588113304','ZA1004','ZA','1983-11-07',NULL,true,false,now(),now()),
-('user-alum-demo-5','Helena Duarte','helena.duarte@demo.pilates.mx',true,'alumno','5588113305','ZA1005','ZA','1996-08-19',NULL,true,false,now(),now()),
-('user-alum-demo-6','Rebeca Toscano','rebeca.toscano@demo.pilates.mx',true,'alumno','5588113306','ZA1006','ZA','1990-12-01',NULL,true,false,now(),now()),
-('user-alum-demo-7','Alma Delgado','alma.delgado@demo.pilates.mx',true,'alumno','5588113307','ZA1007','ZA','1989-06-25',NULL,true,false,now(),now()),
-('user-alum-demo-8','Jimena Solís','jimena.solis@demo.pilates.mx',true,'alumno','5588113308','ZA1008','ZA','1994-02-14',NULL,true,false,now(),now())
+('user-root-demo','Operador Sistema','operador@demo.pilates.mx',true,'root',NULL,NULL,'ST',NULL,NULL,true,true,now(),now()),
+('user-admin-demo-1','Ricardo Méndez','ricardo.mendez@demo.pilates.mx',true,'admin','5588001101',NULL,'ST',NULL,NULL,true,true,now(),now()),
+('user-admin-demo-2','Patricia Núñez','patricia.nunez@demo.pilates.mx',true,'admin','5588001102',NULL,'ST',NULL,NULL,true,true,now(),now()),
+('user-coach-demo-1','Elena Morales','elena.morales@demo.pilates.mx',true,'coach','5588002201',NULL,'ST',NULL,NULL,true,true,now(),now()),
+('user-coach-demo-2','Lucía Paredes','lucia.paredes@demo.pilates.mx',true,'coach','5588002202',NULL,'ST',NULL,NULL,true,true,now(),now()),
+('user-alum-demo-1','Irene Salazar','irene.salazar@demo.pilates.mx',true,'alumno','5588113301','ST1001','ST','1991-04-12',NULL,true,false,now(),now()),
+('user-alum-demo-2','Beatriz Montiel','beatriz.montiel@demo.pilates.mx',true,'alumno','5588113302','ST1002','ST','1987-09-03',NULL,true,false,now(),now()),
+('user-alum-demo-3','Luciana Fajardo','luciana.fajardo@demo.pilates.mx',true,'alumno','5588113303','ST1003','ST','1995-01-28',NULL,true,false,now(),now()),
+('user-alum-demo-4','Greta Ibáñez','greta.ibanez@demo.pilates.mx',true,'alumno','5588113304','ST1004','ST','1983-11-07',NULL,true,false,now(),now()),
+('user-alum-demo-5','Helena Duarte','helena.duarte@demo.pilates.mx',true,'alumno','5588113305','ST1005','ST','1996-08-19',NULL,true,false,now(),now()),
+('user-alum-demo-6','Rebeca Toscano','rebeca.toscano@demo.pilates.mx',true,'alumno','5588113306','ST1006','ST','1990-12-01',NULL,true,false,now(),now()),
+('user-alum-demo-7','Alma Delgado','alma.delgado@demo.pilates.mx',true,'alumno','5588113307','ST1007','ST','1989-06-25',NULL,true,false,now(),now()),
+('user-alum-demo-8','Jimena Solís','jimena.solis@demo.pilates.mx',true,'alumno','5588113308','ST1008','ST','1994-02-14',NULL,true,false,now(),now())
 ON CONFLICT ("id") DO UPDATE SET
   "name" = EXCLUDED."name",
   "email" = EXCLUDED."email",

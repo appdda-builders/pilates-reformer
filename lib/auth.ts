@@ -15,7 +15,7 @@ export const auth = betterAuth({
       role: { type: "string", required: false, defaultValue: "alumno" },
       phone: { type: "string", required: false },
       displayId: { type: "string", required: false },
-      idPrefix: { type: "string", required: false, defaultValue: "ZA" },
+      idPrefix: { type: "string", required: false, defaultValue: "ST" },
       birthdate: { type: "string", required: false },
       notes: { type: "string", required: false },
       enabled: {

@@ -2,13 +2,21 @@ import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 
-export type UserIdPrefix = "ZA" | "ZAT"
+export const USER_ID_PREFIX_REGULAR = "ST"
+export const USER_ID_PREFIX_TOTAL_PASS = "STT"
+
+export type UserIdPrefix =
+  | typeof USER_ID_PREFIX_REGULAR
+  | typeof USER_ID_PREFIX_TOTAL_PASS
 
 export function parseUserIdPrefix(raw: unknown): UserIdPrefix {
-  if (typeof raw === "string" && raw.trim().toUpperCase() === "ZAT") {
-    return "ZAT"
+  if (
+    typeof raw === "string" &&
+    raw.trim().toUpperCase() === USER_ID_PREFIX_TOTAL_PASS
+  ) {
+    return USER_ID_PREFIX_TOTAL_PASS
   }
-  return "ZA"
+  return USER_ID_PREFIX_REGULAR
 }
 
 export async function resolveIdPrefixForPlanId(
@@ -17,7 +25,7 @@ export async function resolveIdPrefixForPlanId(
 ): Promise<UserIdPrefix> {
   const trimmed = planId.trim()
   if (trimmed === "") {
-    return "ZA"
+    return USER_ID_PREFIX_REGULAR
   }
 
   const [plan] = await db
@@ -27,7 +35,7 @@ export async function resolveIdPrefixForPlanId(
     .limit(1)
 
   if (plan?.planType === "total_pass") {
-    return "ZAT"
+    return USER_ID_PREFIX_TOTAL_PASS
   }
-  return "ZA"
+  return USER_ID_PREFIX_REGULAR
 }

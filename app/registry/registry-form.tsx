@@ -18,6 +18,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card"
+import {
+  USER_ID_PREFIX_REGULAR,
+  USER_ID_PREFIX_TOTAL_PASS,
+} from "@/lib/id-prefix"
 import { hiddenRegistryAction, type RegistryActionState } from "./actions"
 
 const initial: RegistryActionState = { success: false }
@@ -93,11 +97,11 @@ export function RegistryForm(props: { registryToken: string }) {
             <select
               id="idPrefix"
               name="idPrefix"
-              defaultValue="ZA"
+              defaultValue={USER_ID_PREFIX_REGULAR}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
-              <option value="ZA">Alumno regular (ZA)</option>
-              <option value="ZAT">Total Pass (ZAT)</option>
+              <option value={USER_ID_PREFIX_REGULAR}>Alumno regular (ST)</option>
+              <option value={USER_ID_PREFIX_TOTAL_PASS}>Total Pass (STT)</option>
             </select>
           </div>
           <div className="space-y-2">

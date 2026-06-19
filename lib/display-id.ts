@@ -1,8 +1,16 @@
 import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { and, isNotNull, eq } from "drizzle-orm"
+import {
+  USER_ID_PREFIX_REGULAR,
+  USER_ID_PREFIX_TOTAL_PASS,
+  type UserIdPrefix,
+} from "@/lib/id-prefix"
 
-export async function generateDisplayId(db: AnyDb, prefix: "ZA" | "ZAT" = "ZA"): Promise<string> {
+export async function generateDisplayId(
+  db: AnyDb,
+  prefix: UserIdPrefix = USER_ID_PREFIX_REGULAR,
+): Promise<string> {
   const rows = await db
     .select({ displayId: schema.user.displayId })
     .from(schema.user)
@@ -20,7 +28,6 @@ export async function generateDisplayId(db: AnyDb, prefix: "ZA" | "ZAT" = "ZA"):
   }
 
   const nextNum = maxNum + 1
-  // ZA → 4 digits: ZA0001 | ZAT → 3 digits: ZAT001
-  const padLen = prefix === "ZAT" ? 3 : 4
+  const padLen = prefix === USER_ID_PREFIX_TOTAL_PASS ? 3 : 4
   return `${prefix}${String(nextNum).padStart(padLen, "0")}`
 }

@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"role" text DEFAULT 'alumno' NOT NULL,
 	"phone" text,
 	"display_id" text,
-	"id_prefix" text DEFAULT 'ZA' NOT NULL,
+	"id_prefix" text DEFAULT 'ST' NOT NULL,
 	"birthdate" text,
 	"notes" text,
 	"enabled" boolean DEFAULT true NOT NULL,

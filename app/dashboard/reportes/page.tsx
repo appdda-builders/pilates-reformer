@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq, and, gte, lte, sql, asc, desc } from "drizzle-orm"
+import { USER_ID_PREFIX_TOTAL_PASS } from "@/lib/id-prefix"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shared/ui/card"
 import { Badge } from "@/components/shared/ui/badge"
@@ -297,13 +298,13 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
     }
   }
 
-  // Bookings: regular vs Total Pass (ZAT = Total Pass)
+  // Bookings: regular vs Total Pass (STT = Total Pass)
   for (const b of bookingsWithUser) {
     const month = toTs(b.bookingDate).toISOString().slice(0, 7)
     ensureMonth(month)
     const row = monthMap.get(month)!
     row.reservas++
-    if (b.idPrefix === "ZAT") row.totalPass++
+    if (b.idPrefix === USER_ID_PREFIX_TOTAL_PASS) row.totalPass++
     else row.regular++
   }
 
@@ -393,8 +394,8 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
 
   // ── totales de periodo ───────────────────────────────────────────────────────
 
-  const totalRegular = bookingsWithUser.filter((b) => b.idPrefix !== "ZAT").length
-  const totalTotalPass = bookingsWithUser.filter((b) => b.idPrefix === "ZAT").length
+  const totalRegular = bookingsWithUser.filter((b) => b.idPrefix !== USER_ID_PREFIX_TOTAL_PASS).length
+  const totalTotalPass = bookingsWithUser.filter((b) => b.idPrefix === USER_ID_PREFIX_TOTAL_PASS).length
 
   const monthRows = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b))
 

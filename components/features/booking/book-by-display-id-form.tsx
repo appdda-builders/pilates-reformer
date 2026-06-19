@@ -123,13 +123,13 @@ export function BookByDisplayIdForm(props: Props) {
       <DbActionSuccessEffect success={state.success} kind="create" />
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="displayId">ID de usuario (ZA / ZAT)</Label>
+        <Label htmlFor="displayId">ID de usuario (ST / STT)</Label>
         <Input
           id="displayId"
           name="displayId"
           value={displayId}
           onChange={(e) => setDisplayId(e.target.value.toUpperCase())}
-          placeholder="ZA0001"
+          placeholder="ST0001"
           required
           className="font-mono uppercase"
         />

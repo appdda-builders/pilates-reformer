@@ -7,7 +7,10 @@ import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { generateDisplayId } from "@/lib/display-id"
 import { normalizeBirthdateInput } from "@/lib/birthdate"
-import { parseUserIdPrefix } from "@/lib/id-prefix"
+import {
+  USER_ID_PREFIX_REGULAR,
+  parseUserIdPrefix,
+} from "@/lib/id-prefix"
 import {
   REGISTRY_EMAIL_FIELD_ERROR,
   REGISTRY_GENERIC_ERROR,
@@ -47,7 +50,7 @@ export async function hiddenRegistryAction(
 
   const honeypot = formData.get("company")
   if (typeof honeypot === "string" && honeypot.trim() !== "") {
-    return { success: true, displayId: "ZA0000" }
+    return { success: true, displayId: `${USER_ID_PREFIX_REGULAR}0000` }
   }
 
   if (!isRegistryPolicyComplete(formData)) {
