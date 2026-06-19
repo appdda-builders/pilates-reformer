@@ -63,7 +63,7 @@ export const hiddenRegistrySchema = z.object({
       message: "Usa letras y números",
     }),
   phone: z.string().max(32).optional(),
-  birthdate: z.string().min(1, "Fecha de cumpleaños requerida").max(32),
+  birthdate: z.string().max(32).optional(),
   company: z.string().max(200).optional(),
 })
 

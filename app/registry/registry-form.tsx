@@ -1,0 +1,227 @@
+"use client"
+
+import { useActionState, useEffect, useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/shared/ui/button"
+import { Checkbox } from "@/components/shared/ui/checkbox"
+import { Input } from "@/components/shared/ui/input"
+import { Label } from "@/components/shared/ui/label"
+import {
+  WELCOME_POLICY_PDF_FILENAME,
+  WELCOME_POLICY_PDF_PATH,
+} from "@/lib/hidden-registry"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/shared/ui/card"
+import { hiddenRegistryAction, type RegistryActionState } from "./actions"
+
+const initial: RegistryActionState = { success: false }
+
+export function RegistryForm(props: { registryToken: string }) {
+  const [passwordVisible, setPasswordVisible] = useState(false)
+  const [policyDownloaded, setPolicyDownloaded] = useState(false)
+  const [policyAccepted, setPolicyAccepted] = useState(false)
+  const [state, action, pending] = useActionState(hiddenRegistryAction, initial)
+
+  const canSubmit = policyDownloaded && policyAccepted
+
+  useEffect(() => {
+    if (state.success && state.displayId) {
+      setPasswordVisible(false)
+    }
+  }, [state.success, state.displayId])
+
+  if (state.success && state.displayId) {
+    return (
+      <Card className="w-full max-w-md border shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-xl">Cuenta creada</CardTitle>
+          <CardDescription>Guarda tu ID para reservar clases</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-muted/40 px-4 py-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Tu ID de usuario</p>
+            <p className="text-2xl font-semibold tracking-wide">{state.displayId}</p>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            Usa este ID en la página de agendar. Tu plan y acceso al panel los confirma el
+            estudio.
+          </p>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <Button asChild className="w-full">
+            <Link href="/agendar">Ir a agendar</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/login">Iniciar sesión</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="w-full max-w-md border shadow-sm">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-xl">Registro</CardTitle>
+        <CardDescription>Completa tus datos para obtener tu ID</CardDescription>
+      </CardHeader>
+      <form action={action} className="flex flex-col gap-6">
+        <input type="hidden" name="registryToken" value={props.registryToken} />
+        <input type="hidden" name="policyDownloaded" value={policyDownloaded ? "true" : "false"} />
+        <input type="hidden" name="policyAccepted" value={policyAccepted ? "true" : "false"} />
+        <div className="hidden" aria-hidden="true">
+          <Label htmlFor="company">Empresa</Label>
+          <Input id="company" name="company" tabIndex={-1} autoComplete="off" />
+        </div>
+        <CardContent className="space-y-4">
+          {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre completo</Label>
+            <Input id="name" name="name" required minLength={2} maxLength={120} autoComplete="name" />
+            {state.fieldErrors?.name ? (
+              <p className="text-destructive text-sm">{state.fieldErrors.name[0]}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="idPrefix">Tipo de cuenta</Label>
+            <select
+              id="idPrefix"
+              name="idPrefix"
+              defaultValue="ZA"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="ZA">Alumno regular (ZA)</option>
+              <option value="ZAT">Total Pass (ZAT)</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Correo</Label>
+            <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />
+            {state.fieldErrors?.email ? (
+              <p className="text-destructive text-sm">{state.fieldErrors.email[0]}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono (WhatsApp)</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              maxLength={32}
+              autoComplete="tel"
+            />
+            {state.fieldErrors?.phone ? (
+              <p className="text-destructive text-sm">{state.fieldErrors.phone[0]}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="birthdate">Fecha de cumpleaños</Label>
+            <Input id="birthdate" name="birthdate" type="date" />
+            {state.fieldErrors?.birthdate ? (
+              <p className="text-destructive text-sm">{state.fieldErrors.birthdate[0]}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña</Label>
+            <Input
+              id="password"
+              name="password"
+              type={passwordVisible ? "text" : "password"}
+              required
+              minLength={8}
+              maxLength={128}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+            >
+              {passwordVisible ? "Ocultar" : "Mostrar"}
+            </button>
+            {state.fieldErrors?.password ? (
+              <p className="text-destructive text-sm">{state.fieldErrors.password[0]}</p>
+            ) : null}
+          </div>
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+            <p className="text-sm font-medium">Acuerdo y políticas</p>
+            <p className="text-xs text-muted-foreground">
+              Descarga el documento, revísalo y acepta para habilitar el registro.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setPolicyDownloaded(true)
+                const link = document.createElement("a")
+                link.href = WELCOME_POLICY_PDF_PATH
+                link.download = WELCOME_POLICY_PDF_FILENAME
+                link.target = "_blank"
+                link.rel = "noopener noreferrer"
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+              }}
+            >
+              {policyDownloaded ? "Documento descargado" : "Descargar acuerdo (PDF)"}
+            </Button>
+            <a
+              href={WELCOME_POLICY_PDF_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline block text-center"
+              onClick={() => setPolicyDownloaded(true)}
+            >
+              Ver PDF en nueva pestaña
+            </a>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="policyAccepted"
+                checked={policyAccepted}
+                disabled={!policyDownloaded}
+                onCheckedChange={(value) => {
+                  if (value === true) {
+                    setPolicyAccepted(true)
+                  } else {
+                    setPolicyAccepted(false)
+                  }
+                }}
+              />
+              <Label
+                htmlFor="policyAccepted"
+                className={`text-sm leading-snug font-normal ${policyDownloaded ? "" : "text-muted-foreground"}`}
+              >
+                He leído y acepto el acuerdo de bienvenida y las políticas del estudio
+              </Label>
+            </div>
+            {!canSubmit ? (
+              <p className="text-xs text-muted-foreground">
+                {!policyDownloaded
+                  ? "Primero descarga o abre el PDF."
+                  : "Marca la casilla de aceptación para continuar."}
+              </p>
+            ) : null}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3">
+          <Button className="w-full" type="submit" disabled={pending || !canSubmit}>
+            {pending ? "Registrando..." : "Crear cuenta"}
+          </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            <Link href="/" className="text-primary hover:underline">
+              Regresar al sitio
+            </Link>
+          </p>
+        </CardFooter>
+      </form>
+    </Card>
+  )
+}
