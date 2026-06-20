@@ -63,10 +63,10 @@ export default function ContentDetail() {
           <div>
             <p className="eyebrow eyebrow-on-light">Nuesto Enfoque</p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight font-display">
-              Maquinas que se adaptan a tí, generando resultados reales.
+              Reformers que se adaptan a tí, generando resultados reales.
             </h2>
             <p className="mt-2 text-sm text-black/60">
-              Acompañamiento personalizado, puedes reservar tu clase cuando quieras. La comodidad y la flexibilidad para que puedas disfrutar de una experiencia única en cada sesión.
+              El Reformer es un equipo especializado con resortes que proporcionan resiliencia controlada, permitiendo realizar movimientos precisos y fluidos, el cual se adapta tanto a principiantes como a personas con experiencia.
             </p>
           </div>
 

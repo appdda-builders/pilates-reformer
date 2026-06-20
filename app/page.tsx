@@ -51,7 +51,7 @@ const studioPlans = [
       Quincenal: "$700",
       Mensual: "$1350",
     },
-    image: `${process.env.NEXT_PUBLIC_S3}pilates_3.jpg`,
+    image: `${process.env.NEXT_PUBLIC_S3}pilates_6.jpg`,
   },
   {
     name: "Plan Vitalidad",
@@ -61,7 +61,7 @@ const studioPlans = [
       Quincenal: "$1150",
       Mensual: "$2200",
     },
-    image: `${process.env.NEXT_PUBLIC_S3}pilates_2.jpg`,
+    image: `${process.env.NEXT_PUBLIC_S3}pilates_1.jpg`,
   },
 ];
 
@@ -164,6 +164,7 @@ export default function Home() {
                 src={LOGO_SRC}
                 alt="Studio 57 · Pilates Reformer"
                 fill
+                sizes="56px"
                 className="object-cover shadow-lg shadow-black/20"
                 priority
               />
@@ -379,7 +380,8 @@ export default function Home() {
                 Elige tus clases
               </h2>
               <p className="mt-3 text-base text-black/70">
-                Clases de pilates reformer diseñadas para fortalecer tu cuerpo, mejorar tu postura y aumentar tu flexibilidad. Elige el plan que mejor se adapte a tus objetivos y estilo de vida.
+                Clases de pilates reformer diseñadas para fortalecer tus músculos, mejorar tu postura y desarrolla una conexión mas consciente con tu cuerpo.
+                <br/>Elige el plan que más se adapte a tus objetivos y estilo de vida.
               </p>
             </motion.div>
 
@@ -394,25 +396,26 @@ export default function Home() {
                   <motion.article
                     key={plan.name}
                     variants={fadeUp}
-                    className="grid grid-cols-[0.85fr_1.15fr] gap-3 overflow-hidden lg:rounded-card border border-black/10 bg-white/90 shadow-[0_20px_40px_rgba(27,26,24,0.08)] sm:gap-6 lg:grid-cols-[1.05fr_0.95fr]"
+                    className="grid grid-cols-1 gap-3 overflow-hidden lg:rounded-card border border-black/10 bg-white/90 shadow-[0_20px_40px_rgba(27,26,24,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:min-h-[32rem]"
                   >
-                    <div className="relative aspect-5/4 self-center overflow-hidden">
+                    <div className="relative aspect-5/4 w-full overflow-hidden lg:aspect-auto lg:h-full lg:self-stretch">
                       <div
-                        className="absolute inset-0 bg-[#d8cfc2] bg-cover bg-center ml-2 md:ml-4 lg:mx-0"
+                        className="absolute inset-0 bg-[#d8cfc2] bg-cover bg-center"
                         style={{ backgroundImage: `url('${plan.image}')` }}
                       />
                     </div>
-                    <div className="flex flex-col justify-between gap-5 p-4 sm:p-6">
-                      <div>
-                        <h3 className="text-xl font-semibold font-display sm:text-2xl">
-                          {plan.name}
-                        </h3>
-                        <p className="mt-2 text-sm font-semibold text-green-base">
-                          {plan.classesPerWeek * activeCadence.weeks} clases por{" "}
-                          {activeCadence.period}
-                        </p>
-                      </div>
-                      <div className="grid gap-2 text-sm">
+                    <div className="flex flex-col justify-between gap-6 p-4 sm:p-6">
+                      <div className="flex flex-col gap-5">
+                        <div>
+                          <h3 className="text-xl font-semibold font-display sm:text-2xl">
+                            {plan.name}
+                          </h3>
+                          <p className="mt-2 text-sm font-semibold text-green-base">
+                            {plan.classesPerWeek * activeCadence.weeks} clases por{" "}
+                            {activeCadence.period}
+                          </p>
+                        </div>
+                        <div className="grid gap-2 text-sm">
                         {cadenceConfig.map((cadence) => {
                           const isActive = cadence.label === activeCadence.label;
                           return (
@@ -441,6 +444,7 @@ export default function Home() {
                             </button>
                           );
                         })}
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -458,7 +462,7 @@ export default function Home() {
               variants={fadeUp}
               className="flex items-center justify-between lg:rounded-card border border-black/10 bg-white/80 px-6 py-5"
             >
-              <p className="eyebrow eyebrow-muted">Precio por clase</p>
+              <p className="eyebrow eyebrow-muted">Clase Individual</p>
               <p className="text-2xl font-semibold text-green-base">$140</p>
             </motion.div>
           </motion.div>
@@ -480,30 +484,31 @@ export default function Home() {
                 Studio 57 · Pilates Reformer
               </h2>
               <p className="text-base text-black/70">
-                Somos un estudio de Pilates Reformer en Lázaro Cárdenas,
-                Michoacán, dedicado a acompañarte en tu cambio físico y mental.
-                Creemos que el movimiento consciente transforma cuerpos y vidas,
-                por eso cada clase está diseñada para que avances a tu propio
-                ritmo, con seguridad y resultados reales.
+                Studio 57 nació con el propósito de ofrecer un espacio seguro, armonioso y profesional donde el Pilates no solo fortalece tu cuerpo sino también tu salud mental y tu confianza.
               </p>
               <p className="text-base text-black/70">
-                Nuestras máquinas y el acompañamiento personalizado se adaptan a
-                tu nivel, ya sea que estés comenzando o busques llevar tu
-                práctica más lejos. Aquí encontrarás un espacio cálido para
-                fortalecer tu cuerpo, mejorar tu postura y reconectar contigo.
+                Inspiración: disfrutar del privilegio del movimiento y un cuerpo sano, curar el dolor, mejorar la calidad de vida de las personas.
               </p>
+              <div className="rounded bg-white/80 p-4 shadow-[0_15px_30px_rgba(27,26,24,0.1)]">
+                <p className="text-black/70 font-bold mb-2 text-xl">
+                  Nuestra Visión:
+                </p>
+                <p className="text-base text-black/70">
+                  Consolidarnos como un estudio de pilates líder en calidad y calidez humana, ofreciendo clases de pilates accesibles, profesiones y transformadoras, donde el movimiento se convierte en una herramienta para sanar, fortalecer y disfrutar la vida con plenitud.
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
               variants={fadeUp}
               className="relative h-80 overflow-hidden rounded-card border border-black/10 bg-[#d8cfc2] shadow-[0_25px_50px_rgba(27,26,24,0.15)] md:h-112 lg:order-last"
             >
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage:
-                    `url('${process.env.NEXT_PUBLIC_S3}material.jpg')`,
-                }}
+              <Image
+                src={`${process.env.NEXT_PUBLIC_S3}material.jpg`}
+                alt="Estudio Studio 57 · Pilates Reformer"
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-linear-to-t from-green-base/40 via-transparent to-transparent" />
             </motion.div>

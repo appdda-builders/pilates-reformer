@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
-const TEAM_IMAGE = `${process.env.NEXT_PUBLIC_S3}team.jpg`;
+const TEAM_IMAGE = `${process.env.NEXT_PUBLIC_S3}pilates_5.jpg`;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -41,20 +42,26 @@ export default function AboutTeam() {
             efectiva. Más que un estudio, buscamos crear una comunidad donde el
             movimiento consciente forme parte de tu día a día.
           </p>
-          <p className="text-base text-black/70">
-            Contamos con equipo profesional y un espacio diseñado para que te
-            sientas cómodo desde tu primera clase, ya sea que estés comenzando
-            o quieras llevar tu práctica más lejos.
-          </p>
+          <div className="rounded bg-white/80 p-4 shadow-[0_15px_30px_rgba(27,26,24,0.1)]">
+            <p className="text-black/70 font-bold mb-2 text-xl">
+              Nuestra Misión:
+            </p>
+            <p className="text-base text-black/70">
+              Brindar clases de pilates reformer accesibles y de alta calidad, promoviendo el bienestar integral, la confianza y el respeto por los procesos individuales de cada alumno.
+            </p>
+          </div>
         </motion.div>
 
         <motion.div
           variants={fadeUp}
           className="relative h-112 overflow-hidden rounded-card border border-black/10 bg-[#d8cfc2] shadow-[0_25px_50px_rgba(27,26,24,0.15)] md:h-136 lg:h-152 lg:order-last"
         >
-          <div
-            className="absolute inset-0 bg-cover bg-top"
-            style={{ backgroundImage: `url('${TEAM_IMAGE}')` }}
+          <Image
+            src={TEAM_IMAGE}
+            alt="Equipo de Studio 57 · Pilates Reformer"
+            fill
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            className="object-cover object-top"
           />
           <div className="absolute inset-0 bg-linear-to-t from-green-base/40 via-transparent to-transparent" />
         </motion.div>
