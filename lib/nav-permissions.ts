@@ -24,6 +24,14 @@ export function getDefaultNavPermissions(): NavPermissionsMap {
   return map
 }
 
+export function getFullRootNavPermissions(): NavPermissionsMap {
+  const map = getDefaultNavPermissions()
+  for (const item of mainNavItems) {
+    map[item.key] = { root: true, admin: true, coach: false, alumno: false }
+  }
+  return map
+}
+
 export function parseNavPermissionsJson(raw: string | null | undefined): NavPermissionsMap {
   const defaults = getDefaultNavPermissions()
   if (raw == null || raw.trim() === "") return defaults
