@@ -1,6 +1,7 @@
 import { interpolateMessage } from "@/lib/messages"
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding"
 
-export const DEFAULT_WELCOME_TEMPLATE = `Te damos la bienvenida a Zenda Abuné, {{nombre}}.
+export const DEFAULT_WELCOME_TEMPLATE = `Te damos la bienvenida, {{nombre}}.
 
 Tu ID de usuario es: {{displayId}}
 
@@ -24,12 +25,13 @@ export function buildWelcomeMessage(params: {
   plan?: string
   template?: string | null
 }): string {
+  const estudio = params.estudio?.trim() || DEFAULT_STUDIO_NAME
   const base = params.template?.trim() ? params.template : DEFAULT_WELCOME_TEMPLATE
   const body = interpolateMessage(base, {
     nombre: params.nombre,
     displayId: params.displayId,
     plan: params.plan ?? "Sin plan asignado",
-    estudio: params.estudio ?? "Zenda Abuné",
+    estudio,
     fecha: new Date().toLocaleDateString("es-MX"),
   })
   if (body.includes(params.displayId)) {
@@ -57,17 +59,18 @@ export async function sendWelcomeNotification(params: {
   const { createNotification } = await import("@/lib/notifications")
   const db = getDb()
 
+  const estudio = params.estudio?.trim() || DEFAULT_STUDIO_NAME
   const body = buildWelcomeMessage({
     nombre: params.nombre,
     displayId: params.displayId,
-    estudio: params.estudio ?? "Zenda Abuné",
+    estudio,
     template: params.template,
   })
 
   await createNotification(db, {
     userId: params.userId,
     type: "welcome",
-    title: "Te damos la bienvenida a Zenda Abuné",
+    title: `Te damos la bienvenida a ${estudio}`,
     body,
   })
 

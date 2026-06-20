@@ -2,10 +2,9 @@ import { or, eq, type SQL } from "drizzle-orm"
 import { scheduleSlot } from "@/lib/db/schema"
 import { coachTeachesSlot, type SlotInstructorFields } from "@/lib/schedule-instructor"
 
-export const COACH_GEORGIA_EMAIL = "georgia.garcia@zendaabune.com"
-export const COACH_NAOMI_EMAIL = "naomi.calderon@zendaabune.com"
-export const COACH_GEORGIA_NAME = "Georgia García"
-export const COACH_NAOMI_NAME = "Naomi Calderón"
+export const COACH_PARTNER_VIEWER_EMAIL = "elena.morales@demo.pilates.mx"
+export const COACH_PARTNER_VIEWER_NAME = "Elena Morales"
+export const COACH_PARTNER_NAME = "Lucía Paredes"
 
 export type CoachSessionInfo = {
   role: string
@@ -28,12 +27,12 @@ export function getCoachSessionInfo(user: {
 }
 
 export function coachViewsPartnerSchedules(email: string): boolean {
-  return email.toLowerCase() === COACH_GEORGIA_EMAIL
+  return email.toLowerCase() === COACH_PARTNER_VIEWER_EMAIL
 }
 
 export function slotVisibleToCoach(slot: SlotInstructorFields, coach: CoachSessionInfo): boolean {
   if (coachTeachesSlot(slot, coach.name)) return true
-  if (coachViewsPartnerSchedules(coach.email) && coachTeachesSlot(slot, COACH_NAOMI_NAME)) {
+  if (coachViewsPartnerSchedules(coach.email) && coachTeachesSlot(slot, COACH_PARTNER_NAME)) {
     return true
   }
   return false
@@ -58,10 +57,10 @@ export function coachScheduleSlotSql(
 ): SQL {
   if (coachViewsPartnerSchedules(coach.email)) {
     return or(
-      eq(table.instructor, COACH_GEORGIA_NAME),
-      eq(table.alternateInstructor, COACH_GEORGIA_NAME),
-      eq(table.instructor, COACH_NAOMI_NAME),
-      eq(table.alternateInstructor, COACH_NAOMI_NAME),
+      eq(table.instructor, COACH_PARTNER_VIEWER_NAME),
+      eq(table.alternateInstructor, COACH_PARTNER_VIEWER_NAME),
+      eq(table.instructor, COACH_PARTNER_NAME),
+      eq(table.alternateInstructor, COACH_PARTNER_NAME),
     )!
   }
   return or(eq(table.instructor, coach.name), eq(table.alternateInstructor, coach.name))!

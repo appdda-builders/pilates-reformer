@@ -56,8 +56,8 @@ ON CONFLICT ("id") DO UPDATE SET "password" = EXCLUDED."password", "updated_at" 
 
 -- ── 3. studio_policy ──────────────────────────────────────────────────────────
 
-INSERT INTO "studio_policy" ("id","studio_name","brand_color","max_capacity","cancel_hours","alert_last_class_threshold","alert_days_before_expiry","maintenance_mode","updated_at")
-VALUES ('main','Zenda Abuné','#1b2d6e',8,12,2,3,false,now())
+INSERT INTO "studio_policy" ("id","studio_name","brand_color","max_capacity","cancel_hours","cancel_minutes","alert_last_class_threshold","alert_days_before_expiry","maintenance_mode","updated_at")
+VALUES ('main','Pilates Studio','#1b2d6e',8,1,90,2,3,false,now())
 ON CONFLICT ("id") DO UPDATE SET "studio_name" = EXCLUDED."studio_name", "updated_at" = now();
 
 -- ── 4. plan ───────────────────────────────────────────────────────────────────

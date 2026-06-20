@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/shared/ui/accordion";
-import { siteAddress, sitePhoneDisplay } from "@/lib/site/routes";
+import { siteAddress, siteBrandName, siteInstagramHandle, sitePhoneDisplay } from "@/lib/site/routes";
 
 const items = [
   {
@@ -14,14 +14,14 @@ const items = [
     a:
       "Escríbenos por WhatsApp al " +
       sitePhoneDisplay +
-      " o por Instagram en @zenda_abune. Te confirmamos horario y disponibilidad.",
+      ` o por Instagram en @${siteInstagramHandle}. Te confirmamos horario y disponibilidad.`,
   },
   {
-    q: "¿Qué servicios ofrecen en Zenda Abuné?",
+    q: `¿Qué servicios ofrecen en ${siteBrandName}?`,
     a: "Pilates Reformer en un ambiente exclusivo y profesional, con equipamiento moderno y grupos controlados.",
   },
   {
-    q: "¿Dónde se encuentra Zenda Abuné?",
+    q: `¿Dónde se encuentra ${siteBrandName}?`,
     a: siteAddress,
   },
   {

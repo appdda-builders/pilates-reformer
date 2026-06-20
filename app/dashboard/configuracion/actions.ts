@@ -8,6 +8,7 @@ import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { serializeNavPermissions, type NavPermissionsMap } from "@/lib/nav-permissions"
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding"
 
 const tabSchema = z.enum(["general", "booking", "alerts", "messages", "advanced"])
 
@@ -18,7 +19,7 @@ const generalSchema = z.object({
 
 const bookingSchema = z.object({
   maxCapacity: z.coerce.number().min(1).max(500),
-  cancelHours: z.coerce.number().min(0).max(168),
+  cancelMinutes: z.coerce.number().min(0).max(10080),
   lateCancelPenalty: z.enum(["true", "false"]),
   noShowPenalty: z.enum(["true", "false"]),
   maxBookingsPerDay: z.coerce.number().min(1).max(50),
@@ -82,7 +83,7 @@ async function ensureMainStudioPolicy(db: ReturnType<typeof getDb>) {
   const { getDefaultNavPermissions, serializeNavPermissions } = await import("@/lib/nav-permissions")
   await db.insert(schema.studioPolicy).values({
     id: "main",
-    studioName: "Zenda Abuné",
+    studioName: DEFAULT_STUDIO_NAME,
     brandColor: "#1b2d6e",
     navPermissions: serializeNavPermissions(getDefaultNavPermissions()),
   })
@@ -153,7 +154,7 @@ export async function saveConfigAction(formData: FormData): Promise<ConfigAction
     if (tabParsed.data === "booking") {
       const parsed = bookingSchema.safeParse({
         maxCapacity: formData.get("maxCapacity"),
-        cancelHours: formData.get("cancelHours"),
+        cancelMinutes: formData.get("cancelMinutes"),
         lateCancelPenalty: formData.get("lateCancelPenalty"),
         noShowPenalty: formData.get("noShowPenalty"),
         maxBookingsPerDay: formData.get("maxBookingsPerDay"),
@@ -166,7 +167,8 @@ export async function saveConfigAction(formData: FormData): Promise<ConfigAction
         .update(schema.studioPolicy)
         .set({
           maxCapacity: parsed.data.maxCapacity,
-          cancelHours: parsed.data.cancelHours,
+          cancelMinutes: parsed.data.cancelMinutes,
+          cancelHours: Math.max(1, Math.ceil(parsed.data.cancelMinutes / 60)),
           lateCancelPenalty: parsed.data.lateCancelPenalty === "true",
           noShowPenalty: parsed.data.noShowPenalty === "true",
           maxBookingsPerDay: parsed.data.maxBookingsPerDay,

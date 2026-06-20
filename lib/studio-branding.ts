@@ -1,6 +1,8 @@
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 
+export const DEFAULT_STUDIO_NAME = "Pilates Studio"
+
 export type StudioBranding = {
   studioName: string
   logoUrl: string | null
@@ -20,10 +22,10 @@ export async function getStudioBranding(): Promise<StudioBranding> {
     const row = rows[0]
     const name = row?.studioName?.trim() ?? ""
     return {
-      studioName: name !== "" ? name : "Pilates Studio",
+      studioName: name !== "" ? name : DEFAULT_STUDIO_NAME,
       logoUrl: row?.logoUrl ?? null,
     }
   } catch {
-    return { studioName: "Pilates Studio", logoUrl: null }
+    return { studioName: DEFAULT_STUDIO_NAME, logoUrl: null }
   }
 }

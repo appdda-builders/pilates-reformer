@@ -4,11 +4,17 @@ import { and, eq, gte, lte } from "drizzle-orm"
 import { dateRangeForDay, toLocalDateStr } from "@/lib/booking-slot-options"
 import { validateBookingAgeForSlot } from "@/lib/booking-rules"
 import {
+  classEndFromBooking,
   classStartFromBooking,
   evaluateCancellation,
+  evaluateBookingAllowed,
   loadStudioCancellationPolicy,
 } from "@/lib/cancellation-policy"
 import { consumeClassFromSubscription, restoreClassToSubscription } from "@/lib/subscription-logic"
+import {
+  isSubscriptionCurrent,
+  pickPrimarySubscription,
+} from "@/lib/subscription-display"
 
 export type CreateBookingResult =
   | { ok: true; bookingId: string; userName: string }
@@ -54,6 +60,119 @@ export async function userHasBookingForSlot(
   return row != null
 }
 
+export async function countConfirmedBookingsForSlotOnDate(
+  db: AnyDb,
+  scheduleSlotId: string,
+  bookingDate: Date,
+): Promise<number> {
+  const dateStr = toLocalDateStr(bookingDate)
+  const { start, end } = dateRangeForDay(dateStr)
+  const rows = await db
+    .select({ id: schema.booking.id })
+    .from(schema.booking)
+    .where(
+      and(
+        eq(schema.booking.scheduleSlotId, scheduleSlotId),
+        eq(schema.booking.status, "confirmed"),
+        gte(schema.booking.bookingDate, start),
+        lte(schema.booking.bookingDate, end),
+      ),
+    )
+  return rows.length
+}
+
+export async function checkSlotCapacityForBooking(
+  db: AnyDb,
+  scheduleSlotId: string,
+  bookingDate: Date,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const [slot] = await db
+    .select({ capacity: schema.scheduleSlot.capacity })
+    .from(schema.scheduleSlot)
+    .where(eq(schema.scheduleSlot.id, scheduleSlotId))
+    .limit(1)
+
+  if (!slot) {
+    return { ok: false, message: "Horario no disponible" }
+  }
+
+  const confirmed = await countConfirmedBookingsForSlotOnDate(db, scheduleSlotId, bookingDate)
+  if (confirmed >= slot.capacity) {
+    return { ok: false, message: "Esta clase ya está llena. No hay lugares disponibles." }
+  }
+
+  return { ok: true }
+}
+
+export type BookableSubscriptionCheck =
+  | { ok: true; subscriptionId: string }
+  | {
+      ok: false
+      message: string
+      reason?: "no_subscription" | "expired" | "no_classes"
+      subscriptionId?: string
+    }
+
+export async function checkBookableSubscriptionForUser(
+  db: AnyDb,
+  userId: string,
+): Promise<BookableSubscriptionCheck> {
+  const subs = await db
+    .select({
+      id: schema.subscription.id,
+      userId: schema.subscription.userId,
+      status: schema.subscription.status,
+      endDate: schema.subscription.endDate,
+      isUnlimited: schema.subscription.isUnlimited,
+      classesRemaining: schema.subscription.classesRemaining,
+      planType: schema.plan.planType,
+    })
+    .from(schema.subscription)
+    .innerJoin(schema.plan, eq(schema.subscription.planId, schema.plan.id))
+    .where(
+      and(
+        eq(schema.subscription.userId, userId),
+        eq(schema.subscription.status, "active"),
+      ),
+    )
+
+  const primary = pickPrimarySubscription(subs)
+  if (primary == null) {
+    return {
+      ok: false,
+      message: "No tienes una suscripción activa vigente.",
+      reason: "no_subscription",
+    }
+  }
+
+  if (!isSubscriptionCurrent(primary.status, primary.endDate)) {
+    return {
+      ok: false,
+      message: "Tu suscripción ya venció. Renueva para reservar.",
+      reason: "expired",
+    }
+  }
+
+  if (primary.isUnlimited) {
+    return { ok: true, subscriptionId: primary.id }
+  }
+
+  if (primary.planType === "monthly") {
+    return { ok: true, subscriptionId: primary.id }
+  }
+
+  if ((primary.classesRemaining ?? 0) > 0) {
+    return { ok: true, subscriptionId: primary.id }
+  }
+
+  return {
+    ok: false,
+    message: "No tienes clases disponibles en tu suscripción actual.",
+    reason: "no_classes",
+    subscriptionId: primary.id,
+  }
+}
+
 export async function createBookingForUser(
   db: AnyDb,
   params: {
@@ -61,6 +180,7 @@ export async function createBookingForUser(
     scheduleSlotId: string
     bookingDate: Date
     birthdate?: string | null
+    allowNoClasses?: boolean
   },
 ): Promise<CreateBookingResult> {
   const [slot] = await db
@@ -68,8 +188,10 @@ export async function createBookingForUser(
       id: schema.scheduleSlot.id,
       dayOfWeek: schema.scheduleSlot.dayOfWeek,
       startTime: schema.scheduleSlot.startTime,
+      endTime: schema.scheduleSlot.endTime,
       classType: schema.scheduleSlot.classType,
       isActive: schema.scheduleSlot.isActive,
+      capacity: schema.scheduleSlot.capacity,
     })
     .from(schema.scheduleSlot)
     .where(eq(schema.scheduleSlot.id, params.scheduleSlotId))
@@ -103,6 +225,36 @@ export async function createBookingForUser(
     }
   }
 
+  const confirmed = await countConfirmedBookingsForSlotOnDate(
+    db,
+    params.scheduleSlotId,
+    params.bookingDate,
+  )
+  if (confirmed >= slot.capacity) {
+    return { ok: false, message: "Esta clase ya está llena. No hay lugares disponibles." }
+  }
+
+  const classEnd = classEndFromBooking(params.bookingDate, slot.startTime, slot.endTime)
+  const bookingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  if (!bookingCheck.ok) {
+    return { ok: false, message: bookingCheck.message }
+  }
+
+  const subCheck = await checkBookableSubscriptionForUser(db, params.userId)
+  let subscriptionId: string | null = null
+
+  if (subCheck.ok) {
+    subscriptionId = subCheck.subscriptionId
+  } else if (
+    params.allowNoClasses === true &&
+    subCheck.reason === "no_classes" &&
+    subCheck.subscriptionId != null
+  ) {
+    subscriptionId = subCheck.subscriptionId
+  } else {
+    return { ok: false, message: subCheck.message }
+  }
+
   const bookingId = crypto.randomUUID()
   await db.insert(schema.booking).values({
     id: bookingId,
@@ -112,20 +264,7 @@ export async function createBookingForUser(
     status: "confirmed",
   })
 
-  const [activeSub] = await db
-    .select({ id: schema.subscription.id })
-    .from(schema.subscription)
-    .where(
-      and(
-        eq(schema.subscription.userId, params.userId),
-        eq(schema.subscription.status, "active"),
-      ),
-    )
-    .limit(1)
-
-  if (activeSub) {
-    await consumeClassFromSubscription(activeSub.id)
-  }
+  await consumeClassFromSubscription(subscriptionId)
 
   const [user] = await db
     .select({ name: schema.user.name })

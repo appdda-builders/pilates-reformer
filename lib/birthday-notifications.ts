@@ -6,6 +6,7 @@ import { and, eq, gte, lt } from "drizzle-orm"
 import { birthdateMonthDayKey } from "@/lib/birthdate"
 import { interpolateMessage } from "@/lib/messages"
 import { createNotification } from "@/lib/notifications"
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding"
 
 function todayMonthDayKey(date: Date = new Date()): string {
   return `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
@@ -59,7 +60,7 @@ export async function sendTodayBirthdayNotifications(db: AnyDb): Promise<number>
   const template =
     policy?.birthdayMessage?.trim() ??
     "¡Feliz cumpleaños {{nombre}}! El equipo de {{estudio}} te desea un día increíble."
-  const estudio = policy?.studioName?.trim() ?? "Zenda Abuné"
+  const estudio = policy?.studioName?.trim() ?? DEFAULT_STUDIO_NAME
 
   const alumnos = await db
     .select({

@@ -4,7 +4,11 @@ import { FaInstagram } from "react-icons/fa6";
 import { Button } from "@/components/shared/ui/button";
 import {
   siteAddress,
+  siteBrandName,
+  siteBrandShort,
+  siteInstagramHandle,
   siteInstagramUrl,
+  siteLogo,
   siteMapsEmbedUrl,
   sitePhoneDisplay,
   siteWhatsAppUrl,
@@ -27,11 +31,11 @@ export function SiteFooter() {
               className="inline-flex items-center gap-2 font-sans text-sm opacity-90 hover:opacity-100"
             >
               <FaInstagram className="size-5" aria-hidden />
-              @zenda_abune
+              @{siteInstagramHandle}
             </a>
           </div>
           <div className="space-y-4 text-center md:text-left">
-            <p className="font-display text-2xl">Únete a Zenda</p>
+            <p className="font-display text-2xl">Únete a {siteBrandShort}</p>
             <p className="font-sans text-sm opacity-90">
               Fortaleciendo tu poder consciente.
             </p>
@@ -86,14 +90,14 @@ export function SiteFooter() {
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Ubicación de Zenda Abuné en Google Maps"
+                title={`Ubicación de ${siteBrandName} en Google Maps`}
               />
             </div>
           </div>
         </div>
         <div className="font-sans mt-10 text-center text-xs opacity-60">
           <Link href="/" className="hover:opacity-100">
-            © Zenda Abuné
+            © {siteBrandName}
           </Link>
         </div>
       </div>

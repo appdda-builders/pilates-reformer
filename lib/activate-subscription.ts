@@ -1,6 +1,10 @@
 import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { and, eq } from "drizzle-orm"
+import {
+  computeSubscriptionEndDate,
+  toSubscriptionLocalDate,
+} from "@/lib/subscription-dates"
 
 export async function activateSubscriptionForUser(
   db: AnyDb,
@@ -27,9 +31,8 @@ export async function activateSubscriptionForUser(
     return { ok: false, error: "El plan no está activo" }
   }
 
-  const startDate = params.startDate ?? new Date()
-  const endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + selectedPlan.durationDays)
+  const startDate = toSubscriptionLocalDate(params.startDate ?? new Date())
+  const endDate = computeSubscriptionEndDate(startDate, selectedPlan.durationDays)
 
   const discountPct = params.discountPct ?? null
   const finalPrice =

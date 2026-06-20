@@ -11,6 +11,11 @@ import {
   activateSubscriptionForUser,
   cancelActiveSubscriptionsForUser,
 } from "@/lib/activate-subscription"
+import {
+  computeSubscriptionEndDate,
+  toSubscriptionLocalDate,
+} from "@/lib/subscription-dates"
+import { isSubscriptionRenewable } from "@/lib/subscription-display"
 
 export type ActionState = {
   success: boolean
@@ -146,15 +151,14 @@ export async function renewSubscriptionAction(
     row.sub.endDate instanceof Date
       ? row.sub.endDate
       : new Date(row.sub.endDate as unknown as number)
-  if (end >= new Date()) {
+  if (!isSubscriptionRenewable(row.sub.status, end)) {
     return { success: false, error: "La suscripción aún no ha vencido" }
   }
 
   const plan = row.plan
   const sub = row.sub
-  const startDate = new Date()
-  const endDate = new Date(startDate)
-  endDate.setDate(endDate.getDate() + plan.durationDays)
+  const startDate = toSubscriptionLocalDate(new Date())
+  const endDate = computeSubscriptionEndDate(startDate, plan.durationDays)
 
   const discountPct = sub.discountPct
   const finalPrice =

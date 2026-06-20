@@ -19,7 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/shared/ui/sheet";
-import { siteLogo, siteNav } from "@/lib/site/routes";
+import { siteBrandName, siteLogo, siteNav } from "@/lib/site/routes";
 import { cn } from "@/lib/utils";
 
 function isNavActive(pathname: string, href: string) {
@@ -43,13 +43,13 @@ export function SiteHeader() {
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <Image
             src={siteLogo}
-            alt="Zenda Abuné"
+            alt={siteBrandName}
             width={44}
             height={44}
             className="size-11 shrink-0 rounded-full object-cover"
           />
           <span className="font-display text-foreground truncate text-xl tracking-tight">
-            Zenda Abuné
+            {siteBrandName}
           </span>
         </Link>
         <div className="flex items-center gap-2">

@@ -29,6 +29,7 @@ export type StudioPolicyFormValues = {
   brandColor: string
   maxCapacity: number
   cancelHours: number
+  cancelMinutes: number
   lateCancelPenalty: boolean
   noShowPenalty: boolean
   maxBookingsPerDay: number
@@ -142,15 +143,18 @@ export function ConfigFormsClient(props: {
                   <Input className="py-1" id="maxCapacity" name="maxCapacity" type="number" min={1} required defaultValue={props.policy.maxCapacity} />
                 </div>
                 <div className="flex flex-col gap-1 py-1">
-                  <Label className="py-1" htmlFor="cancelHours">Horas mínimas para cancelar</Label>
-                  <Input className="py-1" id="cancelHours" name="cancelHours" type="number" min={0} required defaultValue={props.policy.cancelHours} />
+                  <Label className="py-1" htmlFor="cancelMinutes">Anticipación mínima para cancelar (minutos)</Label>
+                  <p className="text-xs text-muted-foreground py-1">
+                    Con menos tiempo no se puede cancelar. Las reservas nuevas se permiten hasta 5 minutos antes de que termine la clase.
+                  </p>
+                  <Input className="py-1" id="cancelMinutes" name="cancelMinutes" type="number" min={0} step={15} required defaultValue={props.policy.cancelMinutes} />
                 </div>
                 <div className="flex flex-col gap-1 py-1">
                   <Label className="py-1" htmlFor="lateCancelPenalty">
                     Descontar clase si cancela tarde
                   </Label>
                   <p className="text-xs text-muted-foreground py-1">
-                    Cancela después del plazo de horas mínimas y pierde esa clase del plan.
+                    Reservado para políticas futuras. Hoy, dentro de la ventana mínima la cancelación está bloqueada.
                   </p>
                   <select
                     id="lateCancelPenalty"
@@ -167,7 +171,7 @@ export function ConfigFormsClient(props: {
                     Descontar clase si reservó y no asistió
                   </Label>
                   <p className="text-xs text-muted-foreground py-1">
-                    Tenía reserva confirmada, no vino a clase y no canceló a tiempo.
+                    La clase ya se descuenta al reservar. Marcar no-show solo registra asistencia.
                   </p>
                   <select
                     id="noShowPenalty"

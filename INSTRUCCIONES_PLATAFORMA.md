@@ -11,7 +11,7 @@ Esta guía explica cómo entrar y explorar el **sistema de gestión** con los da
 Pueden hacer clic, crear cambios de prueba y salir cuando gusten. Es reversible: los datos viven en la base de datos de demo, no en producción real.
 
 > El **landing** (`/`) muestra la marca **Studio 57 · Pilates reformer** (demo de producto Appstract).  
-> Tras cargar el seed, el **dashboard** usa el nombre de estudio **Zenda Abuné** (configuración en `studio_policy`).
+> Tras cargar el seed, el **dashboard** usa el nombre de estudio **Pilates Studio** (configuración en `studio_policy`).
 
 ---
 
@@ -96,7 +96,7 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 
 | Campo | Valor demo |
 |-------|------------|
-| Nombre | Zenda Abuné |
+| Nombre | Pilates Studio |
 | Color de marca | `#1b2d6e` |
 | Aforo máximo por clase | 8 |
 | Horas para cancelar | 12 |
@@ -185,7 +185,7 @@ Coaches en turnos: **Elena Morales** y **Lucía Paredes**. Clase: **Pilates Refo
 | **Reportes** | Métricas y aforo |
 | **Devoluciones** | Devolución de Alma Delgado |
 | **Histórico** | Actividad pasada |
-| **Configuración** | Nombre **Zenda Abuné**, capacidad, políticas |
+| **Configuración** | Nombre **Pilates Studio**, capacidad, políticas |
 
 ### Con **root** (`operador@demo.pilates.mx`)
 
@@ -221,7 +221,7 @@ Fuera del login, el landing de producto incluye:
 ## Sobre los nombres y los datos
 
 - **Ricardo, Patricia, Elena, Lucía, Irene, Beatriz…** son personas **inventadas** para la demo.
-- **Planes y precios** del seed reflejan el negocio tipo Zenda; el landing muestra otros planes como vitrina Appstract.
+- **Planes y precios** del seed son datos de demo; el landing muestra la vitrina **Studio 57** como ejemplo de producto Appstract.
 - Los códigos **ST1001–ST1008** muestran cómo se verán los folios cuando el estudio use datos reales.
 
 ---

@@ -195,23 +195,13 @@ CREATE TABLE IF NOT EXISTS "studio_policy" (
 	"studio_name" text DEFAULT 'Pilates Studio' NOT NULL,
 	"logo_url" text,
 	"max_capacity" integer DEFAULT 8 NOT NULL,
-	"cancel_hours" integer DEFAULT 12 NOT NULL,
+	"cancel_hours" integer DEFAULT 1 NOT NULL,
+	"cancel_minutes" integer DEFAULT 90 NOT NULL,
 	"alert_last_class_threshold" integer DEFAULT 2 NOT NULL,
 	"alert_days_before_expiry" integer DEFAULT 3 NOT NULL,
-	"welcome_message" text DEFAULT 'Te damos la bienvenida a Zenda Abuné, {{nombre}}.
+	"welcome_message" text DEFAULT 'Bienvenid@ {{nombre}}.
 
-Tu ID de usuario es: {{displayId}}
-
-Qué traer a clase:
-• Botella con agua
-• Calcetas antiderrapantes
-• Toalla
-
-Políticas de cancelación:
-• Clase matutina (antes de mediodía): aviso antes de las 9:00 PM del día anterior.
-• Clase vespertina: aviso con al menos 3 horas de anticipación.
-
-Importante: los planes son mensuales y las clases no son acumulables.
+Tu ID es: {{displayId}}
 
 ¡Nos vemos en el estudio!' NOT NULL,
 	"birthday_message" text DEFAULT '¡Feliz cumpleaños {{nombre}}! El equipo de {{estudio}} te desea un día increíble.' NOT NULL,

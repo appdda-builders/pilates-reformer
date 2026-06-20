@@ -14,6 +14,7 @@ import { applyUserPlan } from "@/lib/activate-subscription"
 import { revokeUserSessions } from "@/lib/revoke-user-sessions"
 import { resetUserPassword } from "@/lib/reset-user-password"
 import { routes } from "@/lib/routes"
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding"
 
 const createAlumnoSchema = z.object({
   name: z.string().min(2, "Nombre demasiado corto"),
@@ -141,7 +142,7 @@ export async function createAlumnoAction(
         nombre: parsed.data.name,
         displayId,
         phone: parsed.data.phone ?? null,
-        estudio: policy?.studioName ?? "Zenda Abuné",
+        estudio: policy?.studioName ?? DEFAULT_STUDIO_NAME,
       })
 
       if (planId !== "") {

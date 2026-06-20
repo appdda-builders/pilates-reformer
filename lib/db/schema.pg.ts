@@ -239,7 +239,8 @@ export const studioPolicy = pgTable("studio_policy", {
   studioName: text("studio_name").notNull().default("Pilates Studio"),
   logoUrl: text("logo_url"),
   maxCapacity: integer("max_capacity").notNull().default(8),
-  cancelHours: integer("cancel_hours").notNull().default(12),
+  cancelHours: integer("cancel_hours").notNull().default(1),
+  cancelMinutes: integer("cancel_minutes").notNull().default(90),
   alertLastClassThreshold: integer("alert_last_class_threshold").notNull().default(2),
   alertDaysBeforeExpiry: integer("alert_days_before_expiry").notNull().default(3),
   welcomeMessage: text("welcome_message").notNull().default(

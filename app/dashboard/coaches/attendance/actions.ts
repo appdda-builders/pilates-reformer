@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
-import { and, eq } from "drizzle-orm"
-import { consumeClassFromSubscription } from "@/lib/subscription-logic"
+import { eq } from "drizzle-orm"
 
 export async function toggleAttendanceAction(formData: FormData): Promise<void> {
   const session = await auth.api.getSession({
@@ -36,10 +35,7 @@ export async function toggleAttendanceAction(formData: FormData): Promise<void> 
 
   if (!booking) return
 
-  const shouldConsume = !booking.countedAsAttended
-
   if (!attended && booking.status === "confirmed") {
-    // No-show: class is consumed, no refund
     await db
       .update(schema.booking)
       .set({ attended: false, countedAsAttended: true })
@@ -54,23 +50,6 @@ export async function toggleAttendanceAction(formData: FormData): Promise<void> 
       .update(schema.booking)
       .set({ attended })
       .where(eq(schema.booking.id, bookingId))
-  }
-
-  if (shouldConsume) {
-    const [activeSub] = await db
-      .select({ id: schema.subscription.id })
-      .from(schema.subscription)
-      .where(
-        and(
-          eq(schema.subscription.userId, booking.userId),
-          eq(schema.subscription.status, "active"),
-        )
-      )
-      .limit(1)
-
-    if (activeSub) {
-      await consumeClassFromSubscription(activeSub.id)
-    }
   }
 
   const dateRaw = formData.get("date")

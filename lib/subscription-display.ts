@@ -1,13 +1,18 @@
+import { subscriptionEndOfDay } from "@/lib/subscription-dates"
+
 export function subscriptionEndDate(endDate: Date | number): Date {
   return endDate instanceof Date ? endDate : new Date(endDate)
 }
+
+export { subscriptionEndOfDay }
 
 export function isSubscriptionCurrent(
   status: string,
   endDate: Date | number,
   now: Date = new Date(),
 ): boolean {
-  return status === "active" && subscriptionEndDate(endDate) >= now
+  if (status !== "active") return false
+  return subscriptionEndOfDay(subscriptionEndDate(endDate)) >= now
 }
 
 export function isSubscriptionRenewable(
@@ -15,7 +20,8 @@ export function isSubscriptionRenewable(
   endDate: Date | number,
   now: Date = new Date(),
 ): boolean {
-  return status === "active" && subscriptionEndDate(endDate) < now
+  if (status !== "active") return false
+  return subscriptionEndOfDay(subscriptionEndDate(endDate)) < now
 }
 
 export function pickPrimarySubscription<

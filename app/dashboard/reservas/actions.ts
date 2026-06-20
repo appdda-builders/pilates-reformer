@@ -12,8 +12,14 @@ import {
   createBookingForUser,
   cancelBookingById,
   userHasBookingForSlot,
+  checkBookableSubscriptionForUser,
+  checkSlotCapacityForBooking,
 } from "@/lib/booking-service"
 import { validateBookingAgeForSlot } from "@/lib/booking-rules"
+import {
+  classEndFromBooking,
+  evaluateBookingAllowed,
+} from "@/lib/cancellation-policy"
 import {
   bookingDateAtNoon,
   getDayOfWeekFromDateStr,
@@ -124,6 +130,7 @@ export async function checkBookingEligibilityAction(
     .select({
       dayOfWeek: schema.scheduleSlot.dayOfWeek,
       startTime: schema.scheduleSlot.startTime,
+      endTime: schema.scheduleSlot.endTime,
       classType: schema.scheduleSlot.classType,
     })
     .from(schema.scheduleSlot)
@@ -157,6 +164,22 @@ export async function checkBookingEligibilityAction(
       ok: false,
       message: "Esta persona ya tiene una reserva confirmada para esa clase en esa fecha",
     }
+  }
+
+  const capacityCheck = await checkSlotCapacityForBooking(db, scheduleSlotId, bookingDate)
+  if (!capacityCheck.ok) {
+    return { ok: false, message: capacityCheck.message }
+  }
+
+  const classEnd = classEndFromBooking(bookingDate, slot.startTime, slot.endTime)
+  const timingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  if (!timingCheck.ok) {
+    return { ok: false, message: timingCheck.message }
+  }
+
+  const subCheck = await checkBookableSubscriptionForUser(db, alumna.id)
+  if (!subCheck.ok) {
+    return { ok: false, message: subCheck.message }
   }
 
   return { ok: true, alumnaName: alumna.name }
