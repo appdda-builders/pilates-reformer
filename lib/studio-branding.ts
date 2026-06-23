@@ -1,12 +1,8 @@
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
+import { DEFAULT_STUDIO_NAME, type StudioBranding } from "@/lib/studio-branding-constants"
 
-export const DEFAULT_STUDIO_NAME = "Pilates Studio"
-
-export type StudioBranding = {
-  studioName: string
-  logoUrl: string | null
-}
+export { DEFAULT_STUDIO_NAME, type StudioBranding }
 
 export async function getStudioBranding(): Promise<StudioBranding> {
   try {

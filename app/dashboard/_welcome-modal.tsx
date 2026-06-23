@@ -9,7 +9,7 @@ import {
 } from "@/components/shared/ui/dialog"
 import { Button } from "@/components/shared/ui/button"
 import { interpolateMessage } from "@/lib/messages"
-import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding"
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio-branding-constants"
 import { markWelcomeShownAction } from "./_actions"
 
 export function WelcomeModal(props: {
