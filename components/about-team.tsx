@@ -42,8 +42,8 @@ export default function AboutTeam() {
             efectiva. Más que un estudio, buscamos crear una comunidad donde el
             movimiento consciente forme parte de tu día a día.
           </p>
-          <div className="rounded bg-white/80 p-4 shadow-[0_15px_30px_rgba(27,26,24,0.1)]">
-            <p className="text-black/70 font-bold mb-2 text-xl">
+          <div className="rounded py-4">
+            <p className="text-3xl font-semibold leading-tight md:text-4xl font-display">
               Nuestra Misión:
             </p>
             <p className="text-base text-black/70">

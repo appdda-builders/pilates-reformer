@@ -158,15 +158,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <a
               href="#top"
-              className="relative h-14 w-14 overflow-hidden border border-black/10"
+              className="relative h-14 w-14 overflow-hidden"
             >
               <Image
                 src={LOGO_SRC}
-                alt="Studio 57 · Pilates Reformer"
+                alt="Studio 57"
                 fill
-                sizes="56px"
-                className="object-cover shadow-lg shadow-black/20"
-                priority
+                sizes="63px"
+                className="object-cover shadow-lg shadow-white/20"
               />
             </a>
             <div>
@@ -301,8 +300,8 @@ export default function Home() {
               <Image
                 src={LOGO_SRC}
                 alt="Studio 57 · Pilates Reformer"
-                width={70}
-                height={70}
+                width={80}
+                height={80}
                 className="h-20 w-20 object-cover mx-auto m-1"
                 priority
               />
@@ -489,8 +488,8 @@ export default function Home() {
               <p className="text-base text-black/70">
                 Inspiración: disfrutar del privilegio del movimiento y un cuerpo sano, curar el dolor, mejorar la calidad de vida de las personas.
               </p>
-              <div className="rounded bg-white/80 p-4 shadow-[0_15px_30px_rgba(27,26,24,0.1)]">
-                <p className="text-black/70 font-bold mb-2 text-xl">
+              <div className="rounded py-4">
+                <p className="text-3xl font-semibold leading-tight md:text-4xl font-display">
                   Nuestra Visión:
                 </p>
                 <p className="text-base text-black/70">
@@ -706,8 +705,8 @@ export default function Home() {
                 <Image
                   src={LOGO_SRC}
                   alt="Studio 57 · Pilates Reformer"
-                  width={40}
-                  height={40}
+                  width={64}
+                  height={64}
                   className="h-full w-full object-cover shadow-lg shadow-white/20"
                 />
               </div>
