@@ -471,6 +471,13 @@ export default function Home() {
               <p className="eyebrow eyebrow-muted">Clase Individual</p>
               <p className="text-2xl font-semibold text-green-base">$140</p>
             </motion.div>
+            <motion.div
+              variants={fadeUp}
+              className="flex items-center justify-between lg:rounded-card border border-black/10 bg-white/80 px-6 py-5"
+            >
+              <p className="eyebrow eyebrow-muted">Clase Muestra</p>
+              <p className="text-2xl font-semibold text-green-base">$0</p>
+            </motion.div>
           </motion.div>
         </section>
 
