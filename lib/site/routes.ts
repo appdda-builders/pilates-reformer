@@ -4,10 +4,10 @@ export const siteNav = [
 
 export const siteBrandName = "Studio 57 · Pilates Reformer"
 export const siteBrandShort = "Studio 57"
-export const siteInstagramHandle = "studio57pilates"
-export const siteWhatsAppUrl = "https://wa.me/525640054992"
+export const siteInstagramHandle = "studio57_lzc_pilatesreformer"
+export const siteWhatsAppUrl = "https://wa.me/527531304624"
 export const siteInstagramUrl = `https://www.instagram.com/${siteInstagramHandle}/`
-export const sitePhoneDisplay = "56 4005 4992"
+export const sitePhoneDisplay = "+52 753 130 4624"
 export const siteAddress =
   "Av. Montevideo 171, Lindavista, Gustavo A. Madero, 07300 Ciudad de México, CDMX"
 export const siteMapsEmbedUrl =

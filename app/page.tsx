@@ -3,6 +3,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { FaPlayCircle, FaRegStopCircle } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
+import {
+  siteInstagramHandle,
+  siteInstagramUrl,
+  sitePhoneDisplay,
+  siteWhatsAppUrl,
+} from "@/lib/site/routes";
 import ContentDetail from "@/components/content-detail";
 import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
 import HeroVideo from "@/components/hero-video";
@@ -701,13 +708,13 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <div className="grid h-16 w-16 overflow-hidden border border-white/15">
+              <div className="relative h-16 w-16 overflow-hidden border border-white/15">
                 <Image
                   src={LOGO_SRC}
                   alt="Studio 57 · Pilates Reformer"
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-cover shadow-lg shadow-white/20"
+                  fill
+                  sizes="64px"
+                  className="object-cover shadow-lg shadow-white/20"
                 />
               </div>
               <div>
@@ -717,11 +724,27 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-2 text-sm text-white/70">
             <p className="text-amber-100">Contacto</p>
-            <span>+52 55 1234 5678</span>
+            <a
+              href={siteWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-green-400 transition-colors hover:text-green-300"
+            >
+              <FaWhatsapp className="size-5" aria-hidden />
+              {sitePhoneDisplay}
+            </a>
           </div>
           <div className="flex flex-col gap-3 text-sm text-white/70">
             <p className="text-amber-100">Social</p>
-            <span>hola@pilatesreformer.com</span>
+            <a
+              href={siteInstagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 transition-colors hover:text-white"
+            >
+              <FaInstagram className="size-5" aria-hidden />
+              @{siteInstagramHandle}
+            </a>
           </div>
           <div className="flex flex-col">
             <motion.div

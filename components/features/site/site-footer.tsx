@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaInstagram } from "react-icons/fa6";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
 
 import { Button } from "@/components/shared/ui/button";
 import {
@@ -57,8 +57,11 @@ export function SiteFooter() {
             </p>
             <a
               href={siteWhatsAppUrl}
-              className="font-sans block text-xl font-normal hover:opacity-90 sm:text-2xl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-sans inline-flex items-center justify-center gap-2 text-xl font-normal text-green-400 hover:text-green-300 md:justify-start sm:text-2xl"
             >
+              <FaWhatsapp className="size-6" aria-hidden />
               {sitePhoneDisplay}
             </a>
             <p className="font-sans text-sm opacity-80">{siteAddress}</p>
