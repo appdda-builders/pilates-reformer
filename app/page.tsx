@@ -296,7 +296,7 @@ export default function Home() {
             <motion.h1
             variants={fadeUp}
             className="text-center text-4xl text-[#f9ecda] font-semibold leading-tight font-display">
-              Bienvenido
+              Bienvenid@
               <br />
               Tu cambio comienza en:
             </motion.h1>
