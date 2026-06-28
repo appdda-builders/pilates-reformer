@@ -9,6 +9,7 @@ import {
   scheduleDayLabels,
   type PublicScheduleSlot,
 } from "@/lib/site/schedule"
+import { formatSlotTime } from "@/lib/attendance-report-utils"
 import { findSlotAt, getBoardTimes } from "@/lib/site/schedule-board"
 
 const demoEnrollments: Record<string, number> = {
@@ -97,7 +98,7 @@ export default function SetupWeeklySchedule({
             {boardTimes.map((time) => (
               <tr key={time}>
                 <td className="border-r border-white/10 p-1.5 font-semibold text-white/75 sm:p-2">
-                  {time}
+                  {formatSlotTime(time)}
                 </td>
                 {scheduleDayLabels.map((day) => {
                   const slot = findSlotAt(slots, day.dayOfWeek, time)

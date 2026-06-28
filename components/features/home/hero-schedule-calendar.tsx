@@ -11,6 +11,7 @@ import {
   scheduleDayLabels,
   type PublicScheduleSlot,
 } from "@/lib/site/schedule"
+import { formatSlotTime } from "@/lib/attendance-report-utils"
 import { findSlotAt, getBoardTimes } from "@/lib/site/schedule-board"
 import { cn } from "@/lib/utils"
 
@@ -115,7 +116,7 @@ export function HeroScheduleCalendar(props: {
                 {boardTimes.map((time) => (
                   <tr key={time}>
                     <td className="font-sans border-primary-foreground/15 border-r p-1 font-semibold opacity-80 sm:p-1.5">
-                      {time}
+                      {formatSlotTime(time)}
                     </td>
                     {scheduleDayLabels.map((day) => {
                       const slot = findSlotAt(props.slots, day.dayOfWeek, time)
