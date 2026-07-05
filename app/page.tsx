@@ -452,12 +452,12 @@ export default function Home() {
                         })}
                         </div>
                       </div>
-                      <button
-                        type="button"
+                      <a
+                        href="/login"
                         className="mt-1 w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover"
                       >
                         Adquirir Plan
-                      </button>
+                      </a>
                     </div>
                   </motion.article>
                 );
@@ -595,9 +595,11 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <button className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5">
+              <a
+              href="/login"
+              className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5">
                 Ver Cuenta
-              </button>
+              </a>
             </motion.div>
           </motion.div>
         </section>
@@ -802,7 +804,7 @@ export default function Home() {
             </p>
             <motion.div variants={fadeUp} className="flex flex-wrap gap-4 justify-center">
               <a
-              href="#weekly"
+              href="/login"
               className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20">
                 Clase Muestra
               </a>
