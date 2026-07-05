@@ -73,7 +73,7 @@ export function RegistryForm(props: { registryToken: string }) {
     <Card className="w-full max-w-md border shadow-sm">
       <CardHeader className="space-y-1">
         <CardTitle className="text-xl">Registro</CardTitle>
-        <CardDescription>Completa tus datos para obtener tu ID</CardDescription>
+        <CardDescription>Completa tus datos para obtener tu ID _TEST</CardDescription>
       </CardHeader>
       <form action={action} className="flex flex-col gap-6">
         <input type="hidden" name="registryToken" value={props.registryToken} />
