@@ -10,6 +10,12 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,
   trustedOrigins: getTrustedOrigins(),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 min: lee la sesión de la cookie firmada sin tocar la DB
+    },
+  },
   user: {
     additionalFields: {
       role: { type: "string", required: false, defaultValue: "alumno" },
