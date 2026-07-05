@@ -32,5 +32,8 @@ export function getTrustedOrigins(): string[] {
     addOrigin(origins, `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
   }
 
+  // Netlify: URL contiene la URL canónica del sitio (ej. https://mi-sitio.netlify.app)
+  addOrigin(origins, process.env.URL)
+
   return [...origins]
 }
