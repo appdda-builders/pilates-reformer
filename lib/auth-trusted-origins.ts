@@ -20,6 +20,9 @@ export function getTrustedOrigins(): string[] {
 
   addOrigin(origins, process.env.BETTER_AUTH_URL)
   addOrigin(origins, process.env.NEXT_PUBLIC_APP_URL)
+  addOrigin(origins, process.env.URL)
+  addOrigin(origins, process.env.DEPLOY_PRIME_URL)
+  addOrigin(origins, process.env.SITE_URL)
 
   if (process.env.VERCEL_URL) {
     addOrigin(origins, `https://${process.env.VERCEL_URL}`)

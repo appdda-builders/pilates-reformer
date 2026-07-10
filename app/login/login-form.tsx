@@ -36,9 +36,6 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const redirectingRef = useRef(false)
 
-  const { data: session } = authClient.useSession()
-  const sessionUserId = session?.user?.id
-
   const handleConnectionTimeout = useCallback(async function handleConnectionTimeout() {
     const s = await authClient.getSession()
     const user = s.data?.user
@@ -64,15 +61,32 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
   useEffect(() => {
     if (pathname !== routes.login) return
     if (redirectingRef.current) return
-    if (sessionUserId == null) return
-    const enabled = (session?.user as { enabled?: boolean } | undefined)?.enabled
-    if (enabled === false) {
-      void authClient.signOut()
-      setErrorMsg("Tu cuenta está inhabilitada. Contacta al estudio.")
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("signedOut") === "1") {
+      window.history.replaceState(null, "", routes.login)
       return
     }
-    router.replace(routes.dashboard)
-  }, [pathname, sessionUserId, session?.user, router])
+
+    let cancelled = false
+    void authClient.getSession().then((s) => {
+      if (cancelled) return
+      if (redirectingRef.current) return
+      const user = s.data?.user
+      if (user == null) return
+      const enabled = (user as { enabled?: boolean }).enabled
+      if (enabled === false) {
+        void authClient.signOut()
+        setErrorMsg("Tu cuenta está inhabilitada. Contacta al estudio.")
+        return
+      }
+      router.replace(routes.dashboard)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [pathname, router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

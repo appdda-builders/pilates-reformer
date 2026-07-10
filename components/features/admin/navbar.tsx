@@ -38,11 +38,12 @@ export function Navbar({
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
-    try {
-      await authClient.signOut()
-    } finally {
-      window.location.assign(routes.login)
+    const res = await authClient.signOut()
+    if (res.error != null) {
+      setSigningOut(false)
+      return
     }
+    window.location.assign(`${routes.login}?signedOut=1`)
   }
 
   return (
