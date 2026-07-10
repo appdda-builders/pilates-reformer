@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react"
 import Link from "next/link"
-import { CircleCheck } from "lucide-react"
+import { CircleCheck, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import { Input } from "@/components/shared/ui/input"
 import { Label } from "@/components/shared/ui/label"
@@ -70,6 +70,7 @@ function AgendarBookingForm(props: {
   const [loginOpen, setLoginOpen] = useState(false)
   const [loginDisplayId, setLoginDisplayId] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
+  const [loginPasswordVisible, setLoginPasswordVisible] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
   const [loginPending, setLoginPending] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState<{
@@ -472,15 +473,31 @@ function AgendarBookingForm(props: {
             </div>
             <div className="space-y-2">
               <Label htmlFor="agendar-login-password">Contraseña</Label>
-              <Input
-                id="agendar-login-password"
-                type="password"
-                autoComplete="current-password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                disabled={loginPending}
-              />
+              <div className="relative">
+                <Input
+                  id="agendar-login-password"
+                  type={loginPasswordVisible ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  disabled={loginPending}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setLoginPasswordVisible(!loginPasswordVisible)}
+                  className="absolute right-0 top-0 flex h-full w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                  aria-label={loginPasswordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  disabled={loginPending}
+                >
+                  {loginPasswordVisible ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full bg-green-base hover:bg-green-hover" disabled={loginPending}>
               {loginPending ? "Ingresando..." : "Iniciar sesión y confirmar"}

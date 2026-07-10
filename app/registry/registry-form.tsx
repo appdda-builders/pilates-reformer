@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react"
 import Link from "next/link"
+import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import { Checkbox } from "@/components/shared/ui/checkbox"
 import { Input } from "@/components/shared/ui/input"
@@ -58,7 +59,7 @@ export function RegistryForm(props: { registryToken: string }) {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button asChild className="w-full">
-            <Link href="/#agenda">Ir a agendar</Link>
+            <Link href="/?agendar=1">Ir a agendar</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/login">Iniciar sesión</Link>
@@ -122,22 +123,30 @@ export function RegistryForm(props: { registryToken: string }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              name="password"
-              type={passwordVisible ? "text" : "password"}
-              required
-              minLength={8}
-              maxLength={128}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              className="text-xs text-primary hover:underline"
-              onClick={() => setPasswordVisible(!passwordVisible)}
-            >
-              {passwordVisible ? "Ocultar" : "Mostrar"}
-            </button>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={passwordVisible ? "text" : "password"}
+                required
+                minLength={8}
+                maxLength={128}
+                autoComplete="new-password"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setPasswordVisible(!passwordVisible)}
+                className="absolute right-0 top-0 flex h-full w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                aria-label={passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {passwordVisible ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {state.fieldErrors?.password ? (
               <p className="text-destructive text-sm">{state.fieldErrors.password[0]}</p>
             ) : null}

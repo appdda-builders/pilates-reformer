@@ -146,10 +146,17 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (pathname !== "/") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("agendar") === "1") {
+      scrollToAgendaWithRetry();
+      openAgendarModal();
+      return;
+    }
     if (window.location.hash !== "#agenda") return;
     scrollToAgendaWithRetry();
     openAgendarModal();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     function onHashChange() {
@@ -158,8 +165,19 @@ export default function Home() {
         openAgendarModal();
       }
     }
+    function onPopState() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("agendar") === "1") {
+        scrollToAgendaWithRetry();
+        openAgendarModal();
+      }
+    }
     window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+    };
   }, []);
 
   function goToAgenda(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -170,7 +188,7 @@ export default function Home() {
       openAgendarModal();
       return;
     }
-    router.push("/#agenda");
+    router.push("/?agendar=1");
   }
 
   return (

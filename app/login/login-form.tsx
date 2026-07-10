@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { Eye, EyeOff } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/shared/ui/button"
 import { Input } from "@/components/shared/ui/input"
@@ -30,6 +31,7 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
   const pathname = usePathname()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [overlayActive, setOverlayActive] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const redirectingRef = useRef(false)
@@ -139,11 +141,31 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password" type="password" autoComplete="current-password"
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  required disabled={overlayActive}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={passwordVisible ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={overlayActive}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                    className="absolute right-0 top-0 flex h-full w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                    aria-label={passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    disabled={overlayActive}
+                  >
+                    {passwordVisible ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
