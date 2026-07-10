@@ -452,7 +452,7 @@ function AgendarBookingForm(props: {
           <DialogHeader>
             <DialogTitle>Inicia sesión para reservar</DialogTitle>
             <DialogDescription>
-              Usa tu ID de usuario (ST o STT) y la contraseña que elegiste al registrarte.
+              Usa tu ID de usuario (ST) y la contraseña que elegiste al registrarte.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleLoginSubmit} className="space-y-4">

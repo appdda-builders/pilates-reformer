@@ -61,7 +61,7 @@ export async function createRefundAction(
 
   if (!sub) return { success: false, error: "Suscripción no encontrada" }
   if (sub.status !== "active") return { success: false, error: "La suscripción no está activa" }
-  if (sub.isUnlimited) return { success: false, error: "Total Pass ilimitado no aplica devolución proporcional" }
+  if (sub.isUnlimited) return { success: false, error: "El plan ilimitado no aplica devolución proporcional" }
 
   const [p] = await db
     .select({ totalClasses: schema.plan.totalClasses, priceMxn: schema.plan.priceMxn })

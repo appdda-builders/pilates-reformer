@@ -123,7 +123,7 @@ export function BookByDisplayIdForm(props: Props) {
       <DbActionSuccessEffect success={state.success} kind="create" />
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="displayId">ID de usuario (ST / STT)</Label>
+        <Label htmlFor="displayId">ID de usuario (ST)</Label>
         <Input
           id="displayId"
           name="displayId"

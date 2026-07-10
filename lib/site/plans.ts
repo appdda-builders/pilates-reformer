@@ -1,7 +1,7 @@
 export type StudioPlanDefinition = {
   id: string
   name: string
-  planType: "class_pack" | "total_pass" | "add_on"
+  planType: "class_pack" | "add_on"
   totalClasses: number | null
   priceMxn: number
   durationDays: number
@@ -71,16 +71,6 @@ export const STUDIO_PLAN_DEFINITIONS: StudioPlanDefinition[] = [
     isUnlimited: false,
   },
   {
-    id: "plan-total-pass",
-    name: "Total Pass",
-    planType: "total_pass",
-    totalClasses: null,
-    priceMxn: 0,
-    durationDays: 30,
-    isAddOn: false,
-    isUnlimited: true,
-  },
-  {
     id: "plan-privada",
     name: "Clase Privada",
     planType: "add_on",
@@ -98,7 +88,6 @@ export const PUBLIC_RESERVACIONES_PLAN_IDS = [
   "plan-conecta",
   "plan-activa",
   "plan-reinventa",
-  "plan-total-pass",
 ] as const
 
 export const PLAN_DISPLAY_ORDER = STUDIO_PLAN_DEFINITIONS.map((p) => p.id)
@@ -109,7 +98,6 @@ export type PublicPlan = {
   includes: string
   validity: string
   priceLabel: string
-  isTotalPass: boolean
 }
 
 export type PlanLabelRow = {
@@ -126,8 +114,7 @@ export function formatPlanPrice(priceMxn: number) {
   }).format(priceMxn)
 }
 
-export function formatPublicPlanPrice(planType: string, priceMxn: number): string {
-  if (planType === "total_pass") return "—"
+export function formatPublicPlanPrice(_planType: string, priceMxn: number): string {
   return formatPlanPrice(priceMxn)
 }
 
@@ -137,11 +124,11 @@ export function formatPlanPickerLabel(plan: PlanLabelRow): string {
 }
 
 export function formatPlanIncludes(
-  planType: string,
+  _planType: string,
   totalClasses: number | null,
   isUnlimited: boolean,
 ): string {
-  if (planType === "total_pass" || isUnlimited) return "Acceso flexible"
+  if (isUnlimited) return "Acceso flexible"
   if (totalClasses === 1) return "1 clase"
   if (totalClasses != null && totalClasses > 1) return `${totalClasses} clases`
   return "—"
@@ -160,14 +147,12 @@ export function planRowToPublicPlan(row: {
   priceMxn: number
   isUnlimited: boolean
 }): PublicPlan {
-  const isTotalPass = row.planType === "total_pass"
   return {
     id: row.id,
     name: row.name,
     includes: formatPlanIncludes(row.planType, row.totalClasses, row.isUnlimited),
     validity: formatPlanValidity(row.durationDays),
     priceLabel: formatPublicPlanPrice(row.planType, row.priceMxn),
-    isTotalPass,
   }
 }
 

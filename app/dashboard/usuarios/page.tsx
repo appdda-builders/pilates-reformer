@@ -165,7 +165,7 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
 
   const tableRows: UsuarioTableRow[] = alumnos.map((alumno) => {
     const sub = subMap.get(alumno.id)
-    const isPackPlan = sub?.planType === "class_pack" || sub?.planType === "total_pass"
+    const isPackPlan = sub?.planType === "class_pack"
     const isMonthly = sub?.planType === "monthly"
     const remaining = isPackPlan ? (sub?.classesRemaining ?? 0) : null
     const daysToEnd = sub ? calendarDaysUntilEnd(today, sub.endDate) : null

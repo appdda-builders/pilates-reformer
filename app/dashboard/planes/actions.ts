@@ -17,7 +17,7 @@ export type ActionState = {
 const planSchema = z
   .object({
     name: z.string().min(2),
-    planType: z.enum(["class_pack", "monthly", "total_pass"]),
+    planType: z.enum(["class_pack", "monthly"]),
     daysPerWeek: z.coerce.number().min(0).max(7),
     totalClasses: z.preprocess((val) => {
       if (val === "" || val === null || val === undefined) return undefined
@@ -27,7 +27,7 @@ const planSchema = z
     durationDays: z.coerce.number().min(1).default(30),
   })
   .superRefine((data, ctx) => {
-    if (data.planType !== "total_pass" && data.priceMxn <= 0) {
+    if (data.priceMxn <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "El precio debe ser mayor a 0",

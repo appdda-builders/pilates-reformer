@@ -108,7 +108,6 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                 >
                   <option value="class_pack">Paquete de clases</option>
                   <option value="monthly">Mensual</option>
-                  <option value="total_pass">Pase total</option>
                 </select>
               </div>
               {createPlanType === "monthly" ? (
@@ -189,7 +188,7 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                     {formatPlanIncludes(
                       plan.planType,
                       plan.totalClasses,
-                      plan.planType === "total_pass",
+                      false,
                     )}
                   </TableCell>
                   <TableCell>
@@ -274,7 +273,6 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                 >
                   <option value="class_pack">Paquete de clases</option>
                   <option value="monthly">Mensual</option>
-                  <option value="total_pass">Pase total</option>
                 </select>
               </div>
               {editPlanType === "monthly" ? (

@@ -69,7 +69,6 @@ INSERT INTO "plan" ("id","name","plan_type","days_per_week","total_classes","pri
 ('plan-conecta','Conecta y Fortalece','class_pack',0,8,1600,200,30,true,false,false,now()),
 ('plan-activa','Activa tu grandeza interior','class_pack',0,12,2000,166.67,30,true,false,false,now()),
 ('plan-reinventa','Reinventa tu ser','class_pack',0,20,2700,135,30,true,false,false,now()),
-('plan-total-pass','Total Pass','total_pass',0,NULL,0,NULL,30,true,false,true,now()),
 ('plan-privada','Clase Privada','add_on',0,1,500,500,30,true,true,false,now())
 ON CONFLICT ("id") DO UPDATE SET
   "name" = EXCLUDED."name",
@@ -108,7 +107,7 @@ INSERT INTO "subscription" ("id","user_id","plan_id","status","start_date","end_
 ('sub-za1001','user-alum-demo-1','plan-conecta','active',now() - interval '10 days',now() + interval '20 days',6,1,false,NULL,NULL,'mensual',200,1600,now()),
 ('sub-za1002','user-alum-demo-2','plan-inicia','active',now() - interval '5 days',now() + interval '25 days',3,0,false,NULL,NULL,'mensual',237.5,950,now()),
 ('sub-za1003','user-alum-demo-3','plan-activa','active',now() - interval '15 days',now() + interval '15 days',10,2,false,0.10,'evento_especial','mensual',150,1800,now()),
-('sub-za1004','user-alum-demo-4','plan-total-pass','active',now() - interval '3 days',now() + interval '27 days',NULL,2,true,NULL,NULL,'mensual',NULL,0,now()),
+('sub-za1004','user-alum-demo-4','plan-conecta','active',now() - interval '3 days',now() + interval '27 days',6,2,false,NULL,NULL,'mensual',200,1600,now()),
 ('sub-za1005','user-alum-demo-5','plan-descubre','active',now() - interval '20 days',now() + interval '10 days',0,0,false,NULL,NULL,'efectivo',270,270,now()),
 ('sub-za1006','user-alum-demo-6','plan-reinventa','active',now() - interval '8 days',now() + interval '22 days',18,1,false,NULL,NULL,'mensual',135,2700,now()),
 ('sub-za1007','user-alum-demo-7','plan-conecta','cancelled',now() - interval '40 days',now() - interval '10 days',0,0,false,NULL,NULL,'mensual',200,1600,now()),
@@ -124,7 +123,7 @@ INSERT INTO "payment" ("id","user_id","subscription_id","amount","currency","met
 ('pay-za1001','user-alum-demo-1','sub-za1001',1600,'MXN','transferencia','succeeded','Inscripción: Conecta y Fortalece','Patricia',false,now() - interval '10 days'),
 ('pay-za1002','user-alum-demo-2','sub-za1002',950,'MXN','efectivo','succeeded','Inscripción: Inicia tu camino','Lucía',false,now() - interval '5 days'),
 ('pay-za1003','user-alum-demo-3','sub-za1003',1800,'MXN','transferencia','succeeded','Inscripción: Activa (10% desc.)','Ricardo',false,now() - interval '15 days'),
-('pay-za1004','user-alum-demo-4','sub-za1004',0,'MXN','mensual','pending','Total Pass','Patricia',false,now() - interval '3 days'),
+('pay-za1004','user-alum-demo-4','sub-za1004',1600,'MXN','transferencia','succeeded','Inscripción: Conecta y Fortalece','Patricia',false,now() - interval '3 days'),
 ('pay-za1005','user-alum-demo-5','sub-za1005',270,'MXN','efectivo','succeeded','Clase Descubre','Elena',false,now() - interval '20 days'),
 ('pay-za1006','user-alum-demo-6','sub-za1006',2700,'MXN','transferencia','succeeded','Reinventa tu ser','Ricardo',false,now() - interval '8 days'),
 ('pay-expired-demo','user-alum-demo-8','sub-expired-demo',270,'MXN','efectivo','succeeded','Clase Descubre (vencido demo)','Lucía',false,now() - interval '45 days'),

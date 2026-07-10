@@ -64,7 +64,7 @@ export function CreateSubscriptionDialog({
   const discountOption = DISCOUNT_OPTIONS.find((d) => d.value === selectedDiscount)
   const discountPct = discountOption?.pct ?? 0
   const finalPrice =
-    selectedPlan && selectedPlan.planType !== "total_pass"
+    selectedPlan != null
       ? selectedPlan.priceMxn * (1 - discountPct)
       : null
 
@@ -180,12 +180,6 @@ export function CreateSubscriptionDialog({
           </div>
 
           {/* Precio final preview */}
-          {selectedPlan?.planType === "total_pass" ? (
-            <div className="rounded-md bg-muted px-3 py-2 text-sm">
-              <span className="text-muted-foreground">Precio: </span>
-              <span className="font-semibold text-foreground">—</span>
-            </div>
-          ) : null}
           {finalPrice != null ? (
             <div className="rounded-md bg-muted px-3 py-2 text-sm">
               <span className="text-muted-foreground">Precio final: </span>

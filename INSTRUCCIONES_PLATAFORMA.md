@@ -88,7 +88,7 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 | Alma Delgado | `alma.delgado@demo.pilates.mx` | **ST1007** | `demo-alumno-99` |
 | Jimena Solís | `jimena.solis@demo.pilates.mx` | **ST1008** | `demo-alumno-99` |
 
-> Prefijo de folios: **ST** (ej. ST1001). **Greta (ST1004)** tiene plan **Total Pass** (membresía ilimitada de demo).
+> Prefijo de folios: **ST** (ej. ST1001).
 
 ---
 
@@ -115,7 +115,6 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 | Conecta y Fortalece | Paquete | 8 | $1,600 |
 | Activa tu grandeza interior | Paquete | 12 | $2,000 |
 | Reinventa tu ser | Paquete | 20 | $2,700 |
-| Total Pass | Ilimitado | — | $0 (demo) |
 | Clase Privada | Add-on | 1 | $500 |
 
 ---
@@ -127,7 +126,7 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 | Irene Salazar | ST1001 | Conecta y Fortalece | 6 clases restantes |
 | Beatriz Montiel | ST1002 | Inicia tu camino | 3 clases restantes |
 | Luciana Fajardo | ST1003 | Activa tu grandeza interior | 10% descuento demo |
-| Greta Ibáñez | ST1004 | Total Pass | Ilimitado |
+| Greta Ibáñez | ST1004 | Conecta y Fortalece | 6 clases restantes |
 | Helena Duarte | ST1005 | Clase Descubre | 0 clases (paquete agotado) |
 | Rebeca Toscano | ST1006 | Reinventa tu ser | 18 clases restantes |
 | Alma Delgado | ST1007 | Conecta (cancelada) | Membresía cancelada + devolución demo |
@@ -157,7 +156,7 @@ Coaches en turnos: **Elena Morales** y **Lucía Paredes**. Clase: **Pilates Refo
 ## Reservas, pagos y extras de demo
 
 - **7 reservas** de ejemplo (asistidas, no asistidas, canceladas y una futura).
-- **Pagos:** inscripciones por transferencia/efectivo; Total Pass pendiente; dos egresos (limpieza −$500, DHL −$370).
+- **Pagos:** inscripciones por transferencia/efectivo; dos egresos (limpieza −$500, DHL −$370).
 - **Ventas:** calcetas antiderrapantes, clase privada 1:1.
 - **Devolución:** Alma Delgado — 2 clases reembolsadas ($400).
 - **Nómina coaches:** Elena pagada; Lucía pendiente (mayo 2026).

@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq, and, gte, lte, sql, asc, desc } from "drizzle-orm"
-import { USER_ID_PREFIX_TOTAL_PASS } from "@/lib/id-prefix"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/shared/ui/card"
 import { Badge } from "@/components/shared/ui/badge"
@@ -94,14 +93,12 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
     // Slots activos (clases recurrentes semanales, para aforo)
     db.select().from(schema.scheduleSlot).where(eq(schema.scheduleSlot.isActive, true)),
 
-    // Bookings del periodo + idPrefix del usuario (regular vs Total Pass)
+    // Bookings del periodo
     db
       .select({
         bookingDate: schema.booking.bookingDate,
-        idPrefix: schema.user.idPrefix,
       })
       .from(schema.booking)
-      .innerJoin(schema.user, eq(schema.booking.userId, schema.user.id))
       .where(and(
         gte(schema.booking.bookingDate, fromDate),
         lte(schema.booking.bookingDate, toDate),
@@ -281,7 +278,6 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   type MonthRow = {
     reservas: number; ingresos: number; activos: number
     renovaciones: number; nuevas: number; bajas: number
-    regular: number; totalPass: number
     aforo: number; weekOccupancies: number[]
   }
 
@@ -292,20 +288,16 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
       monthMap.set(month, {
         reservas: 0, ingresos: 0, activos: 0,
         renovaciones: 0, nuevas: 0, bajas: 0,
-        regular: 0, totalPass: 0,
         aforo: 0, weekOccupancies: [],
       })
     }
   }
 
-  // Bookings: regular vs Total Pass (STT = Total Pass)
   for (const b of bookingsWithUser) {
     const month = toTs(b.bookingDate).toISOString().slice(0, 7)
     ensureMonth(month)
     const row = monthMap.get(month)!
     row.reservas++
-    if (b.idPrefix === USER_ID_PREFIX_TOTAL_PASS) row.totalPass++
-    else row.regular++
   }
 
   // Pagos
@@ -394,9 +386,6 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
 
   // ── totales de periodo ───────────────────────────────────────────────────────
 
-  const totalRegular = bookingsWithUser.filter((b) => b.idPrefix !== USER_ID_PREFIX_TOTAL_PASS).length
-  const totalTotalPass = bookingsWithUser.filter((b) => b.idPrefix === USER_ID_PREFIX_TOTAL_PASS).length
-
   const monthRows = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b))
 
   const coachStats = bookingsPerSlot
@@ -406,7 +395,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   const chartData = monthRows.map(([month, row]) => {
     const [y, m] = month.split("-")
     const label = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("es-MX", { month: "short" })
-    return { month: label, regular: row.regular, totalPass: row.totalPass }
+    return { month: label, clases: row.reservas }
   })
 
   const fmt = new Intl.NumberFormat("es-MX", {
@@ -559,33 +548,6 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
         </CardContent>
       </Card>
 
-      {/* Regular vs Total Pass */}
-      <div data-tour="reportes-tipo-clase" className="grid gap-4 md:grid-cols-2">
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-6 flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground tracking-wide">CLASES REGULARES</p>
-              <p className="text-2xl font-bold mt-1">{totalRegular}</p>
-            </div>
-            <div className="rounded-full p-2.5 bg-blue-50">
-              <BookOpen className="h-5 w-5 text-blue-700" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-6 flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground tracking-wide">CLASES TOTAL PASS</p>
-              <p className="text-2xl font-bold mt-1">{totalTotalPass}</p>
-            </div>
-            <div className="rounded-full p-2.5 bg-green-50">
-              <BookOpen className="h-5 w-5 text-green-700" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabla mensual completa */}
       {monthRows.length > 0 && (
         <Card data-tour="reportes-resumen" className="border-none shadow-sm">
           <CardHeader>
@@ -642,7 +604,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
         </Card>
       )}
 
-      {/* Gráfica: Clases regulares vs Total Pass por mes */}
+
       <Card data-tour="reportes-grafica" className="border-none shadow-sm">
         <CardHeader>
           <CardTitle className="text-base font-medium"># de Clases por Mes</CardTitle>

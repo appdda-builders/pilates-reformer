@@ -20,7 +20,6 @@ import {
 } from "@/components/shared/ui/card"
 import {
   USER_ID_PREFIX_REGULAR,
-  USER_ID_PREFIX_TOTAL_PASS,
 } from "@/lib/id-prefix"
 import { hiddenRegistryAction, type RegistryActionState } from "./actions"
 
@@ -92,18 +91,7 @@ export function RegistryForm(props: { registryToken: string }) {
               <p className="text-destructive text-sm">{state.fieldErrors.name[0]}</p>
             ) : null}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="idPrefix">Tipo de cuenta</Label>
-            <select
-              id="idPrefix"
-              name="idPrefix"
-              defaultValue={USER_ID_PREFIX_REGULAR}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value={USER_ID_PREFIX_REGULAR}>Alumno regular (ST)</option>
-              <option value={USER_ID_PREFIX_TOTAL_PASS}>Total Pass (STT)</option>
-            </select>
-          </div>
+          <input type="hidden" name="idPrefix" value={USER_ID_PREFIX_REGULAR} />
           <div className="space-y-2">
             <Label htmlFor="email">Correo</Label>
             <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />

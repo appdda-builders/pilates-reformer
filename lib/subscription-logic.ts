@@ -44,10 +44,8 @@ export async function consumeClassFromSubscription(subscriptionId: string): Prom
 
   if (!sub) return
 
-  // Total Pass ilimitado → NO descontar
   if (sub.isUnlimited) return
 
-  // class_pack o total_pass con cupo → descontar
   const current = sub.classesRemaining ?? 0
   if (current > 0) {
     await db

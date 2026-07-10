@@ -112,7 +112,7 @@ sequenceDiagram
   A->>WEB: Completa formulario + políticas
   WEB->>AUTH: signUpEmail
   AUTH->>DB: Crea user
-  WEB->>DB: Asigna rol alumno, ST/STT, displayId
+  WEB->>DB: Asigna rol alumno, ST, displayId
   WEB->>DB: Notificación bienvenida
   WEB-->>A: Muestra ID (ej. ST0001)
 
@@ -190,7 +190,7 @@ flowchart TB
 
   ROOT --> PLN[Planes]
   PLN --> P1[CRUD planes]
-  PLN --> P2[class_pack / total_pass]
+  PLN --> P2[class_pack / monthly]
 
   ROOT --> SUB[Suscripciones]
   SUB --> SU1[Activar]
@@ -213,7 +213,7 @@ flowchart TB
 
   ROOT --> REP[Reportes]
   REP --> RE1[KPIs periodo]
-  REP --> RE2[Regular vs Total Pass]
+  REP --> RE2[Clases por mes]
 
   ROOT --> CFG[Configuración]
   CFG --> CF1[Políticas]
@@ -259,23 +259,17 @@ flowchart LR
 
 ---
 
-## 7. IDs de usuario (ST / STT)
+## 7. IDs de usuario (ST)
 
 ```mermaid
 flowchart TD
-  REG[/registry o Usuarios] --> PREFIX{Tipo cuenta}
-  PREFIX -->|Regular| ST["ST0001, ST0002…"]
-  PREFIX -->|Total Pass| STT["STT001…"]
+  REG[/registry o Usuarios] --> ST["ST0001, ST0002…"]
   ST --> RES[Reservas / login panel]
-  STT --> RES
-  PLAN[Plan total_pass] --> STT
-  PLAN2[Plan class_pack] --> ST
 ```
 
 | Prefijo | Tipo | Ejemplo |
 |---------|------|---------|
-| **ST** | Alumno regular | ST0001, ST0002 |
-| **STT** | Total Pass | STT001 |
+| **ST** | Alumno | ST0001, ST0002 |
 
 ---
 

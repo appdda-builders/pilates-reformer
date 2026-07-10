@@ -1,11 +1,7 @@
 import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { and, isNotNull, eq } from "drizzle-orm"
-import {
-  USER_ID_PREFIX_REGULAR,
-  USER_ID_PREFIX_TOTAL_PASS,
-  type UserIdPrefix,
-} from "@/lib/id-prefix"
+import { USER_ID_PREFIX_REGULAR, type UserIdPrefix } from "@/lib/id-prefix"
 
 export async function generateDisplayId(
   db: AnyDb,
@@ -28,6 +24,5 @@ export async function generateDisplayId(
   }
 
   const nextNum = maxNum + 1
-  const padLen = prefix === USER_ID_PREFIX_TOTAL_PASS ? 3 : 4
-  return `${prefix}${String(nextNum).padStart(padLen, "0")}`
+  return `${prefix}${String(nextNum).padStart(4, "0")}`
 }
