@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { FaPlayCircle, FaRegStopCircle } from "react-icons/fa";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import {
@@ -16,6 +17,7 @@ import HeroVideo from "@/components/hero-video";
 import AboutTeam from "@/components/about-team";
 import Image from "next/image";
 import Link from "next/link";
+import { AgendarBookingModal } from "@/components/agendar-booking-modal";
 
 const LOGO_SRC = `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`;
 
@@ -34,20 +36,6 @@ const cadenceConfig = [
   { label: "Quincenal", period: "quincena", weeks: 2 },
   { label: "Mensual", period: "mes", weeks: 4 },
 ] as const;
-
-const morningSlots = [
-  "7:00 AM - 8:00 AM",
-  "8:00 AM - 9:00 AM",
-  "9:00 AM - 10:00 AM",
-  "10:00 AM - 11:00 AM",
-];
-
-const eveningSlots = [
-  "5:00 PM - 6:00 PM",
-  "6:00 PM - 7:00 PM",
-  "7:00 PM - 8:00 PM",
-  "8:00 PM - 9:00 PM",
-];
 
 const studioPlans = [
   {
@@ -102,9 +90,10 @@ const flow = [
 ];
 
 export default function Home() {
+  const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [agendarModalOpen, setAgendarModalOpen] = useState(false);
   const [selectedCadence, setSelectedCadence] = useState<
     Record<string, (typeof cadenceConfig)[number]["label"]>
   >(() =>
@@ -134,17 +123,55 @@ export default function Home() {
     { href: "#cobros", label: "Cobros" },
   ];
 
-  const handleReserve = () => {
-    if (!selectedSlot || !selectedDate) return;
-    setSelectedSlot("");
-    setSelectedDate("");
-  };
+  function openAgendarModal() {
+    setAgendarModalOpen(true);
+  }
 
   const scrollToAgenda = () => {
-    document
-      .getElementById("agenda")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById("agenda");
+    if (el == null) return false;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    return true;
   };
+
+  const scrollToAgendaWithRetry = () => {
+    if (scrollToAgenda()) return;
+    let tries = 0;
+    const tick = () => {
+      if (scrollToAgenda()) return;
+      tries += 1;
+      if (tries < 20) window.setTimeout(tick, 50);
+    };
+    tick();
+  };
+
+  useEffect(() => {
+    if (window.location.hash !== "#agenda") return;
+    scrollToAgendaWithRetry();
+    openAgendarModal();
+  }, []);
+
+  useEffect(() => {
+    function onHashChange() {
+      if (window.location.hash === "#agenda") {
+        scrollToAgendaWithRetry();
+        openAgendarModal();
+      }
+    }
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  function goToAgenda(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    if (pathname === "/") {
+      scrollToAgendaWithRetry();
+      window.history.pushState(null, "", "#agenda");
+      openAgendarModal();
+      return;
+    }
+    router.push("/#agenda");
+  }
 
   return (
     <div
@@ -182,15 +209,26 @@ export default function Home() {
             </div>
           </div>
           <div className="hidden items-center gap-6 text-sm font-medium lg:flex">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="transition hover:text-green-mid"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.href === "#agenda" ? (
+                <a
+                  key={link.href}
+                  href="/#agenda"
+                  onClick={goToAgenda}
+                  className="transition hover:text-green-mid"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="transition hover:text-green-mid"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
             <Link
               href="/login"
               className="rounded-full bg-green-base px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-hover"
@@ -254,16 +292,30 @@ export default function Home() {
                 </button>
               </div>
               <div className="flex flex-col gap-3 text-sm font-semibold text-[#1b1a18]">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    className="rounded-inner border border-black/5 bg-[#f6f1ea] px-4 py-3 transition hover:bg-[#eae1d6]"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {navLinks.map((link) =>
+                  link.href === "#agenda" ? (
+                    <a
+                      key={link.href}
+                      href="/#agenda"
+                      className="rounded-inner border border-black/5 bg-[#f6f1ea] px-4 py-3 transition hover:bg-[#eae1d6]"
+                      onClick={(event) => {
+                        setMenuOpen(false);
+                        goToAgenda(event);
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="rounded-inner border border-black/5 bg-[#f6f1ea] px-4 py-3 transition hover:bg-[#eae1d6]"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  )
+                )}
               </div>
               <Link
                 href="/login"
@@ -359,10 +411,10 @@ export default function Home() {
             id="weekly"
             className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <SetupWeeklySchedule onSelectClass={scrollToAgenda} />
+            <SetupWeeklySchedule onSelectClass={openAgendarModal} />
             <button
               type="button"
-              onClick={scrollToAgenda}
+              onClick={openAgendarModal}
               className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
             >
               Continuar
@@ -642,70 +694,22 @@ export default function Home() {
 
                 <div className="flex flex-col gap-5 p-6">
                   <p className="text-sm text-black/60">
-                    Al confirmar, iniciarás sesión con tu ID y contraseña para
-                    identificar tu reserva.
+                    Elige fecha y horario real del estudio. Al confirmar iniciarás
+                    sesión con tu ID y contraseña para identificar tu reserva.
                   </p>
-
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="agenda-fecha"
-                      className="text-sm font-semibold"
-                    >
-                      Fecha de la clase
-                    </label>
-                    <input
-                      id="agenda-fecha"
-                      type="date"
-                      value={selectedDate}
-                      onChange={(event) => setSelectedDate(event.target.value)}
-                      className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-green-base focus:outline-none focus:ring-1 focus:ring-green-base/30"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="agenda-horario"
-                      className="text-sm font-semibold"
-                    >
-                      Horario
-                    </label>
-                    <select
-                      id="agenda-horario"
-                      value={selectedSlot}
-                      onChange={(event) => setSelectedSlot(event.target.value)}
-                      className="w-full rounded-inner border border-black/10 bg-white px-4 py-3 text-sm focus:border-green-base focus:outline-none focus:ring-1 focus:ring-green-base/30"
-                    >
-                      <option value="">Elige clase y hora</option>
-                      <optgroup label="Matutino">
-                        {morningSlots.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {slot}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="Vespertino">
-                        {eveningSlots.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {slot}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
-                  </div>
-
-                  <p className="text-sm text-black/50">
-                    {selectedDate && selectedSlot
-                      ? `Reservarás el ${selectedDate} · ${selectedSlot}.`
-                      : "Completa la fecha y el horario."}
-                  </p>
-
                   <button
-                    onClick={handleReserve}
-                    disabled={!selectedDate || !selectedSlot}
-                    className="w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover disabled:cursor-not-allowed disabled:bg-green-base/40 disabled:shadow-none"
+                    type="button"
+                    onClick={openAgendarModal}
+                    className="w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover"
                   >
-                    Confirmar reserva
+                    Abrir reserva
                   </button>
+                  <p className="text-center text-xs text-black/50">
+                    ¿No tienes cuenta?{" "}
+                    <Link href="/registry" className="font-semibold text-green-base underline underline-offset-2">
+                      Regístrate aquí
+                    </Link>
+                  </p>
                 </div>
               </motion.div>
             </div>
@@ -787,7 +791,7 @@ export default function Home() {
             <a href="#nosotros" className="transition hover:text-white">
               Nosotros
             </a>
-            <a href="#agenda" className="transition hover:text-white">
+            <a href="/#agenda" onClick={goToAgenda} className="transition hover:text-white">
               Agenda
             </a>
             <a href="#cobros" className="transition hover:text-white">
@@ -817,6 +821,10 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <AgendarBookingModal
+        open={agendarModalOpen}
+        onOpenChange={setAgendarModalOpen}
+      />
     </div>
   );
 }

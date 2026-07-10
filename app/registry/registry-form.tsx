@@ -59,7 +59,7 @@ export function RegistryForm(props: { registryToken: string }) {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button asChild className="w-full">
-            <Link href="/agendar">Ir a agendar</Link>
+            <Link href="/#agenda">Ir a agendar</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/login">Iniciar sesión</Link>

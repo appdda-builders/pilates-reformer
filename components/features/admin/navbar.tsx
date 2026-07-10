@@ -38,14 +38,11 @@ export function Navbar({
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
-    const res = await authClient.signOut()
-    if (res.error != null) {
-      // No navegamos: la sesión sigue viva y /login rebotaría al dashboard.
-      setSigningOut(false)
-      window.alert("No se pudo cerrar sesión. Revisa tu conexión e intenta de nuevo.")
-      return
+    try {
+      await authClient.signOut()
+    } finally {
+      window.location.assign(routes.login)
     }
-    window.location.assign(routes.login)
   }
 
   return (
