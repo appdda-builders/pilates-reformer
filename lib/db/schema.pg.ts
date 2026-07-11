@@ -234,6 +234,20 @@ export const studioKpiSnapshot = pgTable("studio_kpi_snapshot", {
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
 })
 
+export const coupon = pgTable("coupon", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull().default("percent"),
+  discountValue: doublePrecision("discount_value").notNull(),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  validFrom: timestamp("valid_from", { precision: 3, mode: "date" }),
+  validUntil: timestamp("valid_until", { precision: 3, mode: "date" }),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
+})
+
 export const studioPolicy = pgTable("studio_policy", {
   id: text("id").primaryKey().default("main"),
   studioName: text("studio_name").notNull().default("Pilates Studio"),

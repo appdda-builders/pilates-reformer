@@ -230,6 +230,20 @@ export const studioKpiSnapshot = sqliteTable("studio_kpi_snapshot", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 })
 
+export const coupon = sqliteTable("coupon", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull().default("percent"),
+  discountValue: real("discount_value").notNull(),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  validFrom: integer("valid_from", { mode: "timestamp_ms" }),
+  validUntil: integer("valid_until", { mode: "timestamp_ms" }),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+})
+
 export const studioPolicy = sqliteTable("studio_policy", {
   id: text("id").primaryKey().default("main"),
   studioName: text("studio_name").notNull().default("Pilates Studio"),

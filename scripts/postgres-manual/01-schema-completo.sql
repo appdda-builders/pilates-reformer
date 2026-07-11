@@ -6,7 +6,7 @@
 --
 -- Tablas: user, session, account, verification, plan, subscription, booking,
 -- payment, sale_item, refund, reformer, schedule_slot, coach_payroll_period,
--- studio_kpi_snapshot, studio_policy, studio_event, notification
+-- studio_kpi_snapshot, studio_policy, studio_event, notification, coupon
 
 BEGIN;
 
@@ -60,6 +60,20 @@ CREATE TABLE IF NOT EXISTS "notification" (
 	"title" text NOT NULL,
 	"body" text NOT NULL,
 	"is_read" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp (3) DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "coupon" (
+	"id" text PRIMARY KEY NOT NULL,
+	"code" text NOT NULL UNIQUE,
+	"name" text NOT NULL,
+	"discount_type" text DEFAULT 'percent' NOT NULL,
+	"discount_value" double precision NOT NULL,
+	"max_uses" integer,
+	"used_count" integer DEFAULT 0 NOT NULL,
+	"valid_from" timestamp (3),
+	"valid_until" timestamp (3),
+	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
 

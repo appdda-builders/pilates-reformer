@@ -9,6 +9,7 @@ export const routes = {
   pagos: "/dashboard/pagos",
   suscripciones: "/dashboard/suscripciones",
   planes: "/dashboard/planes",
+  cupones: "/dashboard/cupones",
   coaches: "/dashboard/coaches",
   coachAttendance: "/dashboard/coaches/attendance",
   coachSchedule: "/dashboard/coaches/schedule",
