@@ -16,7 +16,11 @@ import { Label } from "@/components/shared/ui/label"
 import { Input } from "@/components/shared/ui/input"
 import { useDbActionFeedback } from "@/components/features/admin/db-action-feedback"
 import { ConfirmRemoveDialog } from "@/components/features/admin/confirm-remove-dialog"
-import { formatPlanIncludes, formatPublicPlanPrice } from "@/lib/site/plans"
+import {
+  formatPlanIncludes,
+  formatPublicPlanPrice,
+  planPromoBadge,
+} from "@/lib/site/plans"
 import { createPlanAction, deletePlanAction, updatePlanAction, togglePlanAction } from "./actions"
 
 export type PlanRow = {
@@ -181,7 +185,16 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
             ) : (
               props.planes.map((plan) => (
                 <TableRow key={plan.id} className="border-b last:border-0">
-                  <TableCell className="font-medium">{plan.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{plan.name}</span>
+                      {planPromoBadge(plan.id) ? (
+                        <Badge className="bg-green-100 text-green-700 border-green-200">
+                          {planPromoBadge(plan.id)}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{plan.planType}</TableCell>
                   <TableCell>{plan.planType === "monthly" ? `${plan.daysPerWeek}x sem` : "—"}</TableCell>
                   <TableCell>

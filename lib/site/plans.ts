@@ -94,12 +94,23 @@ export const PLAN_DISPLAY_ORDER = STUDIO_PLAN_DEFINITIONS.map((p) => p.id)
 
 export const SINGLE_CLASS_LABEL = "Clase individual"
 
+export const FREE_SAMPLE_PLAN_ID = "plan-apertura"
+
+export const FREE_SAMPLE_CLASS_LABEL = "Clase muestra gratis"
+
 export type PublicPlan = {
   id: string
   name: string
   includes: string
   validity: string
   priceLabel: string
+  isTotalPass: boolean
+  badge: string | null
+}
+
+export function planPromoBadge(planId: string): string | null {
+  if (planId === FREE_SAMPLE_PLAN_ID) return FREE_SAMPLE_CLASS_LABEL
+  return null
 }
 
 export type PlanLabelRow = {
@@ -155,6 +166,8 @@ export function planRowToPublicPlan(row: {
     includes: formatPlanIncludes(row.planType, row.totalClasses, row.isUnlimited),
     validity: formatPlanValidity(row.durationDays),
     priceLabel: formatPublicPlanPrice(row.planType, row.priceMxn),
+    isTotalPass,
+    badge: planPromoBadge(row.id),
   }
 }
 
