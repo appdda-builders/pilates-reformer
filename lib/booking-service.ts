@@ -2,10 +2,14 @@ import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { and, eq, gte, lte } from "drizzle-orm"
 import { dateRangeForDay, toLocalDateStr } from "@/lib/booking-slot-options"
-import { validateBookingAgeForSlot } from "@/lib/booking-rules"
+import {
+  evaluateStudentSelfRelease,
+  validateBookingAgeForSlot,
+} from "@/lib/booking-rules"
 import {
   classEndFromBooking,
   classStartFromBooking,
+  evaluateAlumnoSelfCancellation,
   evaluateCancellation,
   evaluateBookingAllowed,
   loadStudioCancellationPolicy,
@@ -286,7 +290,7 @@ export type CancelBookingResult =
 export async function cancelBookingById(
   db: AnyDb,
   bookingId: string,
-  options?: { bypassPolicy?: boolean },
+  options?: { bypassPolicy?: boolean; asAlumnoUserId?: string },
 ): Promise<CancelBookingResult> {
   const [booking] = await db
     .select({
@@ -309,24 +313,63 @@ export async function cancelBookingById(
     return { ok: false, message: "Esta reserva ya no está confirmada" }
   }
 
-  const classStart = classStartFromBooking(
+  if (options?.asAlumnoUserId != null && booking.userId !== options.asAlumnoUserId) {
+    return { ok: false, message: "No puedes liberar la reserva de otra persona" }
+  }
+
+  const bookingDate =
     booking.bookingDate instanceof Date
       ? booking.bookingDate
-      : new Date(booking.bookingDate as unknown as number),
-    booking.startTime,
-  )
+      : new Date(booking.bookingDate as unknown as number)
+
+  const classStart = classStartFromBooking(bookingDate, booking.startTime)
 
   let restoreClass = false
   let late = false
 
   if (!options?.bypassPolicy) {
     const policy = await loadStudioCancellationPolicy(db)
-    const check = evaluateCancellation(new Date(), classStart, policy)
-    if (!check.ok) {
-      return { ok: false, message: check.message }
+    const now = new Date()
+
+    if (options?.asAlumnoUserId != null) {
+      const subs = await db
+        .select({
+          id: schema.subscription.id,
+          userId: schema.subscription.userId,
+          status: schema.subscription.status,
+          startDate: schema.subscription.startDate,
+          endDate: schema.subscription.endDate,
+        })
+        .from(schema.subscription)
+        .where(
+          and(
+            eq(schema.subscription.userId, booking.userId),
+            eq(schema.subscription.status, "active"),
+          ),
+        )
+
+      const primary = pickPrimarySubscription(subs)
+      const selfRelease = evaluateStudentSelfRelease({
+        bookingDate,
+        subscriptionStatus: primary?.status ?? "inactive",
+        subscriptionStartDate: primary?.startDate ?? new Date(0),
+        subscriptionEndDate: primary?.endDate ?? new Date(0),
+        now,
+      })
+      const check = evaluateAlumnoSelfCancellation(now, classStart, policy, selfRelease)
+      if (!check.ok) {
+        return { ok: false, message: check.message }
+      }
+      restoreClass = check.restoreClass
+      late = check.late
+    } else {
+      const check = evaluateCancellation(now, classStart, policy)
+      if (!check.ok) {
+        return { ok: false, message: check.message }
+      }
+      restoreClass = check.restoreClass
+      late = check.late
     }
-    restoreClass = check.restoreClass
-    late = check.late
   } else {
     restoreClass = true
   }

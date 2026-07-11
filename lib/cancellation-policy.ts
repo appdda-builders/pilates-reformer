@@ -86,6 +86,18 @@ export function evaluateCancellation(
   return { ok: true, restoreClass: true, late: false }
 }
 
+export function evaluateAlumnoSelfCancellation(
+  now: Date,
+  classStart: Date,
+  policy: StudioCancellationPolicy,
+  selfRelease: { ok: true } | { ok: false; message: string },
+): CancellationCheckResult {
+  if (!selfRelease.ok) {
+    return { ok: false, message: selfRelease.message }
+  }
+  return evaluateCancellation(now, classStart, policy)
+}
+
 export function minutesUntilClassEnd(now: Date, classEnd: Date): number {
   return (classEnd.getTime() - now.getTime()) / (1000 * 60)
 }

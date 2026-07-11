@@ -7,6 +7,8 @@ import * as schema from "@/lib/db/schema"
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm"
 import { coachScheduleSlotSql, getCoachSessionInfo } from "@/lib/coach-schedule-visibility"
 import { isAlumnoRole, getSessionUserId } from "@/lib/alumno-scope"
+import { evaluateStudentSelfRelease } from "@/lib/booking-rules"
+import { pickPrimarySubscription } from "@/lib/subscription-display"
 import { ListPagination } from "@/components/features/admin/list-pagination"
 import { LIST_PAGE_SIZE, listPaginationOffset, parseListPage } from "@/lib/list-pagination"
 import { routes } from "@/lib/routes"
@@ -48,9 +50,47 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
   const isAdminRoot = isAdminOrRoot(role)
   const isCoach = role === "coach"
   const canManage = isAdminRoot
-  const canCancel = isAdminRoot || isCoach
+  const staffCanCancel = isAdminRoot || isCoach
 
   const db = getDb()
+
+  let alumnoSubscription: {
+    status: string
+    startDate: Date
+    endDate: Date
+  } | null = null
+
+  if (isAlumno && userId != null) {
+    const subs = await db
+      .select({
+        id: schema.subscription.id,
+        userId: schema.subscription.userId,
+        status: schema.subscription.status,
+        startDate: schema.subscription.startDate,
+        endDate: schema.subscription.endDate,
+      })
+      .from(schema.subscription)
+      .where(
+        and(
+          eq(schema.subscription.userId, userId),
+          eq(schema.subscription.status, "active"),
+        ),
+      )
+    const primary = pickPrimarySubscription(subs)
+    if (primary != null) {
+      alumnoSubscription = {
+        status: primary.status,
+        startDate:
+          primary.startDate instanceof Date
+            ? primary.startDate
+            : new Date(primary.startDate as unknown as number),
+        endDate:
+          primary.endDate instanceof Date
+            ? primary.endDate
+            : new Date(primary.endDate as unknown as number),
+      }
+    }
+  }
 
   let alumnas: { id: string; name: string; displayId: string | null }[] = []
   if (isAdminRoot) {
@@ -134,6 +174,7 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
     .select({
       id: schema.booking.id,
       status: schema.booking.status,
+      bookingDate: schema.booking.bookingDate,
       userName: schema.user.name,
       displayId: schema.user.displayId,
       className: schema.scheduleSlot.className,
@@ -152,6 +193,23 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
     .offset(offset)
 
   const showAlumnaOnCard = !isAlumno
+  const now = new Date()
+
+  function alumnoCanCancelBooking(bookingDateRaw: Date | unknown): boolean {
+    if (!isAlumno || alumnoSubscription == null) return false
+    const bookingDate =
+      bookingDateRaw instanceof Date
+        ? bookingDateRaw
+        : new Date(bookingDateRaw as number)
+    const check = evaluateStudentSelfRelease({
+      bookingDate,
+      subscriptionStatus: alumnoSubscription.status,
+      subscriptionStartDate: alumnoSubscription.startDate,
+      subscriptionEndDate: alumnoSubscription.endDate,
+      now,
+    })
+    return check.ok
+  }
 
   const description = isAlumno
     ? `${totalItems} ${totalItems === 1 ? "reserva tuya" : "reservas tuyas"} en este día`
@@ -244,7 +302,10 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
                   studentDisplayId: r.displayId,
                 }}
                 showAlumna={showAlumnaOnCard}
-                canCancel={canCancel}
+                canCancel={
+                  staffCanCancel || (isAlumno && alumnoCanCancelBooking(r.bookingDate))
+                }
+                cancelMode={isAlumno ? "self" : "admin"}
               />
             </div>
           ))}

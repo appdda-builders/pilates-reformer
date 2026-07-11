@@ -193,7 +193,14 @@ export async function cancelBookingAction(
     headers: await headers(),
     query: { disableRefresh: true },
   })
-  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+  if (!session) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const role = session.user.role ?? ""
+  const isStaff = role === "admin" || role === "root" || role === "coach"
+  const isAlumno = role === "alumno"
+  if (!isStaff && !isAlumno) {
     return { success: false, error: "No autorizado" }
   }
 
@@ -201,9 +208,11 @@ export async function cancelBookingAction(
   if (typeof id !== "string") return { success: false, error: "ID inválido" }
 
   const db = getDb()
-  const role = session.user.role ?? ""
   const bypassPolicy = role === "root"
-  const result = await cancelBookingById(db, id, { bypassPolicy })
+  const result = await cancelBookingById(db, id, {
+    bypassPolicy,
+    asAlumnoUserId: isAlumno ? session.user.id : undefined,
+  })
 
   if (!result.ok) {
     return { success: false, error: result.message }
@@ -221,7 +230,14 @@ export async function cancelBookingDirect(
     headers: await headers(),
     query: { disableRefresh: true },
   })
-  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+  if (!session) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const role = session.user.role ?? ""
+  const isStaff = role === "admin" || role === "root" || role === "coach"
+  const isAlumno = role === "alumno"
+  if (!isStaff && !isAlumno) {
     return { success: false, error: "No autorizado" }
   }
 
@@ -229,9 +245,11 @@ export async function cancelBookingDirect(
   if (typeof id !== "string") return { success: false, error: "ID inválido" }
 
   const db = getDb()
-  const role = session.user.role ?? ""
   const bypassPolicy = role === "root"
-  const result = await cancelBookingById(db, id, { bypassPolicy })
+  const result = await cancelBookingById(db, id, {
+    bypassPolicy,
+    asAlumnoUserId: isAlumno ? session.user.id : undefined,
+  })
 
   if (!result.ok) {
     return { success: false, error: result.message }

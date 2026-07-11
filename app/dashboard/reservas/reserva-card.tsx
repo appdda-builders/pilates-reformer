@@ -46,6 +46,7 @@ export function ReservaCard(props: {
   reserva: ReservaCardData
   showAlumna?: boolean
   canCancel?: boolean
+  cancelMode?: "admin" | "self"
 }) {
   const r = props.reserva
   const timeLabel = formatSlotTime(r.startTime)
@@ -54,6 +55,11 @@ export function ReservaCard(props: {
     alternateInstructor: r.alternateInstructor,
     scheduleMode: r.scheduleMode,
   })
+  const cancelMode = props.cancelMode ?? "admin"
+  const showCancel =
+    props.canCancel === true &&
+    r.status === "confirmed" &&
+    (cancelMode === "self" || r.studentName != null)
 
   return (
     <Card className="flex h-full flex-col gap-0 border py-0 shadow-sm">
@@ -81,8 +87,12 @@ export function ReservaCard(props: {
             {r.startTime}
             {r.endTime ? ` – ${r.endTime}` : ""}
           </span>
-          {props.canCancel && r.status === "confirmed" && r.studentName ? (
-            <CancelBookingButton bookingId={r.id} userName={r.studentName} />
+          {showCancel ? (
+            <CancelBookingButton
+              bookingId={r.id}
+              userName={r.studentName ?? "tu reserva"}
+              mode={cancelMode}
+            />
           ) : null}
         </div>
         {props.showAlumna && r.studentName ? (
