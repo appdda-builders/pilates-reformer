@@ -61,12 +61,12 @@ export default function ContentDetail() {
           className="flex flex-col gap-6"
         >
           <div>
-            <p className="eyebrow eyebrow-on-light">Nuesto Enfoque</p>
+            <p className="eyebrow eyebrow-on-light">Reformers</p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight font-display">
-              Reformers que se adaptan a tí, generando resultados reales.
+              Reformers que se adaptan a ti, generando resultados reales.
             </h2>
             <p className="mt-2 text-sm text-black/60">
-              El Reformer es un equipo especializado con resortes que proporcionan resiliencia controlada, permitiendo realizar movimientos precisos y fluidos, el cual se adapta tanto a principiantes como a personas con experiencia.
+              El Reformer es un equipo especializado con resortes que proporcionan resistencia controlada, permitiendo realizar movimientos precisos y fluidos, el cual se adapta tanto a principiantes como a personas con experiencia.
             </p>
           </div>
 

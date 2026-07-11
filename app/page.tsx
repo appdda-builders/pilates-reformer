@@ -524,17 +524,17 @@ export default function Home() {
                 Studio 57 · Pilates Reformer
               </h2>
               <p className="text-base text-black/70">
-                Studio 57 nació con el propósito de ofrecer un espacio seguro, armonioso y profesional donde el Pilates no solo fortalece tu cuerpo sino también tu salud mental y tu confianza.
+                Studio 57 nació con el propósito de ofrecer un espacio seguro, armonioso y profesional donde el Pilates no solo fortalece tu cuerpo, sino también tu salud mental y tu confianza.
               </p>
               <p className="text-base text-black/70">
                 Inspiración: disfrutar del privilegio del movimiento y un cuerpo sano, curar el dolor, mejorar la calidad de vida de las personas.
               </p>
               <div className="rounded py-4">
                 <p className="text-3xl font-semibold leading-tight md:text-4xl font-display">
-                  Nuestra Visión:
+                  Nuestra Visión
                 </p>
-                <p className="text-base text-black/70">
-                  Consolidarnos como un estudio de pilates líder en calidad y calidez humana, ofreciendo clases de pilates accesibles, profesiones y transformadoras, donde el movimiento se convierte en una herramienta para sanar, fortalecer y disfrutar la vida con plenitud.
+                <p className="mt-2 text-base text-black/70">
+                  Consolidarnos como el estudio de Pilates líder en calidad y calidez humana, ofreciendo clases de Pilates accesibles, profesionales y transformadoras, donde el movimiento se convierte en una herramienta para sanar, fortalecer y disfrutar de la vida con plenitud.
                 </p>
               </div>
             </motion.div>
