@@ -600,7 +600,7 @@ export default function Home() {
               <div>
                 <p className="eyebrow eyebrow-muted">Se parte de Studio 57</p>
                 <h3 className="mt-3 text-2xl font-semibold font-display">
-                  Disfruta de todos los beneficios de nuestras clases.
+                  Disfruta de todos los beneficios del Pilates Reformer.
                 </h3>
               </div>
               <div className="grid gap-3">
