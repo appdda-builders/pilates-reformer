@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { FaPlayCircle, FaRegStopCircle } from "react-icons/fa";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import {
@@ -134,62 +133,13 @@ export default function Home() {
     return true;
   };
 
-  const scrollToAgendaWithRetry = () => {
-    if (scrollToAgenda()) return;
-    let tries = 0;
-    const tick = () => {
-      if (scrollToAgenda()) return;
-      tries += 1;
-      if (tries < 20) window.setTimeout(tick, 50);
-    };
-    tick();
-  };
-
   useEffect(() => {
-    if (pathname !== "/") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("agendar") === "1") {
-      scrollToAgendaWithRetry();
-      openAgendarModal();
-      return;
-    }
     if (window.location.hash !== "#agenda") return;
-    scrollToAgendaWithRetry();
-    openAgendarModal();
-  }, [pathname]);
-
-  useEffect(() => {
-    function onHashChange() {
-      if (window.location.hash === "#agenda") {
-        scrollToAgendaWithRetry();
-        openAgendarModal();
-      }
-    }
-    function onPopState() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("agendar") === "1") {
-        scrollToAgendaWithRetry();
-        openAgendarModal();
-      }
-    }
-    window.addEventListener("hashchange", onHashChange);
-    window.addEventListener("popstate", onPopState);
-    return () => {
-      window.removeEventListener("hashchange", onHashChange);
-      window.removeEventListener("popstate", onPopState);
-    };
+    const timer = window.setTimeout(() => {
+      scrollToAgenda();
+    }, 100);
+    return () => window.clearTimeout(timer);
   }, []);
-
-  function goToAgenda(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault();
-    if (pathname === "/") {
-      scrollToAgendaWithRetry();
-      window.history.pushState(null, "", "#agenda");
-      openAgendarModal();
-      return;
-    }
-    router.push("/?agendar=1");
-  }
 
   return (
     <div

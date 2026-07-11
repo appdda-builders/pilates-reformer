@@ -22,6 +22,7 @@ import {
 import {
   USER_ID_PREFIX_REGULAR,
 } from "@/lib/id-prefix"
+import { routes } from "@/lib/routes"
 import { hiddenRegistryAction, type RegistryActionState } from "./actions"
 
 const initial: RegistryActionState = { success: false }
@@ -59,10 +60,10 @@ export function RegistryForm(props: { registryToken: string }) {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button asChild className="w-full">
-            <Link href="/?agendar=1">Ir a agendar</Link>
+            <a href={routes.agendar}>Ir a agenda</a>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link href="/login">Iniciar sesión</Link>
+            <Link href={routes.login}>Iniciar sesión</Link>
           </Button>
         </CardFooter>
       </Card>

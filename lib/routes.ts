@@ -1,6 +1,7 @@
 export const routes = {
   registry: "/registry",
   login: "/login",
+  agendar: "/#agenda",
   dashboard: "/dashboard",
   usuarios: "/dashboard/usuarios",
   usuarioDetail: (id: string) => `/dashboard/usuarios/${id}`,
