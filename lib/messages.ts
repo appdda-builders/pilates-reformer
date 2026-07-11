@@ -12,6 +12,9 @@ export function interpolateMessage(
     estudio?: string
     fecha?: string
     displayId?: string
+    monto?: string
+    concepto?: string
+    metodo?: string
   },
 ): string {
   let out = template
@@ -20,5 +23,8 @@ export function interpolateMessage(
   out = replaceToken(out, "estudio", ctx.estudio ?? "")
   out = replaceToken(out, "fecha", ctx.fecha ?? "")
   out = replaceToken(out, "displayId", ctx.displayId ?? "")
+  out = replaceToken(out, "monto", ctx.monto ?? "")
+  out = replaceToken(out, "concepto", ctx.concepto ?? "")
+  out = replaceToken(out, "metodo", ctx.metodo ?? "")
   return out
 }
