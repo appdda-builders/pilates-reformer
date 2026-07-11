@@ -19,6 +19,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
+import { SINGLE_CLASS_LABEL } from "@/lib/site/plans";
 
 const LOGO_SRC = `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`;
 
@@ -494,7 +495,7 @@ export default function Home() {
               variants={fadeUp}
               className="flex items-center justify-between lg:rounded-card border border-black/10 bg-white/80 px-6 py-5"
             >
-              <p className="eyebrow eyebrow-muted">Clase Individual</p>
+              <p className="eyebrow eyebrow-muted">{SINGLE_CLASS_LABEL}</p>
               <p className="text-2xl font-semibold text-green-base">$140</p>
             </motion.div>
             <motion.div

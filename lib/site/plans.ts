@@ -92,6 +92,8 @@ export const PUBLIC_RESERVACIONES_PLAN_IDS = [
 
 export const PLAN_DISPLAY_ORDER = STUDIO_PLAN_DEFINITIONS.map((p) => p.id)
 
+export const SINGLE_CLASS_LABEL = "Clase individual"
+
 export type PublicPlan = {
   id: string
   name: string
@@ -128,8 +130,8 @@ export function formatPlanIncludes(
   totalClasses: number | null,
   isUnlimited: boolean,
 ): string {
-  if (isUnlimited) return "Acceso flexible"
-  if (totalClasses === 1) return "1 clase"
+  if (planType === "total_pass" || isUnlimited) return "Acceso flexible"
+  if (totalClasses === 1) return SINGLE_CLASS_LABEL
   if (totalClasses != null && totalClasses > 1) return `${totalClasses} clases`
   return "—"
 }
