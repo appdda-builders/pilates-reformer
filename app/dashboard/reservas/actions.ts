@@ -96,23 +96,28 @@ export async function createBookingAction(
   }
 
   const bookingDate = bookingDateAtNoon(parsed.data.bookingDate)
-  const result = await createBookingForUser(db, {
-    userId: alumna.id,
-    scheduleSlotId: parsed.data.scheduleSlotId,
-    bookingDate,
-    birthdate: alumna.birthdate,
-  })
 
-  if (!result.ok) {
-    return { success: false, error: result.message }
-  }
+  try {
+    const result = await createBookingForUser(db, {
+      userId: alumna.id,
+      scheduleSlotId: parsed.data.scheduleSlotId,
+      bookingDate,
+      birthdate: alumna.birthdate,
+    })
 
-  revalidatePath("/dashboard/reservas")
-  revalidatePath("/dashboard")
-  return {
-    success: true,
-    message: `Reserva confirmada para ${result.userName}`,
-    bookedDate: parsed.data.bookingDate,
+    if (!result.ok) {
+      return { success: false, error: result.message }
+    }
+
+    revalidatePath("/dashboard/reservas")
+    revalidatePath("/dashboard")
+    return {
+      success: true,
+      message: `Reserva confirmada para ${result.userName}`,
+      bookedDate: parsed.data.bookingDate,
+    }
+  } catch {
+    return { success: false, error: "No se pudo guardar la reserva. Intenta de nuevo." }
   }
 }
 

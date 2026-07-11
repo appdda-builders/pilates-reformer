@@ -14,6 +14,7 @@ import ContentDetail from "@/components/content-detail";
 import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
 import HeroVideo from "@/components/hero-video";
 import AboutTeam from "@/components/about-team";
+import { AgendarBookingModal } from "@/components/agendar-booking-modal";
 import Image from "next/image";
 import Link from "next/link";
 import { AgendarBookingModal } from "@/components/agendar-booking-modal";
@@ -132,12 +133,6 @@ export default function Home() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const scrollToAgendaForm = () => {
-    document
-      .getElementById("agenda")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   useEffect(() => {
     if (window.location.hash !== "#weekly" && window.location.hash !== "#agenda") {
       return;
@@ -147,7 +142,10 @@ export default function Home() {
         scrollToWeekly();
         return;
       }
-      scrollToAgendaForm();
+      document
+        .getElementById("agenda")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      openAgendarModal();
     }, 100);
     return () => window.clearTimeout(timer);
   }, []);
@@ -390,10 +388,10 @@ export default function Home() {
             id="weekly"
             className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <SetupWeeklySchedule onSelectClass={scrollToAgendaForm} />
+            <SetupWeeklySchedule onSelectClass={openAgendarModal} />
             <button
               type="button"
-              onClick={scrollToAgendaForm}
+              onClick={openAgendarModal}
               className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
             >
               Continuar

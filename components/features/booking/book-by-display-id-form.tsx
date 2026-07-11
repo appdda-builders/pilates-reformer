@@ -29,7 +29,7 @@ type Props = {
   submitLabel: string
   action: (prev: BookingFormState, formData: FormData) => Promise<BookingFormState>
   disabledSlotDateKeys?: string[]
-  onSuccess?: (bookedDate: string) => void
+  onSuccess?: (bookedDate: string, message?: string) => void
   onCheckEligibility?: (
     displayId: string,
     scheduleSlotId: string,
@@ -46,6 +46,7 @@ export function BookByDisplayIdForm(props: Props) {
   )
   const [checkMessage, setCheckMessage] = useState<string | null>(null)
   const [checkOk, setCheckOk] = useState<boolean | null>(null)
+  const [successHandled, setSuccessHandled] = useState(false)
 
   const dayOfWeek = getDayOfWeekFromDateStr(bookingDate)
   const slotsForDay = filterSlotsForBookingDate(
@@ -81,24 +82,29 @@ export function BookByDisplayIdForm(props: Props) {
   }, [props.defaultDate, props.slots, props.disabledSlotDateKeys, state.success])
 
   useEffect(() => {
-    if (state.success && state.message) {
-      setCheckMessage(state.message)
-      setCheckOk(true)
-      if (props.onSuccess) {
-        const savedDate = state.bookedDate ?? bookingDate
-        if (savedDate) {
-          props.onSuccess(savedDate)
-        }
-      }
+    if (!state.success || successHandled) return
+    const savedDate = state.bookedDate ?? bookingDate
+    const message = state.message ?? "Reserva confirmada"
+    setCheckMessage(message)
+    setCheckOk(true)
+    setSuccessHandled(true)
+    if (props.onSuccess && savedDate) {
+      props.onSuccess(savedDate, message)
     }
+  }, [state.success, state.bookedDate, state.message, bookingDate, props.onSuccess, successHandled])
+
+  useEffect(() => {
+    if (state.success) return
     if (state.error) {
       setCheckMessage(state.error)
       setCheckOk(false)
+      setSuccessHandled(false)
     }
-  }, [state, props.onSuccess])
+  }, [state.error, state.success])
 
   useEffect(() => {
     if (!props.onCheckEligibility) return
+    if (state.success || successHandled) return
     if (!displayId || !scheduleSlotId || !bookingDate) {
       setCheckMessage(null)
       setCheckOk(null)
@@ -123,7 +129,7 @@ export function BookByDisplayIdForm(props: Props) {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [displayId, scheduleSlotId, bookingDate, props.onCheckEligibility])
+  }, [displayId, scheduleSlotId, bookingDate, props.onCheckEligibility, state.success, successHandled])
 
   return (
     <>
@@ -214,7 +220,7 @@ export function BookByDisplayIdForm(props: Props) {
         className="w-full"
         disabled={pending || !canSubmit || checkOk === false}
       >
-        {pending ? "Guardando..." : props.submitLabel}
+        {pending ? "Confirmando..." : props.submitLabel}
       </Button>
     </form>
     </>

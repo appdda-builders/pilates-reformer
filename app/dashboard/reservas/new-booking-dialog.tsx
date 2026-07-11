@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
@@ -24,16 +24,28 @@ export function NewBookingDialog(props: {
   disabledSlotDateKeys?: string[]
 }) {
   const [open, setOpen] = useState(false)
+  const [formKey, setFormKey] = useState(0)
+  const [confirmedMessage, setConfirmedMessage] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleSuccess = useCallback(
-    function handleSuccess(bookedDate: string) {
+  function handleOpenChange(next: boolean) {
+    setOpen(next)
+    if (!next) {
+      setConfirmedMessage(null)
+      setFormKey((k) => k + 1)
+    }
+  }
+
+  function handleSuccess(bookedDate: string, message?: string) {
+    setConfirmedMessage(message ?? "Reserva confirmada")
+    window.setTimeout(() => {
       setOpen(false)
-      router.push(`/dashboard/reservas?date=${bookedDate}`)
+      setConfirmedMessage(null)
+      setFormKey((k) => k + 1)
+      router.push(`/dashboard/reservas?date=${encodeURIComponent(bookedDate)}`)
       router.refresh()
-    },
-    [router],
-  )
+    }, 900)
+  }
 
   async function checkEligibility(
     displayId: string,
@@ -45,7 +57,7 @@ export function NewBookingDialog(props: {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
@@ -56,16 +68,23 @@ export function NewBookingDialog(props: {
         <DialogHeader>
           <DialogTitle>Nueva reserva</DialogTitle>
         </DialogHeader>
-        <BookByDisplayIdForm
-          key={props.defaultDate}
-          slots={props.slots}
-          defaultDate={props.defaultDate}
-          disabledSlotDateKeys={props.disabledSlotDateKeys}
-          submitLabel="Guardar reserva"
-          action={createBookingAction}
-          onCheckEligibility={checkEligibility}
-          onSuccess={handleSuccess}
-        />
+        {confirmedMessage != null ? (
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-green-700 font-medium">{confirmedMessage}</p>
+            <p className="text-sm text-muted-foreground">Redirigiendo a la agenda del día...</p>
+          </div>
+        ) : (
+          <BookByDisplayIdForm
+            key={formKey}
+            slots={props.slots}
+            defaultDate={props.defaultDate}
+            disabledSlotDateKeys={props.disabledSlotDateKeys}
+            submitLabel="Confirmar reserva"
+            action={createBookingAction}
+            onCheckEligibility={checkEligibility}
+            onSuccess={handleSuccess}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )
