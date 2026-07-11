@@ -13,10 +13,10 @@ export type SignInByDisplayIdResult =
 
 async function resolveEmailForLogin(
   identifierRaw: string,
-): Promise<string | null> {
+): Promise<{ email: string | null; disabled: boolean }> {
   const raw = identifierRaw.trim()
   if (raw === "") {
-    return null
+    return { email: null, disabled: false }
   }
 
   const db = getDb()
@@ -24,24 +24,37 @@ async function resolveEmailForLogin(
   if (raw.includes("@")) {
     const email = raw.toLowerCase()
     const [row] = await db
-      .select({ email: schema.user.email })
+      .select({ email: schema.user.email, enabled: schema.user.enabled })
       .from(schema.user)
       .where(eq(schema.user.email, email))
       .limit(1)
-    return row?.email?.trim() ?? null
+    if (row == null) {
+      return { email: null, disabled: false }
+    }
+    if (row.enabled === false) {
+      return { email: null, disabled: true }
+    }
+    return { email: row.email.trim(), disabled: false }
   }
 
   const byDisplayId = await findUserByDisplayId(db, raw)
-  if (byDisplayId != null) {
-    const [row] = await db
-      .select({ email: schema.user.email })
-      .from(schema.user)
-      .where(eq(schema.user.id, byDisplayId.id))
-      .limit(1)
-    return row?.email?.trim() ?? null
+  if (byDisplayId == null) {
+    return { email: null, disabled: false }
   }
 
-  return null
+  const [row] = await db
+    .select({ email: schema.user.email, enabled: schema.user.enabled })
+    .from(schema.user)
+    .where(eq(schema.user.id, byDisplayId.id))
+    .limit(1)
+
+  if (row == null) {
+    return { email: null, disabled: false }
+  }
+  if (row.enabled === false) {
+    return { email: null, disabled: true }
+  }
+  return { email: row.email.trim(), disabled: false }
 }
 
 export async function signInByDisplayId(
@@ -52,14 +65,17 @@ export async function signInByDisplayId(
     return { ok: false, error: "ID o contraseña incorrectos" }
   }
 
-  const email = await resolveEmailForLogin(identifierRaw)
-  if (email == null || email === "") {
+  const resolved = await resolveEmailForLogin(identifierRaw)
+  if (resolved.disabled) {
+    return { ok: false, error: "Tu cuenta está inhabilitada. Contacta al estudio." }
+  }
+  if (resolved.email == null || resolved.email === "") {
     return { ok: false, error: "ID o contraseña incorrectos" }
   }
 
   try {
     await auth.api.signInEmail({
-      body: { email, password },
+      body: { email: resolved.email, password },
       headers: await headers(),
     })
     return { ok: true }

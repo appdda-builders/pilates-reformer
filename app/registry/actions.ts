@@ -1,6 +1,5 @@
 "use server"
 
-import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
@@ -125,7 +124,6 @@ export async function hiddenRegistryAction(
         email,
         password: parsed.data.password,
       },
-      headers: await headers(),
     })
 
     const [created] = await db
@@ -155,9 +153,20 @@ export async function hiddenRegistryAction(
         displayId,
         birthdate: birthdateIso,
         enabled: true,
+        emailVerified: true,
         idPrefix,
       })
       .where(eq(schema.user.id, created.id))
+
+    const [accountRow] = await db
+      .select({ id: schema.account.id, password: schema.account.password })
+      .from(schema.account)
+      .where(eq(schema.account.userId, created.id))
+      .limit(1)
+
+    if (accountRow == null || accountRow.password == null || accountRow.password.trim() === "") {
+      return { success: false, error: REGISTRY_GENERIC_ERROR }
+    }
 
     const row = created
 

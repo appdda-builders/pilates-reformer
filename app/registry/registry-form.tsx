@@ -54,8 +54,8 @@ export function RegistryForm(props: { registryToken: string }) {
             <p className="text-2xl font-semibold tracking-wide">{state.displayId}</p>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Usa este ID en la página de agendar. Tu plan y acceso al panel los confirma el
-            estudio.
+            Guarda tu ID. Para entrar al panel usa tu correo o este ID con la
+            contraseña que elegiste. Tu plan lo confirma el estudio.
           </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
