@@ -126,5 +126,6 @@ export async function confirmPaymentAction(
   revalidatePath("/dashboard/pagos")
   revalidatePath("/dashboard/suscripciones")
   revalidatePath("/dashboard/usuarios")
+  revalidatePath(`/dashboard/usuarios/${row.userId}`)
   return { success: true }
 }

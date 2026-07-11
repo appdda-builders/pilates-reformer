@@ -15,6 +15,20 @@ import { Button } from "@/components/shared/ui/button"
 import { routes } from "@/lib/routes"
 import { and, desc, eq } from "drizzle-orm"
 import { formatBirthdateDisplay } from "@/lib/birthdate"
+import { ConfirmPaymentButton } from "@/app/dashboard/pagos/confirm-payment-button"
+
+function paymentStatusBadge(status: string) {
+  if (status === "succeeded") {
+    return <Badge className="bg-green-100 text-green-700 border-green-200">Exitoso</Badge>
+  }
+  if (status === "pending") {
+    return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pendiente</Badge>
+  }
+  if (status === "failed") {
+    return <Badge className="bg-red-100 text-red-700 border-red-200">Fallido</Badge>
+  }
+  return <Badge variant="secondary">{status}</Badge>
+}
 
 export default async function AlumnoDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params
@@ -101,6 +115,17 @@ export default async function AlumnoDetailPage(props: { params: Promise<{ id: st
 
   const birthLabel = formatBirthdateDisplay(alumno.birthdate)
 
+  const pendingPayment =
+    payments.find((p) => p.status === "pending") ?? null
+  const pendingAmountLabel =
+    pendingPayment == null
+      ? ""
+      : new Intl.NumberFormat("es-MX", {
+          style: "currency",
+          currency: pendingPayment.currency,
+          maximumFractionDigits: 0,
+        }).format(pendingPayment.amount)
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader
@@ -109,9 +134,18 @@ export default async function AlumnoDetailPage(props: { params: Promise<{ id: st
           birthLabel !== "—" ? `${alumno.email} · Cumpleaños: ${birthLabel}` : alumno.email
         }
       >
-        <Button variant="outline" asChild>
-          <Link href={routes.usuarios}>Volver</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {pendingPayment != null ? (
+            <ConfirmPaymentButton
+              paymentId={pendingPayment.id}
+              userName={alumno.name}
+              amountLabel={pendingAmountLabel}
+            />
+          ) : null}
+          <Button variant="outline" asChild>
+            <Link href={routes.usuarios}>Volver</Link>
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -230,26 +264,39 @@ export default async function AlumnoDetailPage(props: { params: Promise<{ id: st
                 <TableHead>Monto</TableHead>
                 <TableHead>Método</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acción</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground">
+                  <TableCell colSpan={5} className="text-muted-foreground">
                     Sin pagos
                   </TableCell>
                 </TableRow>
               ) : (
                 payments.map((p) => {
                   const d = p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt as unknown as number)
+                  const amountLabel = new Intl.NumberFormat("es-MX", {
+                    style: "currency",
+                    currency: p.currency,
+                    maximumFractionDigits: 0,
+                  }).format(p.amount)
                   return (
                     <TableRow key={p.id}>
                       <TableCell>{d.toLocaleDateString("es-MX")}</TableCell>
-                      <TableCell>
-                        {new Intl.NumberFormat("es-MX", { style: "currency", currency: p.currency }).format(p.amount)}
+                      <TableCell>{amountLabel}</TableCell>
+                      <TableCell className="capitalize">{p.method}</TableCell>
+                      <TableCell>{paymentStatusBadge(p.status)}</TableCell>
+                      <TableCell className="text-right">
+                        {p.status === "pending" ? (
+                          <ConfirmPaymentButton
+                            paymentId={p.id}
+                            userName={alumno.name}
+                            amountLabel={amountLabel}
+                          />
+                        ) : null}
                       </TableCell>
-                      <TableCell>{p.method}</TableCell>
-                      <TableCell>{p.status}</TableCell>
                     </TableRow>
                   )
                 })
