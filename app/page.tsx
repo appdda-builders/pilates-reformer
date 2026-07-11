@@ -118,7 +118,7 @@ export default function Home() {
   const navLinks = [
     { href: "#planes", label: "Planes" },
     { href: "#nosotros", label: "Nosotros" },
-    { href: "#agenda", label: "Agenda" },
+    { href: "#weekly", label: "Agenda" },
     { href: "#cobros", label: "Cobros" },
   ];
 
@@ -126,17 +126,28 @@ export default function Home() {
     setAgendarModalOpen(true);
   }
 
-  const scrollToAgenda = () => {
-    const el = document.getElementById("agenda");
-    if (el == null) return false;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    return true;
+  const scrollToWeekly = () => {
+    document
+      .getElementById("weekly")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const scrollToAgendaForm = () => {
+    document
+      .getElementById("agenda")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
-    if (window.location.hash !== "#agenda") return;
+    if (window.location.hash !== "#weekly" && window.location.hash !== "#agenda") {
+      return;
+    }
     const timer = window.setTimeout(() => {
-      scrollToAgenda();
+      if (window.location.hash === "#weekly") {
+        scrollToWeekly();
+        return;
+      }
+      scrollToAgendaForm();
     }, 100);
     return () => window.clearTimeout(timer);
   }, []);
@@ -379,10 +390,10 @@ export default function Home() {
             id="weekly"
             className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <SetupWeeklySchedule onSelectClass={openAgendarModal} />
+            <SetupWeeklySchedule onSelectClass={scrollToAgendaForm} />
             <button
               type="button"
-              onClick={openAgendarModal}
+              onClick={scrollToAgendaForm}
               className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
             >
               Continuar
@@ -759,7 +770,7 @@ export default function Home() {
             <a href="#nosotros" className="transition hover:text-white">
               Nosotros
             </a>
-            <a href="/#agenda" onClick={goToAgenda} className="transition hover:text-white">
+            <a href="#weekly" className="transition hover:text-white">
               Agenda
             </a>
             <a href="#cobros" className="transition hover:text-white">
