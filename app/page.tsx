@@ -17,7 +17,7 @@ import AboutTeam from "@/components/about-team";
 import { AgendarBookingModal } from "@/components/agendar-booking-modal";
 import Image from "next/image";
 import Link from "next/link";
-import { AgendarBookingModal } from "@/components/agendar-booking-modal";
+import { routes } from "@/lib/routes";
 
 const LOGO_SRC = `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`;
 
@@ -624,11 +624,12 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <a
-              href="/login"
-              className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5">
-                Ver Cuenta
-              </a>
+              <Link
+                href={routes.cuenta}
+                className="rounded-full bg-green-base px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:-translate-y-0.5 hover:bg-green-hover"
+              >
+                Ver cuenta
+              </Link>
             </motion.div>
           </motion.div>
         </section>

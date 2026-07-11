@@ -3,6 +3,7 @@ export const routes = {
   login: "/login",
   agendar: "/#weekly",
   dashboard: "/dashboard",
+  cuenta: "/dashboard",
   usuarios: "/dashboard/usuarios",
   usuarioDetail: (id: string) => `/dashboard/usuarios/${id}`,
   clases: "/dashboard/clases",

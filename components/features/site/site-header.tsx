@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogIn, Menu } from "lucide-react";
+import { LogIn, Menu, UserRound } from "lucide-react";
 
 import {
   NavigationMenu,
@@ -19,6 +19,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/shared/ui/sheet";
+import { authClient } from "@/lib/auth-client";
+import { routes } from "@/lib/routes";
 import { siteBrandName, siteLogo, siteNav } from "@/lib/site/routes";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +34,8 @@ function isNavActive(pathname: string, href: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const isLoggedIn = session?.user != null;
 
   useEffect(() => {
     setMenuOpen(false);
@@ -80,10 +84,17 @@ export function SiteHeader() {
             variant="outline"
             className="font-sans hidden gap-2 lg:inline-flex"
           >
-            <Link href="/login">
-              <LogIn className="size-4 shrink-0" aria-hidden />
-              Iniciar sesión
-            </Link>
+            {isLoggedIn ? (
+              <Link href={routes.cuenta}>
+                <UserRound className="size-4 shrink-0" aria-hidden />
+                Ver cuenta
+              </Link>
+            ) : (
+              <Link href={routes.login}>
+                <LogIn className="size-4 shrink-0" aria-hidden />
+                Iniciar sesión
+              </Link>
+            )}
           </Button>
           <Button
             type="button"
@@ -125,10 +136,17 @@ export function SiteHeader() {
           </nav>
           <div className="border-border mt-6 border-t pt-6">
             <Button asChild variant="outline" className="font-sans w-full gap-2">
-              <Link href="/login" onClick={() => setMenuOpen(false)}>
-                <LogIn className="size-4 shrink-0" aria-hidden />
-                Iniciar sesión
-              </Link>
+              {isLoggedIn ? (
+                <Link href={routes.cuenta} onClick={() => setMenuOpen(false)}>
+                  <UserRound className="size-4 shrink-0" aria-hidden />
+                  Ver cuenta
+                </Link>
+              ) : (
+                <Link href={routes.login} onClick={() => setMenuOpen(false)}>
+                  <LogIn className="size-4 shrink-0" aria-hidden />
+                  Iniciar sesión
+                </Link>
+              )}
             </Button>
           </div>
         </SheetContent>
