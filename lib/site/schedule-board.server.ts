@@ -6,9 +6,11 @@ import * as schema from "@/lib/db/schema"
 import { toLocalDateStr } from "@/lib/booking-slot-options"
 import { getMondayOfWeek, type PublicScheduleSlot } from "@/lib/site/schedule"
 import { normalizeScheduleTime } from "@/lib/site/schedule-board-utils"
+import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
 export type LandingScheduleBoard = {
   slots: PublicScheduleSlot[]
   enrollments: Record<string, number>
+  disabledSlotDateKeys: string[]
 }
 
 function enrollmentKey(slotId: string, dateStr: string) {
@@ -29,7 +31,7 @@ export async function loadLandingScheduleBoard(): Promise<LandingScheduleBoard> 
       .where(eq(schema.scheduleSlot.isActive, true))
 
     if (rows.length === 0) {
-      return { slots: [], enrollments: {} }
+      return { slots: [], enrollments: {}, disabledSlotDateKeys: [] }
     }
 
     const slots: PublicScheduleSlot[] = rows.map((row) => ({
@@ -68,8 +70,12 @@ export async function loadLandingScheduleBoard(): Promise<LandingScheduleBoard> 
       enrollments[key] = (enrollments[key] ?? 0) + 1
     }
 
-    return { slots, enrollments }
+    const disabledSlotDateKeys = Array.from(
+      await listDisabledSlotDateKeys(db, rangeStart, rangeEnd),
+    )
+
+    return { slots, enrollments, disabledSlotDateKeys }
   } catch {
-    return { slots: [], enrollments: {} }
+    return { slots: [], enrollments: {}, disabledSlotDateKeys: [] }
   }
 }

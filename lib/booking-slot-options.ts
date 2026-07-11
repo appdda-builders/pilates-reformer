@@ -17,11 +17,18 @@ export function getDayOfWeekFromDateStr(dateStr: string): number | null {
 export function filterSlotsForBookingDate(
   slots: BookingSlotOption[],
   bookingDateStr: string,
+  disabledSlotDateKeys?: Iterable<string>,
 ): BookingSlotOption[] {
   const dow = getDayOfWeekFromDateStr(bookingDateStr)
   if (dow === null) return []
   if (dow === 0) return []
-  return slots.filter((s) => s.dayOfWeek === dow)
+  const disabled =
+    disabledSlotDateKeys == null ? null : new Set(disabledSlotDateKeys)
+  return slots.filter((s) => {
+    if (s.dayOfWeek !== dow) return false
+    if (disabled != null && disabled.has(`${s.id}|${bookingDateStr}`)) return false
+    return true
+  })
 }
 
 export function formatSlotLabel(slot: BookingSlotOption): string {
@@ -65,14 +72,15 @@ export function bookingDateAtNoon(dateStr: string): Date {
 export function nextDateWithSlots(
   fromDateStr: string,
   slots: BookingSlotOption[],
+  disabledSlotDateKeys?: Iterable<string>,
 ): string {
   const start = new Date(`${fromDateStr}T12:00:00`)
   if (Number.isNaN(start.getTime())) return fromDateStr
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 14; i++) {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
     const str = toLocalDateStr(d)
-    if (filterSlotsForBookingDate(slots, str).length > 0) return str
+    if (filterSlotsForBookingDate(slots, str, disabledSlotDateKeys).length > 0) return str
   }
   return fromDateStr
 }
@@ -80,9 +88,10 @@ export function nextDateWithSlots(
 export function resolveBookingDefaultDate(
   dateStr: string,
   slots: BookingSlotOption[],
+  disabledSlotDateKeys?: Iterable<string>,
 ): string {
-  if (filterSlotsForBookingDate(slots, dateStr).length > 0) return dateStr
-  return nextDateWithSlots(dateStr, slots)
+  if (filterSlotsForBookingDate(slots, dateStr, disabledSlotDateKeys).length > 0) return dateStr
+  return nextDateWithSlots(dateStr, slots, disabledSlotDateKeys)
 }
 
 export function formatBookingDateEs(dateStr: string): string {

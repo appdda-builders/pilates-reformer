@@ -15,6 +15,8 @@ import { routes } from "@/lib/routes"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Button } from "@/components/shared/ui/button"
 import { dateRangeForDay, localTodayStr, resolveBookingDefaultDate } from "@/lib/booking-slot-options"
+import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { getMondayOfWeek } from "@/lib/site/schedule"
 import { NewBookingDialog } from "./new-booking-dialog"
 import { ReservaCard } from "./reserva-card"
 
@@ -145,6 +147,15 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
     }))
   }
 
+  const exceptionRangeStart = getMondayOfWeek(new Date(), 0)
+  exceptionRangeStart.setHours(0, 0, 0, 0)
+  const exceptionRangeEnd = new Date(exceptionRangeStart)
+  exceptionRangeEnd.setDate(exceptionRangeEnd.getDate() + 7 * 12 + 6)
+  exceptionRangeEnd.setHours(23, 59, 59, 999)
+  const disabledSlotDateKeys = Array.from(
+    await listDisabledSlotDateKeys(db, exceptionRangeStart, exceptionRangeEnd),
+  )
+
   const bookingConditions = [
     gte(schema.booking.bookingDate, selectedDate),
     lte(schema.booking.bookingDate, endOfDay),
@@ -233,7 +244,8 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
         {canManage ? (
           <NewBookingDialog
             slots={bookingSlots}
-            defaultDate={resolveBookingDefaultDate(dateStr, bookingSlots)}
+            defaultDate={resolveBookingDefaultDate(dateStr, bookingSlots, disabledSlotDateKeys)}
+            disabledSlotDateKeys={disabledSlotDateKeys}
           />
         ) : null}
       </PageHeader>

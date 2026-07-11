@@ -7,6 +7,8 @@ import * as schema from "@/lib/db/schema"
 import { eq, and, gte, lte, asc } from "drizzle-orm"
 import { filterSlotsForCoach, getCoachSessionInfo } from "@/lib/coach-schedule-visibility"
 import { nextOccurrenceForDayOfWeek, toLocalDateStr } from "@/lib/booking-slot-options"
+import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { getMondayOfWeek } from "@/lib/site/schedule"
 import { ClasesClient } from "./clases-client"
 import type { SlotCardData } from "./slot-card"
 export default async function ClasesPage() {
@@ -34,6 +36,12 @@ export default async function ClasesPage() {
   rangeEnd.setDate(rangeEnd.getDate() + 7)
   rangeEnd.setHours(23, 59, 59, 999)
 
+  const exceptionRangeStart = getMondayOfWeek(new Date(), 0)
+  exceptionRangeStart.setHours(0, 0, 0, 0)
+  const exceptionRangeEnd = new Date(exceptionRangeStart)
+  exceptionRangeEnd.setDate(exceptionRangeEnd.getDate() + 7 * 8 + 6)
+  exceptionRangeEnd.setHours(23, 59, 59, 999)
+
   const bookingCounts = await db
     .select({
       slotId: schema.booking.scheduleSlotId,
@@ -60,6 +68,18 @@ export default async function ClasesPage() {
     countMap.set(slot.id, n)
   }
 
+  const disabledKeys = await listDisabledSlotDateKeys(db, exceptionRangeStart, exceptionRangeEnd)
+  const disabledBySlot = new Map<string, string[]>()
+  for (const key of disabledKeys) {
+    const sep = key.indexOf("|")
+    if (sep < 0) continue
+    const slotId = key.slice(0, sep)
+    const dateStr = key.slice(sep + 1)
+    const list = disabledBySlot.get(slotId) ?? []
+    list.push(dateStr)
+    disabledBySlot.set(slotId, list)
+  }
+
   const activeCount = slots.filter((s) => s.isActive).length
 
   const coaches = await db
@@ -84,6 +104,7 @@ export default async function ClasesPage() {
     classType: slot.classType,
     isActive: slot.isActive,
     bookedToday: countMap.get(slot.id) ?? 0,
+    disabledDates: disabledBySlot.get(slot.id) ?? [],
   }))
 
   return (

@@ -19,6 +19,7 @@ import {
   isSubscriptionCurrent,
   pickPrimarySubscription,
 } from "@/lib/subscription-display"
+import { isSlotDisabledOnDate } from "@/lib/slot-exceptions"
 
 export type CreateBookingResult =
   | { ok: true; bookingId: string; userName: string }
@@ -203,6 +204,11 @@ export async function createBookingForUser(
 
   if (!slot || !slot.isActive) {
     return { ok: false, message: "Horario no disponible" }
+  }
+
+  const disabledThisDate = await isSlotDisabledOnDate(db, slot.id, params.bookingDate)
+  if (disabledThisDate) {
+    return { ok: false, message: "Esta clase no se imparte esa semana." }
   }
 
   const ageCheck = validateBookingAgeForSlot(

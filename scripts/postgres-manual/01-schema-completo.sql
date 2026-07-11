@@ -160,6 +160,14 @@ CREATE TABLE IF NOT EXISTS "schedule_slot" (
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "schedule_slot_exception" (
+	"id" text PRIMARY KEY NOT NULL,
+	"schedule_slot_id" text NOT NULL,
+	"exception_date" timestamp (3) NOT NULL,
+	"reason" text,
+	"created_at" timestamp (3) DEFAULT now() NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp (3) NOT NULL,
@@ -343,10 +351,16 @@ DO $$ BEGIN
  ALTER TABLE "subscription" ADD CONSTRAINT "subscription_plan_id_plan_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."plan"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+DO $$ BEGIN
+ ALTER TABLE "schedule_slot_exception" ADD CONSTRAINT "schedule_slot_exception_schedule_slot_id_schedule_slot_id_fk" FOREIGN KEY ("schedule_slot_id") REFERENCES "public"."schedule_slot"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 CREATE INDEX IF NOT EXISTS "account_userId_idx" ON "account" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "booking_userId_idx" ON "booking" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "booking_date_idx" ON "booking" USING btree ("booking_date");
 CREATE INDEX IF NOT EXISTS "payment_userId_idx" ON "payment" USING btree ("user_id");
+CREATE INDEX IF NOT EXISTS "schedule_slot_exception_slot_idx" ON "schedule_slot_exception" USING btree ("schedule_slot_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "schedule_slot_exception_slot_date_uidx" ON "schedule_slot_exception" USING btree ("schedule_slot_id","exception_date");
 CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "session" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "subscription_userId_idx" ON "subscription" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "verification_identifier_idx" ON "verification" USING btree ("identifier");

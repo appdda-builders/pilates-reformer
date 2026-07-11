@@ -28,6 +28,7 @@ type Props = {
   defaultDate: string
   submitLabel: string
   action: (prev: BookingFormState, formData: FormData) => Promise<BookingFormState>
+  disabledSlotDateKeys?: string[]
   onSuccess?: (bookedDate: string) => void
   onCheckEligibility?: (
     displayId: string,
@@ -41,19 +42,23 @@ export function BookByDisplayIdForm(props: Props) {
   const [displayId, setDisplayId] = useState("")
   const [scheduleSlotId, setScheduleSlotId] = useState("")
   const [bookingDate, setBookingDate] = useState(() =>
-    resolveBookingDefaultDate(props.defaultDate, props.slots),
+    resolveBookingDefaultDate(props.defaultDate, props.slots, props.disabledSlotDateKeys),
   )
   const [checkMessage, setCheckMessage] = useState<string | null>(null)
   const [checkOk, setCheckOk] = useState<boolean | null>(null)
 
   const dayOfWeek = getDayOfWeekFromDateStr(bookingDate)
-  const slotsForDay = filterSlotsForBookingDate(props.slots, bookingDate)
-  const nextDate = nextDateWithSlots(bookingDate, props.slots)
+  const slotsForDay = filterSlotsForBookingDate(
+    props.slots,
+    bookingDate,
+    props.disabledSlotDateKeys,
+  )
+  const nextDate = nextDateWithSlots(bookingDate, props.slots, props.disabledSlotDateKeys)
   const canUseNextDate =
     bookingDate !== "" &&
     slotsForDay.length === 0 &&
     nextDate !== bookingDate &&
-    filterSlotsForBookingDate(props.slots, nextDate).length > 0
+    filterSlotsForBookingDate(props.slots, nextDate, props.disabledSlotDateKeys).length > 0
   const canSubmit =
     displayId.trim() !== "" &&
     bookingDate !== "" &&
@@ -70,8 +75,10 @@ export function BookByDisplayIdForm(props: Props) {
 
   useEffect(() => {
     if (state.success) return
-    setBookingDate(resolveBookingDefaultDate(props.defaultDate, props.slots))
-  }, [props.defaultDate, props.slots, state.success])
+    setBookingDate(
+      resolveBookingDefaultDate(props.defaultDate, props.slots, props.disabledSlotDateKeys),
+    )
+  }, [props.defaultDate, props.slots, props.disabledSlotDateKeys, state.success])
 
   useEffect(() => {
     if (state.success && state.message) {

@@ -31,6 +31,7 @@ function enrollmentKey(slotId: string, dateStr: string) {
 export function HeroScheduleCalendar(props: {
   slots: PublicScheduleSlot[]
   enrollments: Record<string, number>
+  disabledSlotDateKeys?: string[]
 }) {
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -38,6 +39,7 @@ export function HeroScheduleCalendar(props: {
   const weekLabel = formatWeekRange(monday)
   const boardTimes = getBoardTimes(props.slots)
   const hasSlots = props.slots.length > 0
+  const disabledSet = new Set(props.disabledSlotDateKeys ?? [])
 
   function handlePrevWeek() {
     setWeekOffset(weekOffset - 1)
@@ -51,6 +53,11 @@ export function HeroScheduleCalendar(props: {
     const dateStr = dateStrForWeekDay(monday, dayOfWeek)
     const key = enrollmentKey(slot.id, dateStr)
     return props.enrollments[key] ?? 0
+  }
+
+  function isDisabled(slot: PublicScheduleSlot, dayOfWeek: number): boolean {
+    const dateStr = dateStrForWeekDay(monday, dayOfWeek)
+    return disabledSet.has(enrollmentKey(slot.id, dateStr))
   }
 
   return (
@@ -132,8 +139,11 @@ export function HeroScheduleCalendar(props: {
                       }
 
                       const enrolled = getEnrolled(slot, day.dayOfWeek)
+                      const disabled = isDisabled(slot, day.dayOfWeek)
                       const full = enrolled >= slot.capacity
-                      const title = `${enrolled} inscritos · aforo ${slot.capacity}`
+                      const title = disabled
+                        ? "No disponible esta semana"
+                        : `${enrolled} inscritos · aforo ${slot.capacity}`
 
                       return (
                         <td
@@ -147,10 +157,13 @@ export function HeroScheduleCalendar(props: {
                             <span
                               className={cn(
                                 "font-sans relative inline-flex h-[1.65rem] min-w-[3.25rem] items-center justify-center rounded-md px-2 text-[10px] font-bold sm:h-[1.925rem] sm:text-[0.825rem]",
-                                "bg-[#1b4332] text-white",
+                                disabled
+                                  ? "bg-primary-foreground/20 text-primary-foreground/70 line-through"
+                                  : "bg-[#1b4332] text-white",
                               )}
                             >
-                              Clase
+                              {disabled ? "Off" : "Clase"}
+                              {disabled ? null : (
                               <span
                                 className={cn(
                                   "absolute -top-1.5 -right-2 flex h-4 min-w-[1.65rem] items-center justify-center rounded-full px-1 text-[8px] font-bold leading-none sm:h-[1.1rem] sm:min-w-[1.925rem] sm:text-[9px]",
@@ -164,6 +177,7 @@ export function HeroScheduleCalendar(props: {
                               >
                                 {enrolled}/{slot.capacity}
                               </span>
+                              )}
                             </span>
                           </span>
                         </td>

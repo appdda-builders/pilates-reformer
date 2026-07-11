@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
@@ -112,6 +113,23 @@ export const scheduleSlot = pgTable("schedule_slot", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
 })
+
+export const scheduleSlotException = pgTable(
+  "schedule_slot_exception",
+  {
+    id: text("id").primaryKey(),
+    scheduleSlotId: text("schedule_slot_id")
+      .notNull()
+      .references(() => scheduleSlot.id, { onDelete: "cascade" }),
+    exceptionDate: timestamp("exception_date", { precision: 3, mode: "date" }).notNull(),
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("schedule_slot_exception_slot_idx").on(t.scheduleSlotId),
+    uniqueIndex("schedule_slot_exception_slot_date_uidx").on(t.scheduleSlotId, t.exceptionDate),
+  ],
+)
 
 export const subscription = pgTable(
   "subscription",
@@ -332,6 +350,14 @@ export const reformerRelations = relations(reformer, ({ many }) => ({
 
 export const scheduleSlotRelations = relations(scheduleSlot, ({ many }) => ({
   bookings: many(booking),
+  exceptions: many(scheduleSlotException),
+}))
+
+export const scheduleSlotExceptionRelations = relations(scheduleSlotException, ({ one }) => ({
+  scheduleSlot: one(scheduleSlot, {
+    fields: [scheduleSlotException.scheduleSlotId],
+    references: [scheduleSlot.id],
+  }),
 }))
 
 export const subscriptionRelations = relations(subscription, ({ one, many }) => ({

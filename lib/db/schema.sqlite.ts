@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm"
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -108,6 +108,23 @@ export const scheduleSlot = sqliteTable("schedule_slot", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 })
+
+export const scheduleSlotException = sqliteTable(
+  "schedule_slot_exception",
+  {
+    id: text("id").primaryKey(),
+    scheduleSlotId: text("schedule_slot_id")
+      .notNull()
+      .references(() => scheduleSlot.id, { onDelete: "cascade" }),
+    exceptionDate: integer("exception_date", { mode: "timestamp_ms" }).notNull(),
+    reason: text("reason"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index("schedule_slot_exception_slot_idx").on(t.scheduleSlotId),
+    uniqueIndex("schedule_slot_exception_slot_date_uidx").on(t.scheduleSlotId, t.exceptionDate),
+  ],
+)
 
 export const subscription = sqliteTable(
   "subscription",
@@ -329,6 +346,14 @@ export const reformerRelations = relations(reformer, ({ many }) => ({
 
 export const scheduleSlotRelations = relations(scheduleSlot, ({ many }) => ({
   bookings: many(booking),
+  exceptions: many(scheduleSlotException),
+}))
+
+export const scheduleSlotExceptionRelations = relations(scheduleSlotException, ({ one }) => ({
+  scheduleSlot: one(scheduleSlot, {
+    fields: [scheduleSlotException.scheduleSlotId],
+    references: [scheduleSlot.id],
+  }),
 }))
 
 export const subscriptionRelations = relations(subscription, ({ one, many }) => ({

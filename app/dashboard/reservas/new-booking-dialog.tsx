@@ -18,7 +18,11 @@ import {
   checkBookingEligibilityAction,
 } from "./actions"
 
-export function NewBookingDialog(props: { slots: BookingSlotOption[]; defaultDate: string }) {
+export function NewBookingDialog(props: {
+  slots: BookingSlotOption[]
+  defaultDate: string
+  disabledSlotDateKeys?: string[]
+}) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
@@ -56,6 +60,7 @@ export function NewBookingDialog(props: { slots: BookingSlotOption[]; defaultDat
           key={props.defaultDate}
           slots={props.slots}
           defaultDate={props.defaultDate}
+          disabledSlotDateKeys={props.disabledSlotDateKeys}
           submitLabel="Guardar reserva"
           action={createBookingAction}
           onCheckEligibility={checkEligibility}

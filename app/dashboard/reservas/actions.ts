@@ -24,6 +24,7 @@ import {
   bookingDateAtNoon,
   getDayOfWeekFromDateStr,
 } from "@/lib/booking-slot-options"
+import { isSlotDisabledOnDate } from "@/lib/slot-exceptions"
 
 export type ActionState = {
   success: boolean
@@ -142,6 +143,11 @@ export async function checkBookingEligibilityAction(
   }
 
   const bookingDate = new Date(`${bookingDateStr}T12:00:00`)
+  const disabledThisDate = await isSlotDisabledOnDate(db, scheduleSlotId, bookingDateStr)
+  if (disabledThisDate) {
+    return { ok: false, message: "Esta clase no se imparte esa semana." }
+  }
+
   const check = validateBookingAgeForSlot(
     alumna.birthdate,
     slot.dayOfWeek,
