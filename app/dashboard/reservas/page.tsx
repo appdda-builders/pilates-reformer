@@ -4,7 +4,7 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
-import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm"
+import { and, asc, count, eq, gte, lte } from "drizzle-orm"
 import { coachScheduleSlotSql, getCoachSessionInfo } from "@/lib/coach-schedule-visibility"
 import { isAlumnoRole, getSessionUserId } from "@/lib/alumno-scope"
 import { evaluateStudentSelfRelease } from "@/lib/booking-rules"
@@ -14,10 +14,8 @@ import { LIST_PAGE_SIZE, listPaginationOffset, parseListPage } from "@/lib/list-
 import { routes } from "@/lib/routes"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Button } from "@/components/shared/ui/button"
-import { dateRangeForDay, localTodayStr, resolveBookingDefaultDate } from "@/lib/booking-slot-options"
-import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
-import { getMondayOfWeek } from "@/lib/site/schedule"
-import { NewBookingDialog } from "./new-booking-dialog"
+import { dateRangeForDay, localTodayStr } from "@/lib/booking-slot-options"
+import Link from "next/link"
 import { ReservaCard } from "./reserva-card"
 
 function isAdminOrRoot(role: string) {
@@ -107,55 +105,6 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
       .orderBy(schema.user.name)
   }
 
-  let bookingSlots: {
-    id: string
-    dayOfWeek: number
-    startTime: string
-    endTime: string | null
-    className: string
-    instructor: string | null
-  }[] = []
-
-  if (!isAlumno) {
-    const slotConditions = [eq(schema.scheduleSlot.isActive, true)]
-    if (coachSession != null) {
-      slotConditions.push(coachScheduleSlotSql(schema.scheduleSlot, coachSession))
-    }
-
-    const slotRows = await db
-      .select({
-        id: schema.scheduleSlot.id,
-        className: schema.scheduleSlot.className,
-        dayOfWeek: schema.scheduleSlot.dayOfWeek,
-        startTime: schema.scheduleSlot.startTime,
-        endTime: schema.scheduleSlot.endTime,
-        instructor: schema.scheduleSlot.instructor,
-        alternateInstructor: schema.scheduleSlot.alternateInstructor,
-        scheduleMode: schema.scheduleSlot.scheduleMode,
-      })
-      .from(schema.scheduleSlot)
-      .where(and(...slotConditions))
-      .orderBy(schema.scheduleSlot.dayOfWeek, schema.scheduleSlot.startTime)
-
-    bookingSlots = slotRows.map((row) => ({
-      id: row.id,
-      dayOfWeek: row.dayOfWeek,
-      startTime: row.startTime,
-      endTime: row.endTime,
-      className: row.className,
-      instructor: row.instructor,
-    }))
-  }
-
-  const exceptionRangeStart = getMondayOfWeek(new Date(), 0)
-  exceptionRangeStart.setHours(0, 0, 0, 0)
-  const exceptionRangeEnd = new Date(exceptionRangeStart)
-  exceptionRangeEnd.setDate(exceptionRangeEnd.getDate() + 7 * 12 + 6)
-  exceptionRangeEnd.setHours(23, 59, 59, 999)
-  const disabledSlotDateKeys = Array.from(
-    await listDisabledSlotDateKeys(db, exceptionRangeStart, exceptionRangeEnd),
-  )
-
   const bookingConditions = [
     gte(schema.booking.bookingDate, selectedDate),
     lte(schema.booking.bookingDate, endOfDay),
@@ -241,12 +190,10 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Reservas" description={description}>
-        {canManage ? (
-          <NewBookingDialog
-            slots={bookingSlots}
-            defaultDate={resolveBookingDefaultDate(dateStr, bookingSlots, disabledSlotDateKeys)}
-            disabledSlotDateKeys={disabledSlotDateKeys}
-          />
+        {canManage || isAlumno ? (
+          <Button asChild className="gap-2">
+            <Link href={routes.agendar}>Agendar clase</Link>
+          </Button>
         ) : null}
       </PageHeader>
 

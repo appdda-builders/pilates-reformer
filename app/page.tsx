@@ -15,9 +15,9 @@ import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
 import type { WeeklyClassSelection } from "@/components/setup-weekly-schedule";
 import HeroVideo from "@/components/hero-video";
 import AboutTeam from "@/components/about-team";
-import { AgendarBookingModal } from "@/components/agendar-booking-modal";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { routes } from "@/lib/routes";
 
 const LOGO_SRC = `${process.env.NEXT_PUBLIC_S3}Studio57.jpeg`;
@@ -91,12 +91,8 @@ const flow = [
 ];
 
 export default function Home() {
-  const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [agendarModalOpen, setAgendarModalOpen] = useState(false);
-  const [agendarInitialDate, setAgendarInitialDate] = useState<string | null>(null);
-  const [agendarInitialSlotId, setAgendarInitialSlotId] = useState<string | null>(null);
   const [selectedCadence, setSelectedCadence] = useState<
     Record<string, (typeof cadenceConfig)[number]["label"]>
   >(() =>
@@ -122,27 +118,18 @@ export default function Home() {
   const navLinks = [
     { href: "#planes", label: "Planes" },
     { href: "#nosotros", label: "Nosotros" },
-    { href: "#weekly", label: "Agenda" },
+    { href: routes.agendar, label: "Agenda" },
     { href: "#cobros", label: "Cobros" },
   ];
 
-  function openAgendarModal(selection?: WeeklyClassSelection) {
+  function goToAgendar(selection?: WeeklyClassSelection) {
     if (selection != null) {
-      setAgendarInitialDate(selection.bookingDate);
-      setAgendarInitialSlotId(selection.slotId);
-    } else {
-      setAgendarInitialDate(null);
-      setAgendarInitialSlotId(null);
+      router.push(
+        `${routes.agendar}?date=${encodeURIComponent(selection.bookingDate)}&slot=${encodeURIComponent(selection.slotId)}`,
+      );
+      return;
     }
-    setAgendarModalOpen(true);
-  }
-
-  function handleAgendarModalOpenChange(open: boolean) {
-    setAgendarModalOpen(open);
-    if (!open) {
-      setAgendarInitialDate(null);
-      setAgendarInitialSlotId(null);
-    }
+    router.push(routes.agendar);
   }
 
   const scrollToWeekly = () => {
@@ -152,7 +139,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (window.location.hash !== "#weekly" && window.location.hash !== "#agenda") {
+    if (window.location.hash !== "#weekly") {
       return;
     }
     const timer = window.setTimeout(() => {
@@ -383,7 +370,7 @@ export default function Home() {
             </motion.button>
             <motion.div variants={fadeUp} className="flex lg:hidden flex-wrap gap-4 justify-center">
               <a
-                href="#weekly"
+                href={routes.agendar}
                 className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20"
               >
                 Clase Muestra
@@ -399,13 +386,13 @@ export default function Home() {
             id="weekly"
             className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
-            <SetupWeeklySchedule onSelectClass={openAgendarModal} />
-            <a
-              href="#agenda"
+            <SetupWeeklySchedule onSelectClass={goToAgendar} />
+            <Link
+              href={routes.agendar}
               className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
             >
-              Ver cómo reservar
-            </a>
+              Ir a agendar
+            </Link>
           </motion.div>
         </div>
       </header>
@@ -685,13 +672,12 @@ export default function Home() {
                     Elige fecha y horario real del estudio. Al confirmar iniciarás
                     sesión con tu ID y contraseña para identificar tu reserva.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => openAgendarModal()}
-                    className="w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover"
+                  <Link
+                    href={routes.agendar}
+                    className="w-full rounded-full bg-green-base px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover"
                   >
-                    Abrir reserva
-                  </button>
+                    Ir a agendar
+                  </Link>
                   <p className="text-center text-xs text-black/50">
                     ¿No tienes cuenta?{" "}
                     <Link href="/registry" className="font-semibold text-green-base underline underline-offset-2">
@@ -779,7 +765,7 @@ export default function Home() {
             <a href="#nosotros" className="transition hover:text-white">
               Nosotros
             </a>
-            <a href="#weekly" className="transition hover:text-white">
+            <a href={routes.agendar} className="transition hover:text-white">
               Agenda
             </a>
             <a href="#cobros" className="transition hover:text-white">
@@ -796,7 +782,7 @@ export default function Home() {
             </p>
             <motion.div variants={fadeUp} className="flex flex-wrap gap-4 justify-center">
               <a
-              href="/login"
+              href={routes.agendar}
               className="rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-hover shadow-lg shadow-green-base/20">
                 Clase Muestra
               </a>
@@ -809,12 +795,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-      <AgendarBookingModal
-        open={agendarModalOpen}
-        onOpenChange={handleAgendarModalOpenChange}
-        initialDate={agendarInitialDate}
-        initialSlotId={agendarInitialSlotId}
-      />
     </div>
   );
 }
