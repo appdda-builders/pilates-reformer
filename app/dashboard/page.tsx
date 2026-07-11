@@ -8,6 +8,7 @@ import { Badge } from "@/components/shared/ui/badge"
 import { Users, Calendar, BookOpen, DollarSign } from "lucide-react"
 import { WeeklyBookingsChart } from "./_chart"
 import { paymentCreatedInStudioMonth, studioMonthLabel } from "@/lib/studio-month"
+import { formatTime12h } from "@/lib/time-utils"
 
 const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
@@ -202,7 +203,7 @@ export default async function DashboardPage() {
                   <div>
                     <p className="font-medium text-sm">{r.userName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {r.className} · {DAY_NAMES[r.dayOfWeek]} {r.startTime}
+                      {r.className} · {DAY_NAMES[r.dayOfWeek]} {formatTime12h(r.startTime)}
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs font-normal">

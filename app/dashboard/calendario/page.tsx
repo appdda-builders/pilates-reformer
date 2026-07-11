@@ -9,6 +9,7 @@ import { and, asc, eq, gte, lte } from "drizzle-orm"
 import { birthdateMonthDayKey } from "@/lib/birthdate"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
 import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { formatTime12h } from "@/lib/time-utils"
 import type { CalendarFeedEvent } from "./calendar-types"
 import { CalendarShell } from "./calendar-shell"
 
@@ -278,7 +279,7 @@ export default async function CalendarioPage() {
         end = new Date(d)
         end.setHours(eh, em ?? 0, 0, 0)
       }
-      const timeLabel = slot.startTime.slice(0, 5)
+      const timeLabel = formatTime12h(slot.startTime)
       const disabled = disabledKeys.has(`${slot.id}|${dateStr}`)
       if (disabled) {
         eventsOut.push({

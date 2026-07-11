@@ -32,6 +32,7 @@ import {
 } from "./actions"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
 import { toLocalDateStr } from "@/lib/booking-slot-options"
+import { formatTime12h, formatTimeRange12h } from "@/lib/time-utils"
 import {
   occurrenceDateForWeek,
   upcomingWeekOptions,
@@ -64,16 +65,6 @@ function classTypeBadgeClass(classType: string): string {
   if (classType === "mayores_60") return "bg-amber-100 text-amber-900 border-amber-200"
   if (classType === "otro") return "bg-gray-100 text-gray-800 border-gray-200"
   return "bg-orange-100 text-orange-800 border-orange-200"
-}
-
-function formatTime12h(time24: string): string {
-  const parts = time24.split(":")
-  const h = Number(parts[0])
-  const m = parts[1] ?? "00"
-  if (Number.isNaN(h)) return time24
-  const suffix = h >= 12 ? "PM" : "AM"
-  const hour12 = h % 12 === 0 ? 12 : h % 12
-  return `${hour12}:${m} ${suffix}`
 }
 
 export type SlotCardData = {
@@ -303,8 +294,7 @@ export function SlotCard(props: {
             >
               <span className="inline-flex items-center gap-1">
                 <Clock className={`shrink-0 ${props.compact ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                {slot.startTime}
-                {slot.endTime ? ` – ${slot.endTime}` : ""}
+            {formatTimeRange12h(slot.startTime, slot.endTime)}
               </span>
               <span className="inline-flex items-center gap-1">
                 <Users className={`shrink-0 ${props.compact ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
@@ -409,7 +399,7 @@ export function SlotCard(props: {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Borrar esta clase?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará el horario de {slot.className} ({dayName} {slot.startTime}) y sus reservas
+              Se eliminará el horario de {slot.className} ({dayName} {formatTime12h(slot.startTime)}) y sus reservas
               asociadas. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>

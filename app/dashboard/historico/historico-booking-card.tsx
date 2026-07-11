@@ -2,6 +2,7 @@ import { Badge } from "@/components/shared/ui/badge"
 import { Card, CardContent } from "@/components/shared/ui/card"
 import { Clock } from "lucide-react"
 import { attendanceStatusLabel, formatBookingDate, formatSlotTime } from "@/lib/attendance-report-utils"
+import { formatTimeRange12h } from "@/lib/time-utils"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
 
 export type HistoricoBookingData = {
@@ -63,8 +64,7 @@ export function HistoricoBookingCard(props: {
         <div className="mt-auto shrink-0 border-t pt-2">
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5 shrink-0" />
-            {b.startTime}
-            {b.endTime ? ` – ${b.endTime}` : ""}
+            {formatTimeRange12h(b.startTime, b.endTime)}
           </span>
           {props.showAlumna && b.studentName ? (
             <p className="text-xs text-muted-foreground truncate mt-1">Coach: {instructorLine}</p>

@@ -15,19 +15,9 @@ import {
 } from "@/components/shared/ui/table"
 import { Clock } from "lucide-react"
 import { routes } from "@/lib/routes"
+import { formatTimeRange12h } from "@/lib/time-utils"
 import { NewCoachDialog } from "./new-coach-dialog"
 import { CoachRowActions } from "./coach-row-actions"
-
-function formatTime(t: string) {
-  const [h, m] = t.split(":")
-  const hour = Number.parseInt(h, 10)
-  const suffix = hour >= 12 ? "PM" : "AM"
-  let display: number
-  if (hour > 12) display = hour - 12
-  else if (hour === 0) display = 12
-  else display = hour
-  return `${display}:${m} ${suffix}`
-}
 
 export default async function CoachesPage() {
   const session = await auth.api.getSession({
@@ -190,8 +180,7 @@ export default async function CoachesPage() {
                 <div key={slot.slotId} className="rounded-lg border bg-card px-4 py-3 space-y-1">
                   <p className="font-medium text-sm">{slot.className}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatTime(slot.startTime)}
-                    {slot.endTime ? ` – ${formatTime(slot.endTime)}` : ""}
+                    {formatTimeRange12h(slot.startTime, slot.endTime)}
                   </p>
                   {slot.instructor ? (
                     <p className="text-xs text-muted-foreground">{slot.instructor}</p>

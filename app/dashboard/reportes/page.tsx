@@ -15,6 +15,7 @@ import {
   RefreshCw, UserPlus, UserMinus, UserCheck,
 } from "lucide-react"
 import { ClassesBarChart } from "./_classes-chart"
+import { formatTime12h } from "@/lib/time-utils"
 
 type SearchParams = Promise<{ from?: string; to?: string }>
 
@@ -419,14 +420,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   }
 
   function formatSlotTime(t: string) {
-    const [h, m] = t.split(":")
-    const hour = Number.parseInt(h, 10)
-    const suffix = hour >= 12 ? "PM" : "AM"
-    let display: number
-    if (hour > 12) display = hour - 12
-    else if (hour === 0) display = 12
-    else display = hour
-    return `${display}:${m} ${suffix}`
+    return formatTime12h(t)
   }
 
   const metricsRow2 = [

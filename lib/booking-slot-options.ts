@@ -1,3 +1,5 @@
+import { formatTime12h } from "@/lib/time-utils"
+
 export type BookingSlotOption = {
   id: string
   dayOfWeek: number
@@ -32,9 +34,9 @@ export function filterSlotsForBookingDate(
 }
 
 export function formatSlotLabel(slot: BookingSlotOption): string {
-  const end = slot.endTime ? ` – ${slot.endTime}` : ""
+  const end = slot.endTime ? ` – ${formatTime12h(slot.endTime)}` : ""
   const coach = slot.instructor ? ` · ${slot.instructor}` : ""
-  return `${slot.className} · ${slot.startTime}${end}${coach}`
+  return `${slot.className} · ${formatTime12h(slot.startTime)}${end}${coach}`
 }
 
 export function toLocalDateStr(d: Date): string {

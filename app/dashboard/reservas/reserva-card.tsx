@@ -4,6 +4,7 @@ import { Badge } from "@/components/shared/ui/badge"
 import { Card, CardContent } from "@/components/shared/ui/card"
 import { Clock } from "lucide-react"
 import { formatSlotTime } from "@/lib/attendance-report-utils"
+import { formatTimeRange12h } from "@/lib/time-utils"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
 import { CancelBookingButton } from "./cancel-booking-button"
 
@@ -84,8 +85,7 @@ export function ReservaCard(props: {
         <div className="mt-auto shrink-0 border-t pt-2 flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground min-w-0">
             <Clock className="h-3.5 w-3.5 shrink-0" />
-            {r.startTime}
-            {r.endTime ? ` – ${r.endTime}` : ""}
+            {formatTimeRange12h(r.startTime, r.endTime)}
           </span>
           {showCancel ? (
             <CancelBookingButton
