@@ -206,6 +206,11 @@ export async function createBookingForUser(
     return { ok: false, message: "Horario no disponible" }
   }
 
+  const bookingDow = params.bookingDate.getDay()
+  if (bookingDow === 0 || slot.dayOfWeek !== bookingDow) {
+    return { ok: false, message: "La fecha no coincide con el día de esa clase" }
+  }
+
   const disabledThisDate = await isSlotDisabledOnDate(db, slot.id, params.bookingDate)
   if (disabledThisDate) {
     return { ok: false, message: "Esta clase no se imparte esa semana." }

@@ -31,3 +31,45 @@ export function findSlotAt<T extends ScheduleSlot>(
       normalizeScheduleTime(slot.startTime) === time,
   )
 }
+
+export function boardEnrollmentKey(slotId: string, dateStr: string): string {
+  return `${slotId}|${dateStr}`
+}
+
+export function getBoardEnrolledCount(
+  enrollments: Record<string, number>,
+  slotId: string,
+  dateStr: string,
+): number {
+  return enrollments[boardEnrollmentKey(slotId, dateStr)] ?? 0
+}
+
+export function isBoardSlotDisabled(
+  disabledSlotDateKeys: Iterable<string> | undefined,
+  slotId: string,
+  dateStr: string,
+): boolean {
+  if (disabledSlotDateKeys == null) return false
+  const key = boardEnrollmentKey(slotId, dateStr)
+  if (disabledSlotDateKeys instanceof Set) {
+    return disabledSlotDateKeys.has(key)
+  }
+  for (const item of disabledSlotDateKeys) {
+    if (item === key) return true
+  }
+  return false
+}
+
+export function isBoardSlotFull(enrolled: number, capacity: number): boolean {
+  return enrolled >= capacity
+}
+
+export function canOpenBookingFromBoard(params: {
+  enrolled: number
+  capacity: number
+  disabled: boolean
+}): boolean {
+  if (params.disabled) return false
+  if (isBoardSlotFull(params.enrolled, params.capacity)) return false
+  return true
+}

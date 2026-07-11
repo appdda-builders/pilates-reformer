@@ -12,6 +12,7 @@ import {
 } from "@/lib/site/routes";
 import ContentDetail from "@/components/content-detail";
 import SetupWeeklySchedule from "@/components/setup-weekly-schedule";
+import type { WeeklyClassSelection } from "@/components/setup-weekly-schedule";
 import HeroVideo from "@/components/hero-video";
 import AboutTeam from "@/components/about-team";
 import { AgendarBookingModal } from "@/components/agendar-booking-modal";
@@ -94,6 +95,8 @@ export default function Home() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [agendarModalOpen, setAgendarModalOpen] = useState(false);
+  const [agendarInitialDate, setAgendarInitialDate] = useState<string | null>(null);
+  const [agendarInitialSlotId, setAgendarInitialSlotId] = useState<string | null>(null);
   const [selectedCadence, setSelectedCadence] = useState<
     Record<string, (typeof cadenceConfig)[number]["label"]>
   >(() =>
@@ -123,8 +126,23 @@ export default function Home() {
     { href: "#cobros", label: "Cobros" },
   ];
 
-  function openAgendarModal() {
+  function openAgendarModal(selection?: WeeklyClassSelection) {
+    if (selection != null) {
+      setAgendarInitialDate(selection.bookingDate);
+      setAgendarInitialSlotId(selection.slotId);
+    } else {
+      setAgendarInitialDate(null);
+      setAgendarInitialSlotId(null);
+    }
     setAgendarModalOpen(true);
+  }
+
+  function handleAgendarModalOpenChange(open: boolean) {
+    setAgendarModalOpen(open);
+    if (!open) {
+      setAgendarInitialDate(null);
+      setAgendarInitialSlotId(null);
+    }
   }
 
   const scrollToWeekly = () => {
@@ -138,14 +156,7 @@ export default function Home() {
       return;
     }
     const timer = window.setTimeout(() => {
-      if (window.location.hash === "#weekly") {
-        scrollToWeekly();
-        return;
-      }
-      document
-        .getElementById("agenda")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      openAgendarModal();
+      scrollToWeekly();
     }, 100);
     return () => window.clearTimeout(timer);
   }, []);
@@ -389,13 +400,12 @@ export default function Home() {
             className="relative flex min-h-105 scroll-mt-40 flex-col gap-4 rounded-card border border-white/15 bg-white/10 p-5 text-white shadow-[0_25px_60px_rgba(27,26,24,0.18)] backdrop-blur sm:p-6 lg:min-h-[480px]"
           >
             <SetupWeeklySchedule onSelectClass={openAgendarModal} />
-            <button
-              type="button"
-              onClick={openAgendarModal}
-              className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
+            <a
+              href="#agenda"
+              className="shrink-0 cursor-pointer rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-[#1b1a18] shadow-lg shadow-black/30 transition hover:-translate-y-0.5"
             >
-              Continuar
-            </button>
+              Ver cómo reservar
+            </a>
           </motion.div>
         </div>
       </header>
@@ -677,7 +687,7 @@ export default function Home() {
                   </p>
                   <button
                     type="button"
-                    onClick={openAgendarModal}
+                    onClick={() => openAgendarModal()}
                     className="w-full rounded-full bg-green-base px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-base/20 transition hover:bg-green-hover"
                   >
                     Abrir reserva
@@ -801,7 +811,9 @@ export default function Home() {
       </footer>
       <AgendarBookingModal
         open={agendarModalOpen}
-        onOpenChange={setAgendarModalOpen}
+        onOpenChange={handleAgendarModalOpenChange}
+        initialDate={agendarInitialDate}
+        initialSlotId={agendarInitialSlotId}
       />
     </div>
   );

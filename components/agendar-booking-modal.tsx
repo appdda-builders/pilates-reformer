@@ -52,6 +52,9 @@ function AgendarBookingForm(props: {
   slots: BookingSlotOption[]
   defaultDate: string
   todayStr: string
+  disabledSlotDateKeys: string[]
+  initialDate?: string
+  initialSlotId?: string
   onClose: () => void
 }) {
   const [state, formAction, pending] = useActionState<PublicBookingState, FormData>(
@@ -61,9 +64,11 @@ function AgendarBookingForm(props: {
   const { data: sessionData } = authClient.useSession()
   const sessionUser = sessionData?.user ?? null
 
-  const [scheduleSlotId, setScheduleSlotId] = useState("")
+  const [scheduleSlotId, setScheduleSlotId] = useState(() => props.initialSlotId ?? "")
   const [bookingDate, setBookingDate] = useState(() =>
-    resolveBookingDefaultDate(props.defaultDate, props.slots),
+    props.initialDate && props.initialDate !== ""
+      ? props.initialDate
+      : resolveBookingDefaultDate(props.defaultDate, props.slots, props.disabledSlotDateKeys),
   )
   const [checkMessage, setCheckMessage] = useState<string | null>(null)
   const [checkOk, setCheckOk] = useState<boolean | null>(null)
@@ -84,13 +89,17 @@ function AgendarBookingForm(props: {
   const [transferModalOpen, setTransferModalOpen] = useState(false)
 
   const dayOfWeek = getDayOfWeekFromDateStr(bookingDate)
-  const slotsForDay = filterSlotsForBookingDate(props.slots, bookingDate)
-  const nextDate = nextDateWithSlots(bookingDate, props.slots)
+  const slotsForDay = filterSlotsForBookingDate(
+    props.slots,
+    bookingDate,
+    props.disabledSlotDateKeys,
+  )
+  const nextDate = nextDateWithSlots(bookingDate, props.slots, props.disabledSlotDateKeys)
   const canUseNextDate =
     bookingDate !== "" &&
     slotsForDay.length === 0 &&
     nextDate !== bookingDate &&
-    filterSlotsForBookingDate(props.slots, nextDate).length > 0
+    filterSlotsForBookingDate(props.slots, nextDate, props.disabledSlotDateKeys).length > 0
   const canSubmit =
     bookingDate !== "" && scheduleSlotId !== "" && slotsForDay.length > 0
 
@@ -518,6 +527,8 @@ function AgendarBookingForm(props: {
 export function AgendarBookingModal(props: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialDate?: string | null
+  initialSlotId?: string | null
 }) {
   const [data, setData] = useState<AgendarData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -543,13 +554,15 @@ export function AgendarBookingModal(props: {
     props.onOpenChange(false)
   }
 
+  const formKey = `${props.initialDate ?? ""}-${props.initialSlotId ?? ""}-${props.open ? "1" : "0"}`
+
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Agendar clase</DialogTitle>
           <DialogDescription>
-            Elige fecha y horario. Los planes son mensuales y las clases no son acumulables.
+            Elige fecha y horario. Solo se muestran clases con cupo disponible.
           </DialogDescription>
         </DialogHeader>
         {loading ? (
@@ -571,9 +584,13 @@ export function AgendarBookingModal(props: {
           </div>
         ) : data != null ? (
           <AgendarBookingForm
+            key={formKey}
             slots={data.slots}
             defaultDate={data.defaultDate}
             todayStr={data.todayStr}
+            disabledSlotDateKeys={data.disabledSlotDateKeys}
+            initialDate={props.initialDate ?? undefined}
+            initialSlotId={props.initialSlotId ?? undefined}
             onClose={handleClose}
           />
         ) : null}

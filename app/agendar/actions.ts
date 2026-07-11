@@ -24,7 +24,9 @@ import {
   sendStudioPaymentNotification,
   sendTransferPaymentNotification,
 } from "@/lib/payment-notifications"
-import { isSlotDisabledOnDate } from "@/lib/slot-exceptions"
+import { isSlotDisabledOnDate, listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { loadLandingScheduleBoard } from "@/lib/site/schedule-board.server"
+import { getMondayOfWeek } from "@/lib/site/schedule"
 
 export type PublicBookingState = {
   success: boolean
@@ -37,6 +39,7 @@ export type AgendarData = {
   slots: BookingSlotOption[]
   defaultDate: string
   todayStr: string
+  disabledSlotDateKeys: string[]
 }
 
 const publicBookingSchema = z.object({
@@ -125,7 +128,22 @@ export async function loadAgendarDataAction(): Promise<AgendarData> {
   const todayStr = localTodayStr()
   const defaultDate = resolveBookingDefaultDate(todayStr, slots)
 
-  return { slots, defaultDate, todayStr }
+  const monday = getMondayOfWeek(new Date(), 0)
+  const rangeStart = new Date(monday)
+  rangeStart.setDate(rangeStart.getDate() - 7)
+  rangeStart.setHours(0, 0, 0, 0)
+  const rangeEnd = new Date(monday)
+  rangeEnd.setDate(rangeEnd.getDate() + 7 * 8 + 6)
+  rangeEnd.setHours(23, 59, 59, 999)
+  const disabledSlotDateKeys = Array.from(
+    await listDisabledSlotDateKeys(db, rangeStart, rangeEnd),
+  )
+
+  return { slots, defaultDate, todayStr, disabledSlotDateKeys }
+}
+
+export async function loadWeeklyBoardAction() {
+  return loadLandingScheduleBoard()
 }
 
 export async function createPublicBookingAction(
