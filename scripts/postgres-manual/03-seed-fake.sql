@@ -75,6 +75,8 @@ ON CONFLICT ("id") DO UPDATE SET
   "price_mxn" = EXCLUDED."price_mxn",
   "total_classes" = EXCLUDED."total_classes";
 
+UPDATE "plan" SET "is_active" = false WHERE "id" = 'plan-total-pass' OR "plan_type" = 'total_pass';
+
 -- ── 5. reformer ───────────────────────────────────────────────────────────────
 
 INSERT INTO "reformer" ("id","number","name","is_active","notes") VALUES

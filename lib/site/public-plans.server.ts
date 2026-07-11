@@ -30,6 +30,9 @@ export async function loadReservacionesPlans(): Promise<PublicPlan[]> {
       ),
     )
 
-  const sorted = sortPublicPlans(rows)
+  const visible = rows.filter(
+    (row) => row.planType !== "total_pass" && row.id !== "plan-total-pass",
+  )
+  const sorted = sortPublicPlans(visible)
   return sorted.map(planRowToPublicPlan)
 }

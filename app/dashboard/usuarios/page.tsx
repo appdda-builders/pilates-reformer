@@ -155,7 +155,9 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
     .orderBy(asc(schema.plan.name))
 
   const planes = sortPlansByDisplayOrder(
-    planRows.map((p) => ({
+    planRows
+      .filter((p) => p.planType !== "total_pass" && p.id !== "plan-total-pass")
+      .map((p) => ({
       id: p.id,
       name: p.name,
       priceMxn: p.priceMxn,

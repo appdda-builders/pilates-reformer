@@ -10,7 +10,9 @@ export default async function PlanesPage() {
   const planes = await db.select().from(schema.plan).orderBy(schema.plan.createdAt)
 
   const rows = sortPlansByDisplayOrder(
-    planes.map((p) => ({
+    planes
+      .filter((p) => p.planType !== "total_pass" && p.id !== "plan-total-pass")
+      .map((p) => ({
       id: p.id,
       name: p.name,
       planType: p.planType,

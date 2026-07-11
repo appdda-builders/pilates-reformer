@@ -89,7 +89,9 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
       .where(eq(schema.plan.isActive, true)),
   ])
 
-  const planesSorted = sortPlansByDisplayOrder(planes)
+  const planesSorted = sortPlansByDisplayOrder(
+    planes.filter((p) => p.planType !== "total_pass" && p.id !== "plan-total-pass"),
+  )
 
   const now = new Date()
   const tableRows: SuscripcionTableRow[] = subs.map((s) => {
