@@ -33,6 +33,7 @@ export default async function ConfiguracionPage() {
     noShowPenalty: policy?.noShowPenalty ?? true,
     maxBookingsPerDay: policy?.maxBookingsPerDay ?? 1,
     bookingWindowDays: policy?.bookingWindowDays ?? 7,
+    bookingWindowMinutes: policy?.bookingWindowMinutes ?? 5,
     alertLastClassThreshold: policy?.alertLastClassThreshold ?? 2,
     alertDaysBeforeExpiry: policy?.alertDaysBeforeExpiry ?? 3,
     welcomeMessage:

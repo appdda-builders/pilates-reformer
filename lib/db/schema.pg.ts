@@ -286,6 +286,7 @@ export const studioPolicy = pgTable("studio_policy", {
   noShowPenalty: boolean("no_show_penalty").notNull().default(true),
   maxBookingsPerDay: integer("max_bookings_per_day").notNull().default(1),
   bookingWindowDays: integer("booking_window_days").notNull().default(7),
+  bookingWindowMinutes: integer("booking_window_minutes").notNull().default(5),
   coachRatePerClass: doublePrecision("coach_rate_per_class").notNull().default(250),
   totalReformers: integer("total_reformers").notNull().default(8),
   costPerClassBase: doublePrecision("cost_per_class_base").notNull().default(270),

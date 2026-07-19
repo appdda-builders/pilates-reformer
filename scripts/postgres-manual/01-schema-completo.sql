@@ -232,6 +232,7 @@ Tu ID es: {{displayId}}
 	"no_show_penalty" boolean DEFAULT true NOT NULL,
 	"max_bookings_per_day" integer DEFAULT 1 NOT NULL,
 	"booking_window_days" integer DEFAULT 7 NOT NULL,
+	"booking_window_minutes" integer DEFAULT 5 NOT NULL,
 	"coach_rate_per_class" double precision DEFAULT 250 NOT NULL,
 	"total_reformers" integer DEFAULT 8 NOT NULL,
 	"cost_per_class_base" double precision DEFAULT 270 NOT NULL,

@@ -250,7 +250,8 @@ export async function createBookingForUser(
   }
 
   const classEnd = classEndFromBooking(params.bookingDate, slot.startTime, slot.endTime)
-  const bookingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  const policy = await loadStudioCancellationPolicy(db)
+  const bookingCheck = evaluateBookingAllowed(new Date(), classEnd, policy)
   if (!bookingCheck.ok) {
     return { ok: false, message: bookingCheck.message }
   }

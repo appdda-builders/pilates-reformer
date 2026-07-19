@@ -136,3 +136,37 @@ export function validateBookingAgeForSlot(
   }
   return { ok: true }
 }
+
+export const DEFAULT_BOOKING_WINDOW_MINUTES = 5
+
+export type BookingTimeWindowCheck =
+  | { ok: true }
+  | { ok: false; message: string }
+
+export function evaluateBookingTimeWindow(params: {
+  now: Date
+  classEnd: Date
+  bookingWindowMinutes: number
+}): BookingTimeWindowCheck {
+  const minutesUntilEnd =
+    (params.classEnd.getTime() - params.now.getTime()) / (1000 * 60)
+  const cutoff = Math.max(0, params.bookingWindowMinutes)
+
+  if (minutesUntilEnd < cutoff) {
+    if (minutesUntilEnd <= 0) {
+      return {
+        ok: false,
+        message: "No se puede reservar: la clase ya terminó.",
+      }
+    }
+    return {
+      ok: false,
+      message:
+        cutoff === 1
+          ? "No se puede reservar: falta menos de 1 minuto para que termine la clase."
+          : `No se puede reservar: faltan menos de ${cutoff} minutos para que termine la clase.`,
+    }
+  }
+
+  return { ok: true }
+}

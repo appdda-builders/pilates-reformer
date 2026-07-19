@@ -14,7 +14,11 @@ import {
   checkSlotCapacityForBooking,
 } from "@/lib/booking-service"
 import { validateBookingAgeForSlot } from "@/lib/booking-rules"
-import { classEndFromBooking, evaluateBookingAllowed } from "@/lib/cancellation-policy"
+import {
+  classEndFromBooking,
+  evaluateBookingAllowed,
+  loadStudioCancellationPolicy,
+} from "@/lib/cancellation-policy"
 import {
   type BookingSlotOption,
   localTodayStr,
@@ -292,7 +296,8 @@ export async function checkPublicBookingEligibility(
   }
 
   const classEnd = classEndFromBooking(bookingDate, slot.startTime, slot.endTime)
-  const timingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  const policy = await loadStudioCancellationPolicy(db)
+  const timingCheck = evaluateBookingAllowed(new Date(), classEnd, policy)
   if (!timingCheck.ok) {
     return { ok: false, message: timingCheck.message }
   }
