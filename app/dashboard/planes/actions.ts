@@ -177,32 +177,61 @@ export async function deletePlanAction(
   const { ok } = await assertStaff()
   if (!ok) return { success: false, error: "No autorizado" }
 
-  const id = formData.get("id")
-  if (typeof id !== "string") return { success: false, error: "ID inválido" }
+  const idRaw = formData.get("id")
+  if (typeof idRaw !== "string" || idRaw.trim() === "") {
+    return { success: false, error: "ID inválido" }
+  }
+  const id = idRaw.trim()
 
   const db = getDb()
+  const [existing] = await db
+    .select({ id: schema.plan.id })
+    .from(schema.plan)
+    .where(eq(schema.plan.id, id))
+    .limit(1)
+
+  if (existing == null) {
+    return { success: false, error: "Plan no encontrado" }
+  }
+
   const [{ linked }] = await db
     .select({ linked: count() })
     .from(schema.subscription)
     .where(eq(schema.subscription.planId, id))
 
-  if (linked > 0) {
-    return {
-      success: false,
-      error: "No se puede borrar: hay suscripciones con este plan.",
+  const linkedCount = Number(linked)
+
+  if (linkedCount > 0) {
+    await db
+      .update(schema.plan)
+      .set({ isActive: false })
+      .where(eq(schema.plan.id, id))
+  } else {
+    try {
+      await db.delete(schema.plan).where(eq(schema.plan.id, id))
+    } catch {
+      await db
+        .update(schema.plan)
+        .set({ isActive: false })
+        .where(eq(schema.plan.id, id))
     }
   }
 
-  try {
-    await db.delete(schema.plan).where(eq(schema.plan.id, id))
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Error de base de datos"
-    return { success: false, error: msg }
+  const [still] = await db
+    .select({ id: schema.plan.id, isActive: schema.plan.isActive })
+    .from(schema.plan)
+    .where(eq(schema.plan.id, id))
+    .limit(1)
+
+  if (still != null && still.isActive) {
+    return { success: false, error: "No se pudo borrar el plan" }
   }
 
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
+  revalidatePath("/dashboard/suscripciones")
   revalidatePath("/reservaciones")
+  revalidatePath("/agendar")
   return { success: true }
 }

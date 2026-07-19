@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CircleCheck, Pencil, Plus, Trash2 } from "lucide-react"
+import { Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import {
   Table, TableBody, TableCell, TableHead,
@@ -21,7 +21,7 @@ import {
   formatPublicPlanPrice,
   planPromoBadge,
 } from "@/lib/site/plans"
-import { createPlanAction, deletePlanAction, updatePlanAction, togglePlanAction } from "./actions"
+import { createPlanAction, deletePlanAction, updatePlanAction } from "./actions"
 
 export type PlanRow = {
   id: string
@@ -228,32 +228,16 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">Editar</span>
                       </Button>
-                      {plan.isActive ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => setDeletePlan(plan)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Borrar</span>
-                        </Button>
-                      ) : (
-                        <form action={togglePlanAction} className="inline">
-                          <input type="hidden" name="id" value={plan.id} />
-                          <input type="hidden" name="isActive" value="false" />
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-green-700 hover:text-green-700 hover:bg-green-100"
-                          >
-                            <CircleCheck className="h-4 w-4" />
-                            <span className="sr-only">Activar</span>
-                          </Button>
-                        </form>
-                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeletePlan(plan)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Borrar</span>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -358,7 +342,7 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         title="¿Borrar este plan?"
         description={
           deletePlan != null
-            ? `El plan "${deletePlan.name}" se eliminará de forma permanente. Esta acción no se puede deshacer.`
+            ? `El plan "${deletePlan.name}" dejará de ofrecerse. Si no tiene suscripciones se elimina por completo; si las tiene, se desactiva y ya no aparecerá para nuevas altas.`
             : ""
         }
         confirmLabel="Sí, borrar"
