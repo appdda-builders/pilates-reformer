@@ -187,6 +187,7 @@ export const payment = pgTable(
     concept: text("concept"),
     collectedBy: text("collected_by"),
     isNegative: boolean("is_negative").notNull().default(false),
+    validated: boolean("validated").notNull().default(false),
     createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
   },
   (t) => [index("payment_userId_idx").on(t.userId)],

@@ -129,3 +129,46 @@ export async function confirmPaymentAction(
   revalidatePath(`/dashboard/usuarios/${row.userId}`)
   return { success: true }
 }
+
+export async function setPaymentValidatedAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || !isAdminOrRoot(session.user.role)) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const id = formData.get("id")
+  if (typeof id !== "string" || id.trim() === "") {
+    return { success: false, error: "ID de pago inválido" }
+  }
+
+  const validatedRaw = formData.get("validated")
+  if (validatedRaw !== "true" && validatedRaw !== "false") {
+    return { success: false, error: "Valor de validación inválido" }
+  }
+  const validated = validatedRaw === "true"
+
+  const db = getDb()
+  const [row] = await db
+    .select({ id: schema.payment.id })
+    .from(schema.payment)
+    .where(eq(schema.payment.id, id))
+    .limit(1)
+
+  if (row == null) {
+    return { success: false, error: "Pago no encontrado" }
+  }
+
+  await db
+    .update(schema.payment)
+    .set({ validated })
+    .where(eq(schema.payment.id, id))
+
+  revalidatePath("/dashboard/pagos")
+  return { success: true }
+}

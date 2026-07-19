@@ -23,6 +23,7 @@ import {
 } from "@/lib/list-sort"
 import { routes } from "@/lib/routes"
 import { ConfirmPaymentButton } from "./confirm-payment-button"
+import { ValidatePaymentCheck } from "./validate-payment-check"
 
 function statusBadge(status: string) {
   if (status === "succeeded") return <Badge className="bg-green-100 text-green-700 border-green-200">Exitoso</Badge>
@@ -78,6 +79,7 @@ export default async function PagosPage({ searchParams }: { searchParams: Search
       method: schema.payment.method,
       status: schema.payment.status,
       concept: schema.payment.concept,
+      validated: schema.payment.validated,
       createdAt: schema.payment.createdAt,
       userName: schema.user.name,
     })
@@ -186,13 +188,19 @@ export default async function PagosPage({ searchParams }: { searchParams: Search
                       {date.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
                     </TableCell>
                     <TableCell className="text-right">
-                      {p.status === "pending" ? (
-                        <ConfirmPaymentButton
+                      <div className="inline-flex items-center justify-end gap-3">
+                        <ValidatePaymentCheck
                           paymentId={p.id}
-                          userName={p.userName}
-                          amountLabel={amountLabel}
+                          validated={p.validated}
                         />
-                      ) : null}
+                        {p.status === "pending" ? (
+                          <ConfirmPaymentButton
+                            paymentId={p.id}
+                            userName={p.userName}
+                            amountLabel={amountLabel}
+                          />
+                        ) : null}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )

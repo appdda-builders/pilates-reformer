@@ -182,6 +182,7 @@ export const payment = sqliteTable(
     concept: text("concept"),
     collectedBy: text("collected_by"),
     isNegative: integer("is_negative", { mode: "boolean" }).notNull().default(false),
+    validated: integer("validated", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
   },
   (t) => [index("payment_userId_idx").on(t.userId)],
