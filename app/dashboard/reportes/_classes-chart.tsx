@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip,
+  Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend,
 } from "recharts"
 
 type ChartData = { month: string; clases: number }
