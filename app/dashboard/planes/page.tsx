@@ -26,6 +26,7 @@ export default async function PlanesPage() {
       priceMxn: p.priceMxn,
       durationDays: p.durationDays,
       isActive: p.isActive,
+      isPublic: p.isPublic,
     })),
   )
 

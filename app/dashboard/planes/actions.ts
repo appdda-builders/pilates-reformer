@@ -29,6 +29,7 @@ const planSchema = z
     }, z.coerce.number().min(1).optional()),
     priceMxn: z.coerce.number().min(0),
     durationDays: z.coerce.number().min(1).default(30),
+    isPublic: z.enum(["true", "false"]).default("true"),
   })
   .superRefine((data, ctx) => {
     if (data.priceMxn <= 0) {
@@ -70,6 +71,7 @@ function planValuesFromParsed(data: z.infer<typeof planSchema>) {
     durationDays: data.durationDays,
     daysPerWeek,
     totalClasses,
+    isPublic: data.isPublic === "true",
   }
 }
 
@@ -114,6 +116,7 @@ export async function createPlanAction(
     totalClasses: formData.get("totalClasses"),
     priceMxn: formData.get("priceMxn"),
     durationDays: formData.get("durationDays"),
+    isPublic: formData.get("isPublic") || "true",
   })
   if (!parsed.success) {
     return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
@@ -159,6 +162,7 @@ export async function updatePlanAction(
     totalClasses: formData.get("totalClasses"),
     priceMxn: formData.get("priceMxn"),
     durationDays: formData.get("durationDays"),
+    isPublic: formData.get("isPublic") || "true",
   })
   if (!parsed.success) {
     return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
@@ -175,6 +179,38 @@ export async function updatePlanAction(
   await db
     .update(schema.plan)
     .set(values)
+    .where(eq(schema.plan.id, id))
+
+  revalidatePath("/dashboard/planes")
+  revalidatePath("/dashboard/configuracion")
+  revalidatePath("/dashboard/usuarios")
+  revalidatePath("/reservaciones")
+  return { success: true }
+}
+
+export async function togglePlanPublicAction(formData: FormData): Promise<ActionState> {
+  const { ok } = await assertStaff()
+  if (!ok) return { success: false, error: "No autorizado" }
+
+  const id = formData.get("id")
+  if (typeof id !== "string" || id.trim() === "") {
+    return { success: false, error: "ID inválido" }
+  }
+
+  const db = getDb()
+  const [row] = await db
+    .select({ id: schema.plan.id, isPublic: schema.plan.isPublic })
+    .from(schema.plan)
+    .where(eq(schema.plan.id, id))
+    .limit(1)
+
+  if (row == null) {
+    return { success: false, error: "Plan no encontrado" }
+  }
+
+  await db
+    .update(schema.plan)
+    .set({ isPublic: !row.isPublic })
     .where(eq(schema.plan.id, id))
 
   revalidatePath("/dashboard/planes")

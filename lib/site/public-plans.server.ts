@@ -26,6 +26,7 @@ export async function loadReservacionesPlans(): Promise<PublicPlan[]> {
     .where(
       and(
         eq(schema.plan.isActive, true),
+        eq(schema.plan.isPublic, true),
         inArray(schema.plan.id, [...PUBLIC_RESERVACIONES_PLAN_IDS]),
       ),
     )

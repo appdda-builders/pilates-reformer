@@ -86,6 +86,7 @@ export const plan = pgTable("plan", {
   costPerClass: doublePrecision("cost_per_class"),
   durationDays: integer("duration_days").notNull().default(30),
   isActive: boolean("is_active").notNull().default(true),
+  isPublic: boolean("is_public").notNull().default(true),
   isAddOn: boolean("is_add_on").notNull().default(false),
   isUnlimited: boolean("is_unlimited").notNull().default(false),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),

@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS "plan" (
 	"cost_per_class" double precision,
 	"duration_days" integer DEFAULT 30 NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"is_public" boolean DEFAULT true NOT NULL,
 	"is_add_on" boolean DEFAULT false NOT NULL,
 	"is_unlimited" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL

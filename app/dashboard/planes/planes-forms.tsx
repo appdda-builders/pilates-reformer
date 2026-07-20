@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import {
   Table, TableBody, TableCell, TableHead,
@@ -16,13 +16,19 @@ import { Label } from "@/components/shared/ui/label"
 import { Input } from "@/components/shared/ui/input"
 import { useDbActionFeedback } from "@/components/features/admin/db-action-feedback"
 import { ConfirmRemoveDialog } from "@/components/features/admin/confirm-remove-dialog"
+import { DbActionForm } from "@/components/features/admin/db-action-form"
 import {
   formatPlanIncludes,
   formatPlanTypeLabel,
   formatPublicPlanPrice,
   planPromoBadge,
 } from "@/lib/site/plans"
-import { createPlanAction, deletePlanAction, updatePlanAction } from "./actions"
+import {
+  createPlanAction,
+  deletePlanAction,
+  togglePlanPublicAction,
+  updatePlanAction,
+} from "./actions"
 
 export type PlanRow = {
   id: string
@@ -33,6 +39,7 @@ export type PlanRow = {
   priceMxn: number
   durationDays: number
   isActive: boolean
+  isPublic: boolean
 }
 
 export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean }) {
@@ -168,6 +175,21 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                 <Label htmlFor="create-durationDays">Duración (días)</Label>
                 <Input id="create-durationDays" name="durationDays" type="number" min={1} defaultValue={30} required />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-isPublic">Visibilidad pública</Label>
+                <p className="text-xs text-muted-foreground">
+                  Si lo ocultas, no aparece en la página pública de compra. Quien ya lo tiene lo sigue usando.
+                </p>
+                <select
+                  id="create-isPublic"
+                  name="isPublic"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  defaultValue="true"
+                >
+                  <option value="true">Mostrar</option>
+                  <option value="false">Ocultar</option>
+                </select>
+              </div>
               {createError ? (
                 <p className="text-sm text-destructive">{createError}</p>
               ) : null}
@@ -189,14 +211,15 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
               <TableHead className="text-muted-foreground font-normal text-sm">Clases</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Precio</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Duración</TableHead>
+              <TableHead className="text-muted-foreground font-normal text-sm">Público</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Estado</TableHead>
-              <TableHead className="text-muted-foreground font-normal text-sm text-right w-[100px]">Acciones</TableHead>
+              <TableHead className="text-muted-foreground font-normal text-sm text-right w-[120px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {props.planes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                   Sin planes configurados
                 </TableCell>
               </TableRow>
@@ -227,12 +250,36 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                   </TableCell>
                   <TableCell className="text-muted-foreground">{plan.durationDays} días</TableCell>
                   <TableCell>
+                    {plan.isPublic
+                      ? <Badge className="bg-blue-100 text-blue-700 border-blue-200">Visible</Badge>
+                      : <Badge variant="secondary">Oculto</Badge>}
+                  </TableCell>
+                  <TableCell>
                     {plan.isActive
                       ? <Badge className="bg-green-100 text-green-700 border-green-200">Activo</Badge>
                       : <Badge variant="secondary">Inactivo</Badge>}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <DbActionForm action={togglePlanPublicAction} kind="update" className="inline-flex">
+                        <input type="hidden" name="id" value={plan.id} />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title={plan.isPublic ? "Ocultar en página pública" : "Mostrar en página pública"}
+                        >
+                          {plan.isPublic ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {plan.isPublic ? "Ocultar" : "Mostrar"}
+                          </span>
+                        </Button>
+                      </DbActionForm>
                       <Button
                         type="button"
                         variant="ghost"
@@ -349,6 +396,21 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                   required
                   defaultValue={editPlan.durationDays}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-isPublic">Visibilidad pública</Label>
+                <p className="text-xs text-muted-foreground">
+                  Ocultar no desactiva el plan: las alumnas que ya lo tienen lo siguen usando.
+                </p>
+                <select
+                  id="edit-isPublic"
+                  name="isPublic"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  defaultValue={editPlan.isPublic ? "true" : "false"}
+                >
+                  <option value="true">Mostrar</option>
+                  <option value="false">Ocultar</option>
+                </select>
               </div>
               {editError ? (
                 <p className="text-sm text-destructive">{editError}</p>

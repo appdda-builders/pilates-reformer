@@ -81,6 +81,7 @@ export const plan = sqliteTable("plan", {
   costPerClass: real("cost_per_class"),
   durationDays: integer("duration_days").notNull().default(30),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  isPublic: integer("is_public", { mode: "boolean" }).notNull().default(true),
   isAddOn: integer("is_add_on", { mode: "boolean" }).notNull().default(false),
   isUnlimited: integer("is_unlimited", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
