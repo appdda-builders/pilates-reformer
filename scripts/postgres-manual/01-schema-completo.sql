@@ -209,7 +209,6 @@ CREATE TABLE IF NOT EXISTS "studio_kpi_snapshot" (
 	"renewals" integer DEFAULT 0 NOT NULL,
 	"new_enrollments" integer DEFAULT 0 NOT NULL,
 	"cancellations" integer DEFAULT 0 NOT NULL,
-	"total_pass_active" integer DEFAULT 0 NOT NULL,
 	"target_occupancy" double precision DEFAULT 0.85 NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );

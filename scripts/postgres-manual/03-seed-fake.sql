@@ -165,10 +165,10 @@ ON CONFLICT ("id") DO NOTHING;
 
 -- ── 13. studio_kpi_snapshot ───────────────────────────────────────────────────
 
-INSERT INTO "studio_kpi_snapshot" ("id","period_label","period_start","period_end","total_classes","total_attendances","occupancy_rate","active_members","renewals","new_enrollments","cancellations","total_pass_active","target_occupancy","created_at") VALUES
-('kpi-2026-01','Enero 2026','2026-01-01','2026-01-31',120,98,0.82,42,8,5,2,3,0.85,now()),
-('kpi-2026-02','Febrero 2026','2026-02-01','2026-02-28',128,105,0.84,45,10,6,1,4,0.85,now()),
-('kpi-2026-03','Marzo 2026','2026-03-01','2026-03-31',132,110,0.86,48,12,7,3,5,0.85,now())
+INSERT INTO "studio_kpi_snapshot" ("id","period_label","period_start","period_end","total_classes","total_attendances","occupancy_rate","active_members","renewals","new_enrollments","cancellations","target_occupancy","created_at") VALUES
+('kpi-2026-01','Enero 2026','2026-01-01','2026-01-31',120,98,0.82,42,8,5,2,0.85,now()),
+('kpi-2026-02','Febrero 2026','2026-02-01','2026-02-28',128,105,0.84,45,10,6,1,0.85,now()),
+('kpi-2026-03','Marzo 2026','2026-03-01','2026-03-31',132,110,0.86,48,12,7,3,0.85,now())
 ON CONFLICT ("id") DO NOTHING;
 
 -- ── 14. studio_event ──────────────────────────────────────────────────────────
