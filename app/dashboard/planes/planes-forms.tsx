@@ -90,14 +90,14 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         {props.embedded ? (
           <div>
             <p className="text-sm text-muted-foreground">
-              {props.planes.length} planes configurados. Los cambios aplican en Reservaciones y al registrar usuarios.
+              {props.planes.length} planes configurados. Los cambios aplican en la página pública y al registrar usuarios.
             </p>
           </div>
         ) : (
           <div data-tour="page-header">
             <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
             <p className="text-sm text-muted-foreground">
-              {props.planes.length} planes configurados. Los cambios se reflejan en Reservaciones y Nuevo usuario.
+              {props.planes.length} planes configurados. Los cambios se reflejan en la página pública (visibles) y al registrar usuarios.
             </p>
           </div>
         )}

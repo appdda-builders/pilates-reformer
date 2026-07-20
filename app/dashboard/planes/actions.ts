@@ -139,7 +139,7 @@ export async function createPlanAction(
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
-  revalidatePath("/reservaciones")
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -184,7 +184,7 @@ export async function updatePlanAction(
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
-  revalidatePath("/reservaciones")
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -216,7 +216,7 @@ export async function togglePlanPublicAction(formData: FormData): Promise<Action
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
-  revalidatePath("/reservaciones")
+  revalidatePath("/")
   return { success: true }
 }
 
@@ -233,7 +233,7 @@ export async function togglePlanAction(formData: FormData): Promise<void> {
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
-  revalidatePath("/reservaciones")
+  revalidatePath("/")
 }
 
 export async function deletePlanAction(
@@ -297,7 +297,7 @@ export async function deletePlanAction(
   revalidatePath("/dashboard/configuracion")
   revalidatePath("/dashboard/usuarios")
   revalidatePath("/dashboard/suscripciones")
-  revalidatePath("/reservaciones")
+  revalidatePath("/")
   revalidatePath("/agendar")
   return { success: true }
 }

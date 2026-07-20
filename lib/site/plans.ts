@@ -193,14 +193,22 @@ export function sortPlansByDisplayOrder<T extends { id: string }>(rows: T[]): T[
 }
 
 export function sortPublicPlans<T extends { id: string }>(rows: T[]): T[] {
-  const order = new Map(PUBLIC_RESERVACIONES_PLAN_IDS.map((id, index) => [id, index]))
+  const preferred = new Map(
+    PUBLIC_RESERVACIONES_PLAN_IDS.map((id, index) => [id, index]),
+  )
+  const fallback = new Map(PLAN_DISPLAY_ORDER.map((id, index) => [id, index]))
   return [...rows].sort((a, b) => {
-    const ai = order.get(a.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
-    const bi = order.get(b.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
-    if (ai != null && bi != null) return ai - bi
-    if (ai != null) return -1
-    if (bi != null) return 1
-    return 0
+    const ap = preferred.get(a.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
+    const bp = preferred.get(b.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
+    if (ap != null && bp != null) return ap - bp
+    if (ap != null) return -1
+    if (bp != null) return 1
+    const af = fallback.get(a.id)
+    const bf = fallback.get(b.id)
+    if (af != null && bf != null) return af - bf
+    if (af != null) return -1
+    if (bf != null) return 1
+    return a.id.localeCompare(b.id)
   })
 }
 

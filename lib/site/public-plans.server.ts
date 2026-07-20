@@ -1,11 +1,10 @@
 import "server-only"
 
-import { and, eq, inArray } from "drizzle-orm"
+import { and, asc, eq, ne } from "drizzle-orm"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import {
   planRowToPublicPlan,
-  PUBLIC_RESERVACIONES_PLAN_IDS,
   sortPublicPlans,
   type PublicPlan,
 } from "@/lib/site/plans"
@@ -21,19 +20,19 @@ export async function loadReservacionesPlans(): Promise<PublicPlan[]> {
       durationDays: schema.plan.durationDays,
       priceMxn: schema.plan.priceMxn,
       isUnlimited: schema.plan.isUnlimited,
+      createdAt: schema.plan.createdAt,
     })
     .from(schema.plan)
     .where(
       and(
         eq(schema.plan.isActive, true),
         eq(schema.plan.isPublic, true),
-        inArray(schema.plan.id, [...PUBLIC_RESERVACIONES_PLAN_IDS]),
+        ne(schema.plan.planType, "total_pass"),
+        ne(schema.plan.id, "plan-total-pass"),
       ),
     )
+    .orderBy(asc(schema.plan.createdAt))
 
-  const visible = rows.filter(
-    (row) => row.planType !== "total_pass" && row.id !== "plan-total-pass",
-  )
-  const sorted = sortPublicPlans(visible)
+  const sorted = sortPublicPlans(rows)
   return sorted.map(planRowToPublicPlan)
 }
