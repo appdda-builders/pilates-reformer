@@ -194,3 +194,71 @@ export function sortPublicPlans<T extends { id: string }>(rows: T[]): T[] {
     return 0
   })
 }
+
+export type PlanDuplicateCandidate = {
+  id: string
+  name: string
+  planType: string
+  daysPerWeek: number
+  totalClasses: number | null
+  priceMxn: number
+  durationDays: number
+  isActive: boolean
+}
+
+export type PlanDuplicateIncoming = {
+  name: string
+  planType: string
+  daysPerWeek: number
+  totalClasses: number | null
+  priceMxn: number
+  durationDays: number
+}
+
+export function normalizePlanName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase()
+}
+
+export function plansHaveSameName(a: string, b: string): boolean {
+  return normalizePlanName(a) === normalizePlanName(b)
+}
+
+export function plansHaveSameCharacteristics(
+  a: Omit<PlanDuplicateIncoming, "name">,
+  b: Omit<PlanDuplicateIncoming, "name">,
+): boolean {
+  return (
+    a.planType === b.planType &&
+    a.daysPerWeek === b.daysPerWeek &&
+    (a.totalClasses ?? null) === (b.totalClasses ?? null) &&
+    a.priceMxn === b.priceMxn &&
+    a.durationDays === b.durationDays
+  )
+}
+
+export function findDuplicatePlan(
+  candidates: PlanDuplicateCandidate[],
+  incoming: PlanDuplicateIncoming,
+  excludeId?: string,
+): { reason: "name" | "characteristics"; plan: PlanDuplicateCandidate } | null {
+  for (const plan of candidates) {
+    if (!plan.isActive) continue
+    if (excludeId != null && plan.id === excludeId) continue
+    if (plansHaveSameName(plan.name, incoming.name)) {
+      return { reason: "name", plan }
+    }
+    if (plansHaveSameCharacteristics(plan, incoming)) {
+      return { reason: "characteristics", plan }
+    }
+  }
+  return null
+}
+
+export function duplicatePlanErrorMessage(
+  duplicate: { reason: "name" | "characteristics"; plan: PlanDuplicateCandidate },
+): string {
+  if (duplicate.reason === "name") {
+    return `Ya existe un plan activo con el nombre "${duplicate.plan.name}".`
+  }
+  return `Ya existe un plan activo con las mismas características ("${duplicate.plan.name}").`
+}

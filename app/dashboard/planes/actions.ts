@@ -7,6 +7,10 @@ import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { count, eq } from "drizzle-orm"
+import {
+  duplicatePlanErrorMessage,
+  findDuplicatePlan,
+} from "@/lib/site/plans"
 
 export type ActionState = {
   success: boolean
@@ -54,6 +58,21 @@ const planSchema = z
     }
   })
 
+function planValuesFromParsed(data: z.infer<typeof planSchema>) {
+  const displayName = data.name.trim().replace(/\s+/g, " ")
+  const daysPerWeek = data.planType === "monthly" ? data.daysPerWeek : 0
+  const totalClasses =
+    data.planType === "monthly" ? null : data.totalClasses ?? null
+  return {
+    name: displayName,
+    planType: data.planType,
+    priceMxn: data.priceMxn,
+    durationDays: data.durationDays,
+    daysPerWeek,
+    totalClasses,
+  }
+}
+
 async function assertStaff() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -63,6 +82,22 @@ async function assertStaff() {
     session != null &&
     (session.user.role === "admin" || session.user.role === "root")
   return { session, ok }
+}
+
+async function loadPlanCandidates() {
+  const db = getDb()
+  return db
+    .select({
+      id: schema.plan.id,
+      name: schema.plan.name,
+      planType: schema.plan.planType,
+      daysPerWeek: schema.plan.daysPerWeek,
+      totalClasses: schema.plan.totalClasses,
+      priceMxn: schema.plan.priceMxn,
+      durationDays: schema.plan.durationDays,
+      isActive: schema.plan.isActive,
+    })
+    .from(schema.plan)
 }
 
 export async function createPlanAction(
@@ -84,22 +119,19 @@ export async function createPlanAction(
     return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
   }
 
-  const db = getDb()
-  const row = {
-    id: crypto.randomUUID(),
-    name: parsed.data.name,
-    planType: parsed.data.planType,
-    priceMxn: parsed.data.priceMxn,
-    durationDays: parsed.data.durationDays,
-    daysPerWeek:
-      parsed.data.planType === "monthly" ? parsed.data.daysPerWeek : 0,
-    totalClasses:
-      parsed.data.planType === "monthly"
-        ? null
-        : parsed.data.totalClasses ?? null,
-    isActive: true,
+  const values = planValuesFromParsed(parsed.data)
+  const candidates = await loadPlanCandidates()
+  const duplicate = findDuplicatePlan(candidates, values)
+  if (duplicate != null) {
+    return { success: false, error: duplicatePlanErrorMessage(duplicate) }
   }
-  await db.insert(schema.plan).values(row)
+
+  const db = getDb()
+  await db.insert(schema.plan).values({
+    id: crypto.randomUUID(),
+    ...values,
+    isActive: true,
+  })
 
   revalidatePath("/dashboard/planes")
   revalidatePath("/dashboard/configuracion")
@@ -116,7 +148,9 @@ export async function updatePlanAction(
   if (!ok) return { success: false, error: "No autorizado" }
 
   const id = formData.get("id")
-  if (typeof id !== "string") return { success: false, error: "ID inválido" }
+  if (typeof id !== "string" || id.trim() === "") {
+    return { success: false, error: "ID inválido" }
+  }
 
   const parsed = planSchema.safeParse({
     name: formData.get("name"),
@@ -130,21 +164,17 @@ export async function updatePlanAction(
     return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
   }
 
+  const values = planValuesFromParsed(parsed.data)
+  const candidates = await loadPlanCandidates()
+  const duplicate = findDuplicatePlan(candidates, values, id)
+  if (duplicate != null) {
+    return { success: false, error: duplicatePlanErrorMessage(duplicate) }
+  }
+
   const db = getDb()
   await db
     .update(schema.plan)
-    .set({
-      name: parsed.data.name,
-      planType: parsed.data.planType,
-      priceMxn: parsed.data.priceMxn,
-      durationDays: parsed.data.durationDays,
-      daysPerWeek:
-        parsed.data.planType === "monthly" ? parsed.data.daysPerWeek : 0,
-      totalClasses:
-        parsed.data.planType === "monthly"
-          ? null
-          : parsed.data.totalClasses ?? null,
-    })
+    .set(values)
     .where(eq(schema.plan.id, id))
 
   revalidatePath("/dashboard/planes")

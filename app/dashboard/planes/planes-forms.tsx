@@ -44,28 +44,36 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
 
   const [createPlanType, setCreatePlanType] = useState<string>("class_pack")
   const [editPlanType, setEditPlanType] = useState<string>("class_pack")
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
     if (editPlan != null) setEditPlanType(editPlan.planType)
   }, [editPlan])
 
   async function handleCreate(formData: FormData) {
+    setCreateError(null)
     const res = await createPlanAction({ success: false }, formData)
     if (res.success) {
       showDbActionFeedback("create")
       setCreateOpen(false)
       router.refresh()
+      return
     }
+    setCreateError(res.error ?? "No se pudo crear el plan")
   }
 
   async function handleEdit(formData: FormData) {
+    setEditError(null)
     const res = await updatePlanAction({ success: false }, formData)
     if (res.success) {
       showDbActionFeedback("update")
       setEditOpen(false)
       setEditPlan(null)
       router.refresh()
+      return
     }
+    setEditError(res.error ?? "No se pudo guardar el plan")
   }
 
   return (
@@ -85,7 +93,13 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
             </p>
           </div>
         )}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <Dialog
+          open={createOpen}
+          onOpenChange={(open) => {
+            setCreateOpen(open)
+            if (!open) setCreateError(null)
+          }}
+        >
           <DialogTrigger asChild>
             <Button data-tour="page-actions" className="gap-2">
               <Plus className="h-4 w-4" />
@@ -153,6 +167,9 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                 <Label htmlFor="create-durationDays">Duración (días)</Label>
                 <Input id="create-durationDays" name="durationDays" type="number" min={1} defaultValue={30} required />
               </div>
+              {createError ? (
+                <p className="text-sm text-destructive">{createError}</p>
+              ) : null}
               <DialogFooter>
                 <Button type="submit">Guardar</Button>
               </DialogFooter>
@@ -247,7 +264,13 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         </Table>
       </div>
 
-      <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) setEditPlan(null) }}>
+      <Dialog open={editOpen} onOpenChange={(v) => {
+        setEditOpen(v)
+        if (!v) {
+          setEditPlan(null)
+          setEditError(null)
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar plan</DialogTitle>
@@ -326,6 +349,9 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                   defaultValue={editPlan.durationDays}
                 />
               </div>
+              {editError ? (
+                <p className="text-sm text-destructive">{editError}</p>
+              ) : null}
               <DialogFooter>
                 <Button type="submit">Guardar cambios</Button>
               </DialogFooter>
