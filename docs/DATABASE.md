@@ -47,7 +47,32 @@ npm run db:pg:seed
 npm run db:pg:check
 ```
 
-### 5. Arrancar la app
+### 5. Vaciar datos (solo pruebas)
+
+El script `npm run db:pg:reset` borra **todos los datos** y deja el esquema. Está bloqueado contra producción.
+
+Requiere ambas variables y que `DB_RESET_CONFIRM` sea el nombre exacto de la base en `DATABASE_URL`:
+
+```bash
+ALLOW_DB_RESET=1 DB_RESET_CONFIRM=pilates_demo npm run db:pg:reset
+```
+
+Para vaciar y volver a cargar el seed de demo:
+
+```bash
+ALLOW_DB_RESET=1 DB_RESET_CONFIRM=pilates_demo npm run db:pg:reset -- --seed
+```
+
+No se puede usar contra la base `pilates` ni contra hosts de producción salvo que el nombre de BD termine en `_test`, `_demo`, `_staging` o `_dev`.
+
+SQLite local:
+
+```bash
+ALLOW_DB_RESET=1 DB_RESET_CONFIRM=local.db npm run db:reset:local
+npm run db:push:local
+```
+
+### 6. Arrancar la app
 
 ```bash
 npm run dev
