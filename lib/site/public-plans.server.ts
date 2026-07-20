@@ -10,27 +10,40 @@ import {
 } from "@/lib/site/plans"
 
 export async function loadReservacionesPlans(): Promise<PublicPlan[]> {
-  const db = getDb()
-  const rows = await db
-    .select({
-      id: schema.plan.id,
-      name: schema.plan.name,
-      planType: schema.plan.planType,
-      totalClasses: schema.plan.totalClasses,
-      durationDays: schema.plan.durationDays,
-      priceMxn: schema.plan.priceMxn,
-      isUnlimited: schema.plan.isUnlimited,
-      createdAt: schema.plan.createdAt,
-    })
-    .from(schema.plan)
-    .where(
-      and(
-        eq(schema.plan.isActive, true),
-        eq(schema.plan.isPublic, true),
-      ),
-    )
-    .orderBy(asc(schema.plan.createdAt))
+  try {
+    const db = getDb()
+    const rows = await db
+      .select({
+        id: schema.plan.id,
+        name: schema.plan.name,
+        planType: schema.plan.planType,
+        totalClasses: schema.plan.totalClasses,
+        durationDays: schema.plan.durationDays,
+        priceMxn: schema.plan.priceMxn,
+        isUnlimited: schema.plan.isUnlimited,
+        createdAt: schema.plan.createdAt,
+      })
+      .from(schema.plan)
+      .where(
+        and(
+          eq(schema.plan.isActive, true),
+          eq(schema.plan.isPublic, true),
+        ),
+      )
+      .orderBy(asc(schema.plan.createdAt))
 
-  const sorted = sortPublicPlans(rows)
-  return sorted.map(planRowToPublicPlan)
+    const sorted = sortPublicPlans(rows)
+    return sorted.map(planRowToPublicPlan)
+  } catch (error) {
+    // La landing se prerenderiza en build: si la BD está caída o le falta una
+    // migración de scripts/postgres-manual, preferimos publicar sin planes antes
+    // que tumbar el deploy completo. El log debe ser ruidoso para que no pase
+    // inadvertido en Netlify.
+    console.error(
+      "[public-plans] No se pudieron cargar los planes públicos; la landing se renderizará sin planes. " +
+        "Revisa que las migraciones de scripts/postgres-manual estén aplicadas en la BD.",
+      error,
+    )
+    return []
+  }
 }
