@@ -127,7 +127,16 @@ export function formatPlanPrice(priceMxn: number) {
   }).format(priceMxn)
 }
 
-export function formatPublicPlanPrice(_planType: string, priceMxn: number): string {
+export function formatPlanTypeLabel(planType: string): string {
+  if (planType === "class_pack") return "Paquete de clases"
+  if (planType === "monthly") return "Mensual"
+  if (planType === "add_on") return "Complemento"
+  if (planType === "total_pass") return "Pase total"
+  return planType
+}
+
+export function formatPublicPlanPrice(planType: string, priceMxn: number): string {
+  if (planType === "total_pass") return "—"
   return formatPlanPrice(priceMxn)
 }
 

@@ -18,6 +18,7 @@ import { useDbActionFeedback } from "@/components/features/admin/db-action-feedb
 import { ConfirmRemoveDialog } from "@/components/features/admin/confirm-remove-dialog"
 import {
   formatPlanIncludes,
+  formatPlanTypeLabel,
   formatPublicPlanPrice,
   planPromoBadge,
 } from "@/lib/site/plans"
@@ -212,7 +213,7 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                       ) : null}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{plan.planType}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatPlanTypeLabel(plan.planType)}</TableCell>
                   <TableCell>{plan.planType === "monthly" ? `${plan.daysPerWeek}x sem` : "—"}</TableCell>
                   <TableCell>
                     {formatPlanIncludes(
