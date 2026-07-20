@@ -93,7 +93,13 @@ export function RegistryForm(props: { registryToken: string }) {
               <p className="text-destructive text-sm">{state.fieldErrors.name[0]}</p>
             ) : null}
           </div>
-          <input type="hidden" name="idPrefix" value={USER_ID_PREFIX_REGULAR} />
+          <div className="space-y-2">
+            <Label htmlFor="idPrefix">Tipo de cuenta</Label>
+            <input type="hidden" name="idPrefix" value={USER_ID_PREFIX_REGULAR} />
+            <p className="text-sm text-muted-foreground py-2">
+              Alumno con folio {USER_ID_PREFIX_REGULAR} (ej. ST1001)
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Correo</Label>
             <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />

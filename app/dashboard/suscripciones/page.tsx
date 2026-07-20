@@ -90,7 +90,7 @@ export default async function SuscripcionesPage({ searchParams }: { searchParams
   ])
 
   const planesSorted = sortPlansByDisplayOrder(
-    planes.filter((p) => p.planType !== "total_pass" && p.id !== "plan-total-pass"),
+    planes.filter((p) => p.planType !== "add_on"),
   )
 
   const now = new Date()

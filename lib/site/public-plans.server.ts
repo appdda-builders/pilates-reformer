@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, asc, eq, ne } from "drizzle-orm"
+import { and, asc, eq } from "drizzle-orm"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import {
@@ -27,8 +27,6 @@ export async function loadReservacionesPlans(): Promise<PublicPlan[]> {
       and(
         eq(schema.plan.isActive, true),
         eq(schema.plan.isPublic, true),
-        ne(schema.plan.planType, "total_pass"),
-        ne(schema.plan.id, "plan-total-pass"),
       ),
     )
     .orderBy(asc(schema.plan.createdAt))

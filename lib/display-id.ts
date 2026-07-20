@@ -1,7 +1,10 @@
 import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { and, isNotNull, eq } from "drizzle-orm"
-import { USER_ID_PREFIX_REGULAR, type UserIdPrefix } from "@/lib/id-prefix"
+import {
+  USER_ID_PREFIX_REGULAR,
+  type UserIdPrefix,
+} from "@/lib/id-prefix"
 
 export async function generateDisplayId(
   db: AnyDb,

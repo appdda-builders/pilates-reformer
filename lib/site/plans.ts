@@ -104,7 +104,6 @@ export type PublicPlan = {
   includes: string
   validity: string
   priceLabel: string
-  isTotalPass: boolean
   badge: string | null
 }
 
@@ -131,12 +130,10 @@ export function formatPlanTypeLabel(planType: string): string {
   if (planType === "class_pack") return "Paquete de clases"
   if (planType === "monthly") return "Mensual"
   if (planType === "add_on") return "Complemento"
-  if (planType === "total_pass") return "Pase total"
   return planType
 }
 
 export function formatPublicPlanPrice(planType: string, priceMxn: number): string {
-  if (planType === "total_pass") return "—"
   return formatPlanPrice(priceMxn)
 }
 
@@ -150,7 +147,7 @@ export function formatPlanIncludes(
   totalClasses: number | null,
   isUnlimited: boolean,
 ): string {
-  if (planType === "total_pass" || isUnlimited) return "Acceso flexible"
+  if (isUnlimited) return "Acceso flexible"
   if (totalClasses === 1) return SINGLE_CLASS_LABEL
   if (totalClasses != null && totalClasses > 1) return `${totalClasses} clases`
   return "—"
@@ -175,7 +172,6 @@ export function planRowToPublicPlan(row: {
     includes: formatPlanIncludes(row.planType, row.totalClasses, row.isUnlimited),
     validity: formatPlanValidity(row.durationDays),
     priceLabel: formatPublicPlanPrice(row.planType, row.priceMxn),
-    isTotalPass,
     badge: planPromoBadge(row.id),
   }
 }

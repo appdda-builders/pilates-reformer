@@ -297,8 +297,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   for (const b of bookingsWithUser) {
     const month = toTs(b.bookingDate).toISOString().slice(0, 7)
     ensureMonth(month)
-    const row = monthMap.get(month)!
-    row.reservas++
+    monthMap.get(month)!.reservas++
   }
 
   // Pagos
@@ -386,6 +385,8 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
     : 0
 
   // ── totales de periodo ───────────────────────────────────────────────────────
+
+  const totalClases = bookingsWithUser.length
 
   const monthRows = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b))
 
@@ -542,6 +543,21 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
         </CardContent>
       </Card>
 
+      <div data-tour="reportes-tipo-clase" className="grid gap-4 md:grid-cols-1 max-w-sm">
+        <Card className="border-none shadow-sm">
+          <CardContent className="p-6 flex items-start justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground tracking-wide">CLASES EN EL PERIODO</p>
+              <p className="text-2xl font-bold mt-1">{totalClases}</p>
+            </div>
+            <div className="rounded-full p-2.5 bg-blue-50">
+              <BookOpen className="h-5 w-5 text-blue-700" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabla mensual completa */}
       {monthRows.length > 0 && (
         <Card data-tour="reportes-resumen" className="border-none shadow-sm">
           <CardHeader>
@@ -597,7 +613,6 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
           </CardContent>
         </Card>
       )}
-
 
       <Card data-tour="reportes-grafica" className="border-none shadow-sm">
         <CardHeader>

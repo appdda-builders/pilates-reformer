@@ -137,7 +137,7 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Iniciar sesión</CardTitle>
             <CardDescription>
-              Usa tu correo o tu ID de usuario (ST / STT) y tu contraseña
+              Usa tu correo o tu ID de usuario (ST) y tu contraseña
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">

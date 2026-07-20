@@ -190,7 +190,7 @@ flowchart TB
 
   ROOT --> PLN[Planes]
   PLN --> P1[CRUD planes]
-  PLN --> P2[class_pack / monthly]
+  PLN --> P2[class_pack / monthly / add_on]
 
   ROOT --> SUB[Suscripciones]
   SUB --> SU1[Activar]
@@ -213,7 +213,7 @@ flowchart TB
 
   ROOT --> REP[Reportes]
   REP --> RE1[KPIs periodo]
-  REP --> RE2[Clases por mes]
+  REP --> RE2[Clases del periodo]
 
   ROOT --> CFG[Configuración]
   CFG --> CF1[Políticas]
@@ -265,6 +265,7 @@ flowchart LR
 flowchart TD
   REG[/registry o Usuarios] --> ST["ST0001, ST0002…"]
   ST --> RES[Reservas / login panel]
+  PLAN[Plan class_pack / monthly] --> ST
 ```
 
 | Prefijo | Tipo | Ejemplo |

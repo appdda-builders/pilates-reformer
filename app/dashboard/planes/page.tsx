@@ -16,7 +16,7 @@ export default async function PlanesPage() {
 
   const rows = sortPlansByDisplayOrder(
     planes
-      .filter((p) => p.planType !== "total_pass" && p.id !== "plan-total-pass")
+      .filter((p) => p.planType !== "add_on")
       .map((p) => ({
       id: p.id,
       name: p.name,

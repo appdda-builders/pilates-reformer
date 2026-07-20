@@ -249,7 +249,6 @@ export const studioKpiSnapshot = pgTable("studio_kpi_snapshot", {
   renewals: integer("renewals").notNull().default(0),
   newEnrollments: integer("new_enrollments").notNull().default(0),
   cancellations: integer("cancellations").notNull().default(0),
-  totalPassActive: integer("total_pass_active").notNull().default(0),
   targetOccupancy: doublePrecision("target_occupancy").notNull().default(0.85),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
 })

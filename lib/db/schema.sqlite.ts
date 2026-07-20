@@ -244,7 +244,6 @@ export const studioKpiSnapshot = sqliteTable("studio_kpi_snapshot", {
   renewals: integer("renewals").notNull().default(0),
   newEnrollments: integer("new_enrollments").notNull().default(0),
   cancellations: integer("cancellations").notNull().default(0),
-  totalPassActive: integer("total_pass_active").notNull().default(0),
   targetOccupancy: real("target_occupancy").notNull().default(0.85),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 })
