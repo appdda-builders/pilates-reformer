@@ -16,6 +16,7 @@ import {
   toSubscriptionLocalDate,
 } from "@/lib/subscription-dates"
 import { isSubscriptionRenewable } from "@/lib/subscription-display"
+import { resolveCouponForPrice } from "@/lib/coupons"
 
 export type ActionState = {
   success: boolean
@@ -63,6 +64,7 @@ const createSubscriptionSchema = z.object({
   discountReason: z
     .enum(["inauguracion", "evento_especial", "efectivo_referido"])
     .optional(),
+  couponCode: z.string().optional(),
 })
 
 export async function createSubscriptionAction(
@@ -84,6 +86,7 @@ export async function createSubscriptionAction(
     billingCycle: formData.get("billingCycle") || "mensual",
     discountPct: formData.get("discountPct") || undefined,
     discountReason: formData.get("discountReason") || undefined,
+    couponCode: formData.get("couponCode") || undefined,
   })
   if (!parsed.success) {
     return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
@@ -91,14 +94,16 @@ export async function createSubscriptionAction(
 
   const db = getDb()
   const startDate = new Date(parsed.data.startDate)
+  const couponCode = parsed.data.couponCode?.trim() || null
   await cancelActiveSubscriptionsForUser(db, parsed.data.userId)
   const result = await activateSubscriptionForUser(db, {
     userId: parsed.data.userId,
     planId: parsed.data.planId,
     startDate,
     billingCycle: parsed.data.billingCycle,
-    discountPct: parsed.data.discountPct ?? null,
-    discountReason: parsed.data.discountReason ?? null,
+    discountPct: couponCode ? null : (parsed.data.discountPct ?? null),
+    discountReason: couponCode ? null : (parsed.data.discountReason ?? null),
+    couponCode,
   })
 
   if (!result.ok) {
@@ -108,7 +113,61 @@ export async function createSubscriptionAction(
   revalidatePath("/dashboard/suscripciones")
   revalidatePath("/dashboard/pagos")
   revalidatePath("/dashboard/usuarios")
+  revalidatePath("/dashboard/cupones")
   return { success: true }
+}
+
+export async function previewCouponAction(
+  couponCode: string,
+  planId: string,
+): Promise<{
+  ok: boolean
+  message?: string
+  finalPrice?: number
+  discountLabel?: string
+  listPrice?: number
+}> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+    return { ok: false, message: "No autorizado" }
+  }
+
+  const code = couponCode.trim()
+  if (code === "") {
+    return { ok: false, message: "Escribe un código de cupón" }
+  }
+  if (planId.trim() === "") {
+    return { ok: false, message: "Elige un plan primero" }
+  }
+
+  const db = getDb()
+  const [plan] = await db
+    .select({
+      priceMxn: schema.plan.priceMxn,
+      isActive: schema.plan.isActive,
+    })
+    .from(schema.plan)
+    .where(eq(schema.plan.id, planId))
+    .limit(1)
+
+  if (plan == null || !plan.isActive) {
+    return { ok: false, message: "Plan no válido" }
+  }
+
+  const resolved = await resolveCouponForPrice(db, code, plan.priceMxn)
+  if (!resolved.ok) {
+    return { ok: false, message: resolved.message }
+  }
+
+  return {
+    ok: true,
+    finalPrice: resolved.finalPrice,
+    discountLabel: resolved.discountLabel,
+    listPrice: plan.priceMxn,
+  }
 }
 
 export async function renewSubscriptionAction(

@@ -79,6 +79,7 @@ export function SlotFormFields(props: {
   coaches: CoachOption[]
   values?: SlotFormValues
   fieldErrors?: Record<string, string[]>
+  showWeekAvailabilityHint?: boolean
 }) {
   const v = props.values
   const err = props.fieldErrors
@@ -236,6 +237,12 @@ export function SlotFormFields(props: {
           ))}
         </select>
       </div>
+      {props.showWeekAvailabilityHint ? (
+        <p className="text-xs text-muted-foreground rounded-md border border-dashed px-3 py-2">
+          Para marcar una semana como no disponible (sin borrar el horario), usa el botón de calendario
+          en la tarjeta o “Gestionar disponibilidad por semana”.
+        </p>
+      ) : null}
     </>
   )
 }

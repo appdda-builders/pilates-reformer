@@ -21,7 +21,11 @@ import {
 import { Plus } from "lucide-react"
 import { DbActionSuccessEffect } from "@/components/features/admin/db-action-feedback"
 import { formatPlanPickerLabel, formatPublicPlanPrice } from "@/lib/site/plans"
-import { createSubscriptionAction, type ActionState } from "./actions"
+import {
+  createSubscriptionAction,
+  previewCouponAction,
+  type ActionState,
+} from "./actions"
 
 type Alumno = { id: string; name: string }
 type Plan = {
@@ -59,18 +63,59 @@ export function CreateSubscriptionDialog({
   const [state, action, pending] = useActionState(createSubscriptionAction, initial)
   const [selectedPlanId, setSelectedPlanId] = useState("")
   const [selectedDiscount, setSelectedDiscount] = useState("none")
+  const [couponCode, setCouponCode] = useState("")
+  const [couponPreview, setCouponPreview] = useState<{
+    finalPrice: number
+    discountLabel: string
+    listPrice: number
+  } | null>(null)
+  const [couponError, setCouponError] = useState("")
+  const [couponPending, setCouponPending] = useState(false)
 
   const selectedPlan = planes.find((p) => p.id === selectedPlanId)
   const discountOption = DISCOUNT_OPTIONS.find((d) => d.value === selectedDiscount)
   const discountPct = discountOption?.pct ?? 0
-  const finalPrice =
+  const manualFinalPrice =
     selectedPlan != null
       ? selectedPlan.priceMxn * (1 - discountPct)
       : null
+  const finalPrice = couponPreview?.finalPrice ?? manualFinalPrice
+  const hasCoupon = couponPreview != null
 
   useEffect(() => {
-    if (state.success) setOpen(false)
+    if (state.success) {
+      setOpen(false)
+      setCouponCode("")
+      setCouponPreview(null)
+      setCouponError("")
+      setSelectedDiscount("none")
+      setSelectedPlanId("")
+    }
   }, [state.success])
+
+  async function handleApplyCoupon() {
+    setCouponError("")
+    setCouponPending(true)
+    const res = await previewCouponAction(couponCode, selectedPlanId)
+    setCouponPending(false)
+    if (!res.ok || res.finalPrice == null || res.listPrice == null || res.discountLabel == null) {
+      setCouponPreview(null)
+      setCouponError(res.message ?? "No se pudo aplicar el cupón")
+      return
+    }
+    setCouponPreview({
+      finalPrice: res.finalPrice,
+      discountLabel: res.discountLabel,
+      listPrice: res.listPrice,
+    })
+    setSelectedDiscount("none")
+  }
+
+  function clearCoupon() {
+    setCouponCode("")
+    setCouponPreview(null)
+    setCouponError("")
+  }
 
   return (
     <>
@@ -104,13 +149,17 @@ export function CreateSubscriptionDialog({
             )}
           </div>
 
-          {/* Plan */}
           <div className="space-y-1.5">
             <Label htmlFor="planId">Plan</Label>
             <Select
               name="planId"
               required
-              onValueChange={(v) => { setSelectedPlanId(v); setSelectedDiscount("none") }}
+              onValueChange={(v) => {
+                setSelectedPlanId(v)
+                setSelectedDiscount("none")
+                setCouponPreview(null)
+                setCouponError("")
+              }}
             >
               <SelectTrigger id="planId" className="w-full">
                 <SelectValue placeholder="Seleccionar plan" />
@@ -125,7 +174,6 @@ export function CreateSubscriptionDialog({
             </Select>
           </div>
 
-          {/* Fecha inicio */}
           <div className="space-y-1.5">
             <Label htmlFor="startDate">Fecha de inicio</Label>
             <Input
@@ -137,7 +185,6 @@ export function CreateSubscriptionDialog({
             />
           </div>
 
-          {/* Ciclo de pago */}
           <div className="space-y-1.5">
             <Label htmlFor="billingCycle">Ciclo de pago</Label>
             <Select name="billingCycle" defaultValue="mensual">
@@ -152,12 +199,58 @@ export function CreateSubscriptionDialog({
             </Select>
           </div>
 
-          {/* Descuento */}
           <div className="space-y-1.5">
-            <Label htmlFor="discount">Descuento</Label>
+            <Label htmlFor="couponCode">Cupón de descuento</Label>
+            <div className="flex gap-2">
+              <Input
+                id="couponCode"
+                name="couponCode"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value.toUpperCase())
+                  setCouponPreview(null)
+                  setCouponError("")
+                }}
+                placeholder="Código"
+                className="uppercase"
+                disabled={hasCoupon}
+              />
+              {hasCoupon ? (
+                <Button type="button" variant="outline" onClick={clearCoupon}>
+                  Quitar
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={couponPending || couponCode.trim() === "" || selectedPlanId === ""}
+                  onClick={() => void handleApplyCoupon()}
+                >
+                  {couponPending ? "..." : "Aplicar"}
+                </Button>
+              )}
+            </div>
+            {couponError ? <p className="text-xs text-destructive">{couponError}</p> : null}
+            {hasCoupon ? (
+              <p className="text-xs text-muted-foreground">
+                Cupón aplicado: {couponPreview.discountLabel} de descuento
+              </p>
+            ) : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="discount">Descuento manual</Label>
             <Select
               value={selectedDiscount}
-              onValueChange={setSelectedDiscount}
+              onValueChange={(v) => {
+                setSelectedDiscount(v)
+                if (v !== "none") {
+                  setCouponCode("")
+                  setCouponPreview(null)
+                  setCouponError("")
+                }
+              }}
+              disabled={hasCoupon}
             >
               <SelectTrigger id="discount" className="w-full">
                 <SelectValue placeholder="Sin descuento" />
@@ -170,8 +263,7 @@ export function CreateSubscriptionDialog({
                 ))}
               </SelectContent>
             </Select>
-            {/* Hidden fields for discount values */}
-            {discountOption?.pct ? (
+            {!hasCoupon && discountOption?.pct ? (
               <>
                 <input type="hidden" name="discountPct" value={discountOption.pct} />
                 <input type="hidden" name="discountReason" value={discountOption.reason} />
@@ -179,14 +271,18 @@ export function CreateSubscriptionDialog({
             ) : null}
           </div>
 
-          {/* Precio final preview */}
           {finalPrice != null ? (
             <div className="rounded-md bg-muted px-3 py-2 text-sm">
               <span className="text-muted-foreground">Precio final: </span>
               <span className="font-semibold text-foreground">
                 {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(finalPrice)}
               </span>
-              {discountPct > 0 && selectedPlan ? (
+              {hasCoupon && couponPreview ? (
+                <span className="ml-2 text-muted-foreground line-through text-xs">
+                  {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 }).format(couponPreview.listPrice)}
+                </span>
+              ) : null}
+              {!hasCoupon && discountPct > 0 && selectedPlan ? (
                 <span className="ml-2 text-muted-foreground line-through text-xs">
                   {formatPublicPlanPrice(selectedPlan.planType, selectedPlan.priceMxn)}
                 </span>

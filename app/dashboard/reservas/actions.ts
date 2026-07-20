@@ -19,11 +19,13 @@ import { validateBookingAgeForSlot } from "@/lib/booking-rules"
 import {
   classEndFromBooking,
   evaluateBookingAllowed,
+  loadStudioCancellationPolicy,
 } from "@/lib/cancellation-policy"
 import {
   bookingDateAtNoon,
   getDayOfWeekFromDateStr,
 } from "@/lib/booking-slot-options"
+import { isSlotDisabledOnDate } from "@/lib/slot-exceptions"
 
 export type ActionState = {
   success: boolean
@@ -95,23 +97,28 @@ export async function createBookingAction(
   }
 
   const bookingDate = bookingDateAtNoon(parsed.data.bookingDate)
-  const result = await createBookingForUser(db, {
-    userId: alumna.id,
-    scheduleSlotId: parsed.data.scheduleSlotId,
-    bookingDate,
-    birthdate: alumna.birthdate,
-  })
 
-  if (!result.ok) {
-    return { success: false, error: result.message }
-  }
+  try {
+    const result = await createBookingForUser(db, {
+      userId: alumna.id,
+      scheduleSlotId: parsed.data.scheduleSlotId,
+      bookingDate,
+      birthdate: alumna.birthdate,
+    })
 
-  revalidatePath("/dashboard/reservas")
-  revalidatePath("/dashboard")
-  return {
-    success: true,
-    message: `Reserva confirmada para ${result.userName}`,
-    bookedDate: parsed.data.bookingDate,
+    if (!result.ok) {
+      return { success: false, error: result.message }
+    }
+
+    revalidatePath("/dashboard/reservas")
+    revalidatePath("/dashboard")
+    return {
+      success: true,
+      message: `Reserva confirmada para ${result.userName}`,
+      bookedDate: parsed.data.bookingDate,
+    }
+  } catch {
+    return { success: false, error: "No se pudo guardar la reserva. Intenta de nuevo." }
   }
 }
 
@@ -142,6 +149,11 @@ export async function checkBookingEligibilityAction(
   }
 
   const bookingDate = new Date(`${bookingDateStr}T12:00:00`)
+  const disabledThisDate = await isSlotDisabledOnDate(db, scheduleSlotId, bookingDateStr)
+  if (disabledThisDate) {
+    return { ok: false, message: "Esta clase no se imparte esa semana." }
+  }
+
   const check = validateBookingAgeForSlot(
     alumna.birthdate,
     slot.dayOfWeek,
@@ -172,7 +184,8 @@ export async function checkBookingEligibilityAction(
   }
 
   const classEnd = classEndFromBooking(bookingDate, slot.startTime, slot.endTime)
-  const timingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  const policy = await loadStudioCancellationPolicy(db)
+  const timingCheck = evaluateBookingAllowed(new Date(), classEnd, policy)
   if (!timingCheck.ok) {
     return { ok: false, message: timingCheck.message }
   }
@@ -193,7 +206,14 @@ export async function cancelBookingAction(
     headers: await headers(),
     query: { disableRefresh: true },
   })
-  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+  if (!session) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const role = session.user.role ?? ""
+  const isStaff = role === "admin" || role === "root" || role === "coach"
+  const isAlumno = role === "alumno"
+  if (!isStaff && !isAlumno) {
     return { success: false, error: "No autorizado" }
   }
 
@@ -201,9 +221,11 @@ export async function cancelBookingAction(
   if (typeof id !== "string") return { success: false, error: "ID inválido" }
 
   const db = getDb()
-  const role = session.user.role ?? ""
   const bypassPolicy = role === "root"
-  const result = await cancelBookingById(db, id, { bypassPolicy })
+  const result = await cancelBookingById(db, id, {
+    bypassPolicy,
+    asAlumnoUserId: isAlumno ? session.user.id : undefined,
+  })
 
   if (!result.ok) {
     return { success: false, error: result.message }
@@ -221,7 +243,14 @@ export async function cancelBookingDirect(
     headers: await headers(),
     query: { disableRefresh: true },
   })
-  if (!session || (session.user.role !== "admin" && session.user.role !== "root")) {
+  if (!session) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const role = session.user.role ?? ""
+  const isStaff = role === "admin" || role === "root" || role === "coach"
+  const isAlumno = role === "alumno"
+  if (!isStaff && !isAlumno) {
     return { success: false, error: "No autorizado" }
   }
 
@@ -229,9 +258,11 @@ export async function cancelBookingDirect(
   if (typeof id !== "string") return { success: false, error: "ID inválido" }
 
   const db = getDb()
-  const role = session.user.role ?? ""
   const bypassPolicy = role === "root"
-  const result = await cancelBookingById(db, id, { bypassPolicy })
+  const result = await cancelBookingById(db, id, {
+    bypassPolicy,
+    asAlumnoUserId: isAlumno ? session.user.id : undefined,
+  })
 
   if (!result.ok) {
     return { success: false, error: result.message }

@@ -14,7 +14,11 @@ import {
   checkSlotCapacityForBooking,
 } from "@/lib/booking-service"
 import { validateBookingAgeForSlot } from "@/lib/booking-rules"
-import { classEndFromBooking, evaluateBookingAllowed } from "@/lib/cancellation-policy"
+import {
+  classEndFromBooking,
+  evaluateBookingAllowed,
+  loadStudioCancellationPolicy,
+} from "@/lib/cancellation-policy"
 import {
   type BookingSlotOption,
   localTodayStr,
@@ -24,6 +28,9 @@ import {
   sendStudioPaymentNotification,
   sendTransferPaymentNotification,
 } from "@/lib/payment-notifications"
+import { isSlotDisabledOnDate, listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { loadLandingScheduleBoard } from "@/lib/site/schedule-board.server"
+import { getMondayOfWeek } from "@/lib/site/schedule"
 
 export type PublicBookingState = {
   success: boolean
@@ -36,6 +43,7 @@ export type AgendarData = {
   slots: BookingSlotOption[]
   defaultDate: string
   todayStr: string
+  disabledSlotDateKeys: string[]
 }
 
 const publicBookingSchema = z.object({
@@ -124,7 +132,22 @@ export async function loadAgendarDataAction(): Promise<AgendarData> {
   const todayStr = localTodayStr()
   const defaultDate = resolveBookingDefaultDate(todayStr, slots)
 
-  return { slots, defaultDate, todayStr }
+  const monday = getMondayOfWeek(new Date(), 0)
+  const rangeStart = new Date(monday)
+  rangeStart.setDate(rangeStart.getDate() - 7)
+  rangeStart.setHours(0, 0, 0, 0)
+  const rangeEnd = new Date(monday)
+  rangeEnd.setDate(rangeEnd.getDate() + 7 * 8 + 6)
+  rangeEnd.setHours(23, 59, 59, 999)
+  const disabledSlotDateKeys = Array.from(
+    await listDisabledSlotDateKeys(db, rangeStart, rangeEnd),
+  )
+
+  return { slots, defaultDate, todayStr, disabledSlotDateKeys }
+}
+
+export async function loadWeeklyBoardAction() {
+  return loadLandingScheduleBoard()
 }
 
 export async function createPublicBookingAction(
@@ -238,6 +261,11 @@ export async function checkPublicBookingEligibility(
   }
 
   const bookingDate = new Date(`${bookingDateStr}T12:00:00`)
+  const disabledThisDate = await isSlotDisabledOnDate(db, scheduleSlotId, bookingDateStr)
+  if (disabledThisDate) {
+    return { ok: false, message: "Esta clase no se imparte esa semana." }
+  }
+
   const check = validateBookingAgeForSlot(
     alumna.birthdate,
     slot.dayOfWeek,
@@ -268,7 +296,8 @@ export async function checkPublicBookingEligibility(
   }
 
   const classEnd = classEndFromBooking(bookingDate, slot.startTime, slot.endTime)
-  const timingCheck = evaluateBookingAllowed(new Date(), classEnd)
+  const policy = await loadStudioCancellationPolicy(db)
+  const timingCheck = evaluateBookingAllowed(new Date(), classEnd, policy)
   if (!timingCheck.ok) {
     return { ok: false, message: timingCheck.message }
   }

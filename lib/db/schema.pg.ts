@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
@@ -85,6 +86,7 @@ export const plan = pgTable("plan", {
   costPerClass: doublePrecision("cost_per_class"),
   durationDays: integer("duration_days").notNull().default(30),
   isActive: boolean("is_active").notNull().default(true),
+  isPublic: boolean("is_public").notNull().default(true),
   isAddOn: boolean("is_add_on").notNull().default(false),
   isUnlimited: boolean("is_unlimited").notNull().default(false),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
@@ -112,6 +114,23 @@ export const scheduleSlot = pgTable("schedule_slot", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
 })
+
+export const scheduleSlotException = pgTable(
+  "schedule_slot_exception",
+  {
+    id: text("id").primaryKey(),
+    scheduleSlotId: text("schedule_slot_id")
+      .notNull()
+      .references(() => scheduleSlot.id, { onDelete: "cascade" }),
+    exceptionDate: timestamp("exception_date", { precision: 3, mode: "date" }).notNull(),
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("schedule_slot_exception_slot_idx").on(t.scheduleSlotId),
+    uniqueIndex("schedule_slot_exception_slot_date_uidx").on(t.scheduleSlotId, t.exceptionDate),
+  ],
+)
 
 export const subscription = pgTable(
   "subscription",
@@ -169,6 +188,7 @@ export const payment = pgTable(
     concept: text("concept"),
     collectedBy: text("collected_by"),
     isNegative: boolean("is_negative").notNull().default(false),
+    validated: boolean("validated").notNull().default(false),
     createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
   },
   (t) => [index("payment_userId_idx").on(t.userId)],
@@ -229,8 +249,21 @@ export const studioKpiSnapshot = pgTable("studio_kpi_snapshot", {
   renewals: integer("renewals").notNull().default(0),
   newEnrollments: integer("new_enrollments").notNull().default(0),
   cancellations: integer("cancellations").notNull().default(0),
-  totalPassActive: integer("total_pass_active").notNull().default(0),
   targetOccupancy: doublePrecision("target_occupancy").notNull().default(0.85),
+  createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
+})
+
+export const coupon = pgTable("coupon", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull().default("percent"),
+  discountValue: doublePrecision("discount_value").notNull(),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  validFrom: timestamp("valid_from", { precision: 3, mode: "date" }),
+  validUntil: timestamp("valid_until", { precision: 3, mode: "date" }),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { precision: 3, mode: "date" }).notNull().defaultNow(),
 })
 
@@ -253,6 +286,7 @@ export const studioPolicy = pgTable("studio_policy", {
   noShowPenalty: boolean("no_show_penalty").notNull().default(true),
   maxBookingsPerDay: integer("max_bookings_per_day").notNull().default(1),
   bookingWindowDays: integer("booking_window_days").notNull().default(7),
+  bookingWindowMinutes: integer("booking_window_minutes").notNull().default(5),
   coachRatePerClass: doublePrecision("coach_rate_per_class").notNull().default(250),
   totalReformers: integer("total_reformers").notNull().default(8),
   costPerClassBase: doublePrecision("cost_per_class_base").notNull().default(270),
@@ -318,6 +352,14 @@ export const reformerRelations = relations(reformer, ({ many }) => ({
 
 export const scheduleSlotRelations = relations(scheduleSlot, ({ many }) => ({
   bookings: many(booking),
+  exceptions: many(scheduleSlotException),
+}))
+
+export const scheduleSlotExceptionRelations = relations(scheduleSlotException, ({ one }) => ({
+  scheduleSlot: one(scheduleSlot, {
+    fields: [scheduleSlotException.scheduleSlotId],
+    references: [scheduleSlot.id],
+  }),
 }))
 
 export const subscriptionRelations = relations(subscription, ({ one, many }) => ({

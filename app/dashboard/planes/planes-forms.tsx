@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CircleCheck, Pencil, Plus, Trash2 } from "lucide-react"
+import { Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import {
   Table, TableBody, TableCell, TableHead,
@@ -16,8 +16,19 @@ import { Label } from "@/components/shared/ui/label"
 import { Input } from "@/components/shared/ui/input"
 import { useDbActionFeedback } from "@/components/features/admin/db-action-feedback"
 import { ConfirmRemoveDialog } from "@/components/features/admin/confirm-remove-dialog"
-import { formatPlanIncludes, formatPublicPlanPrice } from "@/lib/site/plans"
-import { createPlanAction, deletePlanAction, updatePlanAction, togglePlanAction } from "./actions"
+import { DbActionForm } from "@/components/features/admin/db-action-form"
+import {
+  formatPlanIncludes,
+  formatPlanTypeLabel,
+  formatPublicPlanPrice,
+  planPromoBadge,
+} from "@/lib/site/plans"
+import {
+  createPlanAction,
+  deletePlanAction,
+  togglePlanPublicAction,
+  updatePlanAction,
+} from "./actions"
 
 export type PlanRow = {
   id: string
@@ -28,6 +39,7 @@ export type PlanRow = {
   priceMxn: number
   durationDays: number
   isActive: boolean
+  isPublic: boolean
 }
 
 export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean }) {
@@ -40,28 +52,36 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
 
   const [createPlanType, setCreatePlanType] = useState<string>("class_pack")
   const [editPlanType, setEditPlanType] = useState<string>("class_pack")
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
     if (editPlan != null) setEditPlanType(editPlan.planType)
   }, [editPlan])
 
   async function handleCreate(formData: FormData) {
+    setCreateError(null)
     const res = await createPlanAction({ success: false }, formData)
     if (res.success) {
       showDbActionFeedback("create")
       setCreateOpen(false)
       router.refresh()
+      return
     }
+    setCreateError(res.error ?? "No se pudo crear el plan")
   }
 
   async function handleEdit(formData: FormData) {
+    setEditError(null)
     const res = await updatePlanAction({ success: false }, formData)
     if (res.success) {
       showDbActionFeedback("update")
       setEditOpen(false)
       setEditPlan(null)
       router.refresh()
+      return
     }
+    setEditError(res.error ?? "No se pudo guardar el plan")
   }
 
   return (
@@ -70,18 +90,24 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         {props.embedded ? (
           <div>
             <p className="text-sm text-muted-foreground">
-              {props.planes.length} planes configurados. Los cambios aplican en Reservaciones y al registrar usuarios.
+              {props.planes.length} planes configurados. Los cambios aplican en la página pública y al registrar usuarios.
             </p>
           </div>
         ) : (
           <div data-tour="page-header">
             <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
             <p className="text-sm text-muted-foreground">
-              {props.planes.length} planes configurados. Los cambios se reflejan en Reservaciones y Nuevo usuario.
+              {props.planes.length} planes configurados. Los cambios se reflejan en la página pública (visibles) y al registrar usuarios.
             </p>
           </div>
         )}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <Dialog
+          open={createOpen}
+          onOpenChange={(open) => {
+            setCreateOpen(open)
+            if (!open) setCreateError(null)
+          }}
+        >
           <DialogTrigger asChild>
             <Button data-tour="page-actions" className="gap-2">
               <Plus className="h-4 w-4" />
@@ -149,6 +175,24 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                 <Label htmlFor="create-durationDays">Duración (días)</Label>
                 <Input id="create-durationDays" name="durationDays" type="number" min={1} defaultValue={30} required />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-isPublic">Visibilidad pública</Label>
+                <p className="text-xs text-muted-foreground">
+                  Si lo ocultas, no aparece en la página pública de compra. Quien ya lo tiene lo sigue usando.
+                </p>
+                <select
+                  id="create-isPublic"
+                  name="isPublic"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  defaultValue="true"
+                >
+                  <option value="true">Mostrar</option>
+                  <option value="false">Ocultar</option>
+                </select>
+              </div>
+              {createError ? (
+                <p className="text-sm text-destructive">{createError}</p>
+              ) : null}
               <DialogFooter>
                 <Button type="submit">Guardar</Button>
               </DialogFooter>
@@ -167,22 +211,32 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
               <TableHead className="text-muted-foreground font-normal text-sm">Clases</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Precio</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Duración</TableHead>
+              <TableHead className="text-muted-foreground font-normal text-sm">Público</TableHead>
               <TableHead className="text-muted-foreground font-normal text-sm">Estado</TableHead>
-              <TableHead className="text-muted-foreground font-normal text-sm text-right w-[100px]">Acciones</TableHead>
+              <TableHead className="text-muted-foreground font-normal text-sm text-right w-[120px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {props.planes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                   Sin planes configurados
                 </TableCell>
               </TableRow>
             ) : (
               props.planes.map((plan) => (
                 <TableRow key={plan.id} className="border-b last:border-0">
-                  <TableCell className="font-medium">{plan.name}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{plan.planType}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{plan.name}</span>
+                      {planPromoBadge(plan.id) ? (
+                        <Badge className="bg-green-100 text-green-700 border-green-200">
+                          {planPromoBadge(plan.id)}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatPlanTypeLabel(plan.planType)}</TableCell>
                   <TableCell>{plan.planType === "monthly" ? `${plan.daysPerWeek}x sem` : "—"}</TableCell>
                   <TableCell>
                     {formatPlanIncludes(
@@ -196,12 +250,36 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                   </TableCell>
                   <TableCell className="text-muted-foreground">{plan.durationDays} días</TableCell>
                   <TableCell>
+                    {plan.isPublic
+                      ? <Badge className="bg-blue-100 text-blue-700 border-blue-200">Visible</Badge>
+                      : <Badge variant="secondary">Oculto</Badge>}
+                  </TableCell>
+                  <TableCell>
                     {plan.isActive
                       ? <Badge className="bg-green-100 text-green-700 border-green-200">Activo</Badge>
                       : <Badge variant="secondary">Inactivo</Badge>}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <DbActionForm action={togglePlanPublicAction} kind="update" className="inline-flex">
+                        <input type="hidden" name="id" value={plan.id} />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title={plan.isPublic ? "Ocultar en página pública" : "Mostrar en página pública"}
+                        >
+                          {plan.isPublic ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {plan.isPublic ? "Ocultar" : "Mostrar"}
+                          </span>
+                        </Button>
+                      </DbActionForm>
                       <Button
                         type="button"
                         variant="ghost"
@@ -215,32 +293,16 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">Editar</span>
                       </Button>
-                      {plan.isActive ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => setDeletePlan(plan)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Borrar</span>
-                        </Button>
-                      ) : (
-                        <form action={togglePlanAction} className="inline">
-                          <input type="hidden" name="id" value={plan.id} />
-                          <input type="hidden" name="isActive" value="false" />
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-green-700 hover:text-green-700 hover:bg-green-100"
-                          >
-                            <CircleCheck className="h-4 w-4" />
-                            <span className="sr-only">Activar</span>
-                          </Button>
-                        </form>
-                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeletePlan(plan)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Borrar</span>
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -250,7 +312,13 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         </Table>
       </div>
 
-      <Dialog open={editOpen} onOpenChange={(v) => { setEditOpen(v); if (!v) setEditPlan(null) }}>
+      <Dialog open={editOpen} onOpenChange={(v) => {
+        setEditOpen(v)
+        if (!v) {
+          setEditPlan(null)
+          setEditError(null)
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar plan</DialogTitle>
@@ -329,6 +397,24 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
                   defaultValue={editPlan.durationDays}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-isPublic">Visibilidad pública</Label>
+                <p className="text-xs text-muted-foreground">
+                  Ocultar no desactiva el plan: las alumnas que ya lo tienen lo siguen usando.
+                </p>
+                <select
+                  id="edit-isPublic"
+                  name="isPublic"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  defaultValue={editPlan.isPublic ? "true" : "false"}
+                >
+                  <option value="true">Mostrar</option>
+                  <option value="false">Ocultar</option>
+                </select>
+              </div>
+              {editError ? (
+                <p className="text-sm text-destructive">{editError}</p>
+              ) : null}
               <DialogFooter>
                 <Button type="submit">Guardar cambios</Button>
               </DialogFooter>
@@ -345,7 +431,7 @@ export function PlanesFormsClient(props: { planes: PlanRow[]; embedded?: boolean
         title="¿Borrar este plan?"
         description={
           deletePlan != null
-            ? `El plan "${deletePlan.name}" se eliminará de forma permanente. Esta acción no se puede deshacer.`
+            ? `El plan "${deletePlan.name}" dejará de ofrecerse. Si no tiene suscripciones se elimina por completo; si las tiene, se desactiva y ya no aparecerá para nuevas altas.`
             : ""
         }
         confirmLabel="Sí, borrar"

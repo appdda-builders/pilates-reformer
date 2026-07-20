@@ -42,7 +42,10 @@ export function parseNavPermissionsJson(raw: string | null | undefined): NavPerm
     const rawMap = parsed as NavPermissionsMap
     for (const item of mainNavItems) {
       const saved = rawMap[item.key]
-      if (saved == null || typeof saved !== "object") continue
+      if (saved == null || typeof saved !== "object") {
+        out[item.key] = { root: true, admin: true, coach: false, alumno: false }
+        continue
+      }
       const row = { ...defaults[item.key] }
       for (const role of CONFIGURABLE_ROLES) {
         if (typeof saved[role] === "boolean") {

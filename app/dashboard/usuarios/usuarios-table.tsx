@@ -59,11 +59,13 @@ function rowMatchesSearch(row: UsuarioTableRow, query: string) {
   const name = row.name.toLowerCase()
   const email = row.email.toLowerCase()
   const plan = (row.planName ?? "").toLowerCase()
+  const phone = (row.phone ?? "").toLowerCase()
   return (
     id.includes(query) ||
     name.includes(query) ||
     email.includes(query) ||
-    plan.includes(query)
+    plan.includes(query) ||
+    phone.includes(query)
   )
 }
 
@@ -89,9 +91,9 @@ export function UsuariosTable(props: {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nombre, correo, ID o plan…"
+            placeholder="Buscar por nombre, correo, ID, teléfono o plan…"
             className="pl-9"
-            aria-label="Buscar usuarios"
+            aria-label="Buscar alumnas"
           />
         </div>
         {q !== "" ? (

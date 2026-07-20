@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { LogOut, ChevronDown } from "lucide-react"
+import { LogOut, ChevronDown, UserRound } from "lucide-react"
 import { Button } from "@/components/shared/ui/button"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -15,6 +15,7 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/shared/ui/breadcrumb"
+import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import { routes } from "@/lib/routes"
 import { pathSegmentLabels } from "@/modules/admin/path-segment-labels"
@@ -99,6 +100,12 @@ export function Navbar({
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={routes.cuenta} className="cursor-pointer">
+              <UserRound className="mr-2 h-4 w-4" />
+              Ver cuenta
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="text-destructive focus:text-destructive cursor-pointer"
             disabled={signingOut}

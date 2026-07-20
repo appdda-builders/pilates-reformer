@@ -126,7 +126,7 @@ Todas las contraseñas son **solo para demostración**. No las usen en la vida r
 | Irene Salazar | ST1001 | Conecta y Fortalece | 6 clases restantes |
 | Beatriz Montiel | ST1002 | Inicia tu camino | 3 clases restantes |
 | Luciana Fajardo | ST1003 | Activa tu grandeza interior | 10% descuento demo |
-| Greta Ibáñez | ST1004 | Conecta y Fortalece | 6 clases restantes |
+| Greta Ibáñez | ST1004 | Conecta y Fortalece | 8 clases restantes |
 | Helena Duarte | ST1005 | Clase Descubre | 0 clases (paquete agotado) |
 | Rebeca Toscano | ST1006 | Reinventa tu ser | 18 clases restantes |
 | Alma Delgado | ST1007 | Conecta (cancelada) | Membresía cancelada + devolución demo |

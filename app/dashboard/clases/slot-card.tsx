@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Ban, CircleCheck, Clock, Pencil, Trash2, Users } from "lucide-react"
+import { Ban, CalendarOff, CircleCheck, Clock, Pencil, Trash2, Users } from "lucide-react"
 import { Badge } from "@/components/shared/ui/badge"
 import { Button } from "@/components/shared/ui/button"
 import { Card, CardContent } from "@/components/shared/ui/card"
@@ -25,11 +25,18 @@ import { DbActionSuccessEffect } from "@/components/features/admin/db-action-fee
 import { ConfirmRemoveDialog } from "@/components/features/admin/confirm-remove-dialog"
 import {
   deleteSlotAction,
+  setSlotWeekAvailabilityAction,
   toggleSlotAction,
   updateSlotAction,
   type ActionState,
 } from "./actions"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
+import { toLocalDateStr } from "@/lib/booking-slot-options"
+import { formatTime12h, formatTimeRange12h } from "@/lib/time-utils"
+import {
+  occurrenceDateForWeek,
+  upcomingWeekOptions,
+} from "@/lib/slot-week-options"
 import { SlotFormFields, type CoachOption, type SlotFormValues } from "./slot-form-fields"
 
 const initial: ActionState = { success: false }
@@ -60,16 +67,6 @@ function classTypeBadgeClass(classType: string): string {
   return "bg-orange-100 text-orange-800 border-orange-200"
 }
 
-function formatTime12h(time24: string): string {
-  const parts = time24.split(":")
-  const h = Number(parts[0])
-  const m = parts[1] ?? "00"
-  if (Number.isNaN(h)) return time24
-  const suffix = h >= 12 ? "PM" : "AM"
-  const hour12 = h % 12 === 0 ? 12 : h % 12
-  return `${hour12}:${m} ${suffix}`
-}
-
 export type SlotCardData = {
   id: string
   className: string
@@ -83,6 +80,7 @@ export type SlotCardData = {
   classType: string
   isActive: boolean
   bookedToday: number
+  disabledDates: string[]
 }
 
 export function SlotCard(props: {
@@ -93,11 +91,13 @@ export function SlotCard(props: {
 }) {
   const router = useRouter()
   const [editOpen, setEditOpen] = useState(false)
+  const [weeksOpen, setWeeksOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deactivateOpen, setDeactivateOpen] = useState(false)
   const [editState, editAction, editPending] = useActionState(updateSlotAction, initial)
   const [deleteState, deleteAction, deletePending] = useActionState(deleteSlotAction, initial)
   const [toggleState, toggleAction, togglePending] = useActionState(toggleSlotAction, initial)
+  const [weekState, weekAction, weekPending] = useActionState(setSlotWeekAvailabilityAction, initial)
 
   useEffect(() => {
     if (editState.success) setEditOpen(false)
@@ -110,6 +110,12 @@ export function SlotCard(props: {
     }
   }, [deleteState.success, router])
 
+  useEffect(() => {
+    if (weekState.success) {
+      router.refresh()
+    }
+  }, [weekState.success, router])
+
   const slot = props.slot
   const available = slot.capacity - slot.bookedToday
   const dayName = DAY_NAMES_FULL[slot.dayOfWeek] ?? "—"
@@ -118,6 +124,22 @@ export function SlotCard(props: {
     ? `${slot.className} · ${timeLabel}`
     : `${slot.className} - ${dayName} ${timeLabel}`
   const instructorLine = formatSlotInstructorLabel(slot)
+  const disabledSet = new Set(slot.disabledDates)
+  const weekOptions = upcomingWeekOptions(8).map((week) => {
+    const occurrence = occurrenceDateForWeek(slot.dayOfWeek, week.monday)
+    const dateStr = toLocalDateStr(occurrence)
+    return {
+      ...week,
+      dateStr,
+      available: !disabledSet.has(dateStr),
+      dateLabel: occurrence.toLocaleDateString("es-MX", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      }),
+    }
+  })
+  const disabledThisWeekCount = weekOptions.filter((w) => !w.available).length
 
   const formValues: SlotFormValues = {
     className: slot.className,
@@ -135,6 +157,7 @@ export function SlotCard(props: {
     <>
       <DbActionSuccessEffect success={editState.success} kind="update" />
       <DbActionSuccessEffect success={toggleState.success} kind="update" />
+      <DbActionSuccessEffect success={weekState.success} kind="update" />
       <DbActionSuccessEffect success={deleteState.success} kind="delete" />
       <div
         className={`flex h-full flex-col ${props.compact ? "min-h-0" : "min-h-[220px]"} ${!slot.isActive ? "opacity-60" : ""}`}
@@ -160,6 +183,16 @@ export function SlotCard(props: {
             <div className={`flex shrink-0 ${props.compact ? "gap-0.5" : "gap-1"}`}>
               {slot.isActive ? (
                 <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={props.compact ? "h-7 w-7" : "h-8 w-8"}
+                    onClick={() => setWeeksOpen(true)}
+                  >
+                    <CalendarOff className="h-4 w-4" />
+                    <span className="sr-only">Disponibilidad por semana</span>
+                  </Button>
                   <Button
                     type="button"
                     variant="ghost"
@@ -246,6 +279,11 @@ export function SlotCard(props: {
                 Inactivo
               </Badge>
             )}
+            {slot.isActive && disabledThisWeekCount > 0 ? (
+              <Badge className="text-xs bg-amber-100 text-amber-900 border-amber-200">
+                {disabledThisWeekCount} semana{disabledThisWeekCount === 1 ? "" : "s"} off
+              </Badge>
+            ) : null}
           </div>
 
           {props.compact ? null : <div className="flex-grow min-h-4" />}
@@ -256,8 +294,7 @@ export function SlotCard(props: {
             >
               <span className="inline-flex items-center gap-1">
                 <Clock className={`shrink-0 ${props.compact ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                {slot.startTime}
-                {slot.endTime ? ` – ${slot.endTime}` : ""}
+            {formatTimeRange12h(slot.startTime, slot.endTime)}
               </span>
               <span className="inline-flex items-center gap-1">
                 <Users className={`shrink-0 ${props.compact ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
@@ -280,6 +317,45 @@ export function SlotCard(props: {
       </Card>
       </div>
 
+      <Dialog open={weeksOpen} onOpenChange={setWeeksOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Disponibilidad por semana</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Inhabilita solo la fecha de esta clase en una semana. El horario recurrente se mantiene.
+          </p>
+          <div className="space-y-2 max-h-[360px] overflow-y-auto">
+            {weekOptions.map((week) => (
+              <div
+                key={week.dateStr}
+                className="flex items-center justify-between gap-3 rounded-md border px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{week.label}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{week.dateLabel}</p>
+                </div>
+                <form action={weekAction}>
+                  <input type="hidden" name="id" value={slot.id} />
+                  <input type="hidden" name="date" value={week.dateStr} />
+                  <input type="hidden" name="available" value={week.available ? "false" : "true"} />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant={week.available ? "outline" : "default"}
+                    className="text-xs h-8 shrink-0"
+                    disabled={weekPending}
+                  >
+                    {week.available ? "Disponible" : "No disponible"}
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </div>
+          {weekState.error ? <p className="text-destructive text-sm">{weekState.error}</p> : null}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -292,12 +368,29 @@ export function SlotCard(props: {
               coaches={props.coaches}
               values={formValues}
               fieldErrors={editState.fieldErrors}
+              showWeekAvailabilityHint
             />
             {editState.error ? <p className="text-destructive text-sm">{editState.error}</p> : null}
             <Button type="submit" className="w-full" disabled={editPending}>
               Guardar cambios
             </Button>
           </form>
+          {slot.isActive ? (
+            <div className="border-t pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => {
+                  setEditOpen(false)
+                  setWeeksOpen(true)
+                }}
+              >
+                <CalendarOff className="h-4 w-4" />
+                Gestionar disponibilidad por semana
+              </Button>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
 
@@ -306,7 +399,7 @@ export function SlotCard(props: {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Borrar esta clase?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará el horario de {slot.className} ({dayName} {slot.startTime}) y sus reservas
+              Se eliminará el horario de {slot.className} ({dayName} {formatTime12h(slot.startTime)}) y sus reservas
               asociadas. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>

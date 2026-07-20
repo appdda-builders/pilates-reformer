@@ -48,3 +48,41 @@ export async function sendTransferPaymentNotification(
     body,
   })
 }
+
+const PAYMENT_CONFIRMED_TEMPLATE = `Hola {{nombre}}, confirmamos tu pago de {{monto}}.
+
+Concepto: {{concepto}}
+Método: {{metodo}}
+
+¡Gracias! Ya quedó registrado en el estudio.`
+
+export async function sendPaymentConfirmedNotification(
+  db: AnyDb,
+  params: {
+    userId: string
+    nombre: string
+    amount: number
+    method: string
+    concept?: string | null
+  },
+): Promise<void> {
+  const monto = new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(params.amount)
+
+  const body = interpolateMessage(PAYMENT_CONFIRMED_TEMPLATE, {
+    nombre: params.nombre,
+    monto,
+    concepto: params.concept?.trim() || "Pago de plan",
+    metodo: params.method,
+  })
+
+  await createNotification(db, {
+    userId: params.userId,
+    type: "payment_confirmed",
+    title: "Pago confirmado",
+    body,
+  })
+}

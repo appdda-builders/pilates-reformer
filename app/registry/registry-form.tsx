@@ -19,9 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/shared/ui/card"
-import {
-  USER_ID_PREFIX_REGULAR,
-} from "@/lib/id-prefix"
+import { routes } from "@/lib/routes"
 import { hiddenRegistryAction, type RegistryActionState } from "./actions"
 
 const initial: RegistryActionState = { success: false }
@@ -30,39 +28,50 @@ export function RegistryForm(props: { registryToken: string }) {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [policyDownloaded, setPolicyDownloaded] = useState(false)
   const [policyAccepted, setPolicyAccepted] = useState(false)
+  const [accountType, setAccountType] = useState<"alumno" | "coach">("alumno")
   const [state, action, pending] = useActionState(hiddenRegistryAction, initial)
 
   const canSubmit = policyDownloaded && policyAccepted
 
   useEffect(() => {
-    if (state.success && state.displayId) {
+    if (state.success) {
       setPasswordVisible(false)
     }
-  }, [state.success, state.displayId])
+  }, [state.success])
 
-  if (state.success && state.displayId) {
+  if (state.success) {
+    const isCoach = state.role === "coach"
     return (
       <Card className="w-full max-w-md border shadow-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl">Cuenta creada</CardTitle>
-          <CardDescription>Guarda tu ID para reservar clases</CardDescription>
+          <CardDescription>
+            {isCoach
+              ? "Ya puedes entrar al panel como coach"
+              : "Guarda tu ID para reservar clases"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg border bg-muted/40 px-4 py-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Tu ID de usuario</p>
-            <p className="text-2xl font-semibold tracking-wide">{state.displayId}</p>
-          </div>
+          {state.displayId ? (
+            <div className="rounded-lg border bg-muted/40 px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Tu ID de usuario</p>
+              <p className="text-2xl font-semibold tracking-wide">{state.displayId}</p>
+            </div>
+          ) : null}
           <p className="text-sm text-muted-foreground text-center">
-            Usa este ID en la página de agendar. Tu plan y acceso al panel los confirma el
-            estudio.
+            {isCoach
+              ? "Entra al panel con tu correo y la contraseña que elegiste."
+              : "Guarda tu ID. Para entrar al panel usa tu correo o este ID con la contraseña que elegiste. Tu plan lo confirma el estudio."}
           </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button asChild className="w-full">
-            <Link href="/?agendar=1">Ir a agendar</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/login">Iniciar sesión</Link>
+          {isCoach ? null : (
+            <Button asChild className="w-full">
+              <a href={routes.agendar}>Ir a agenda</a>
+            </Button>
+          )}
+          <Button asChild variant={isCoach ? "default" : "outline"} className="w-full">
+            <Link href={routes.login}>Iniciar sesión</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -92,7 +101,27 @@ export function RegistryForm(props: { registryToken: string }) {
               <p className="text-destructive text-sm">{state.fieldErrors.name[0]}</p>
             ) : null}
           </div>
-          <input type="hidden" name="idPrefix" value={USER_ID_PREFIX_REGULAR} />
+          <div className="space-y-2">
+            <Label htmlFor="accountType">Tipo de cuenta</Label>
+            <select
+              id="accountType"
+              name="accountType"
+              value={accountType}
+              onChange={(e) => {
+                const next = e.target.value === "coach" ? "coach" : "alumno"
+                setAccountType(next)
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="alumno">Alumna</option>
+              <option value="coach">Coach</option>
+            </select>
+            <p className="text-xs text-muted-foreground">
+              {accountType === "coach"
+                ? "Acceso de coach al panel del estudio."
+                : "Alumna con folio ST (ej. ST1001) para reservar clases."}
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Correo</Label>
             <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />

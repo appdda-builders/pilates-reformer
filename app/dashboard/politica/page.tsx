@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Card, CardContent } from "@/components/shared/ui/card"
+import { PolicyDocumentActions } from "./policy-document-actions"
 
 export default async function PoliticaPage() {
   const db = getDb()
@@ -12,6 +13,19 @@ export default async function PoliticaPage() {
   return (
     <div className="p-6 space-y-4">
       <PageHeader title="Política del Estudio" description="Mensaje de bienvenida y políticas" />
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <h2 className="font-semibold mb-2 text-sm">Documento de políticas</h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              Descarga el PDF o ábrelo aquí mismo. Al verlo en línea puedes cerrar el visor y
+              seguir en esta página.
+            </p>
+            <PolicyDocumentActions />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="p-6">

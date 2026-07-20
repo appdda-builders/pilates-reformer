@@ -47,7 +47,7 @@ export default function NotFound() {
             Regresar a Studio 57
           </Link>
           <Link
-            href="/#agenda"
+            href="/agendar"
             className="inline-flex items-center gap-2 rounded-full border border-green-base/30 bg-white/70 px-6 py-3 text-sm font-semibold text-green-base transition hover:bg-white"
           >
             <FaCalendarCheck className="h-4 w-4" />

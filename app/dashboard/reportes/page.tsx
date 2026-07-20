@@ -15,6 +15,7 @@ import {
   RefreshCw, UserPlus, UserMinus, UserCheck,
 } from "lucide-react"
 import { ClassesBarChart } from "./_classes-chart"
+import { formatTime12h } from "@/lib/time-utils"
 
 type SearchParams = Promise<{ from?: string; to?: string }>
 
@@ -296,8 +297,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   for (const b of bookingsWithUser) {
     const month = toTs(b.bookingDate).toISOString().slice(0, 7)
     ensureMonth(month)
-    const row = monthMap.get(month)!
-    row.reservas++
+    monthMap.get(month)!.reservas++
   }
 
   // Pagos
@@ -386,6 +386,8 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
 
   // ── totales de periodo ───────────────────────────────────────────────────────
 
+  const totalClases = bookingsWithUser.length
+
   const monthRows = Array.from(monthMap.entries()).sort(([a], [b]) => a.localeCompare(b))
 
   const coachStats = bookingsPerSlot
@@ -419,14 +421,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
   }
 
   function formatSlotTime(t: string) {
-    const [h, m] = t.split(":")
-    const hour = Number.parseInt(h, 10)
-    const suffix = hour >= 12 ? "PM" : "AM"
-    let display: number
-    if (hour > 12) display = hour - 12
-    else if (hour === 0) display = 12
-    else display = hour
-    return `${display}:${m} ${suffix}`
+    return formatTime12h(t)
   }
 
   const metricsRow2 = [
@@ -548,6 +543,21 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
         </CardContent>
       </Card>
 
+      <div data-tour="reportes-tipo-clase" className="grid gap-4 md:grid-cols-1 max-w-sm">
+        <Card className="border-none shadow-sm">
+          <CardContent className="p-6 flex items-start justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground tracking-wide">CLASES EN EL PERIODO</p>
+              <p className="text-2xl font-bold mt-1">{totalClases}</p>
+            </div>
+            <div className="rounded-full p-2.5 bg-blue-50">
+              <BookOpen className="h-5 w-5 text-blue-700" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabla mensual completa */}
       {monthRows.length > 0 && (
         <Card data-tour="reportes-resumen" className="border-none shadow-sm">
           <CardHeader>
@@ -603,7 +613,6 @@ export default async function ReportesPage({ searchParams }: { searchParams: Sea
           </CardContent>
         </Card>
       )}
-
 
       <Card data-tour="reportes-grafica" className="border-none shadow-sm">
         <CardHeader>

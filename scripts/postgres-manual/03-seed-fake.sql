@@ -107,7 +107,7 @@ INSERT INTO "subscription" ("id","user_id","plan_id","status","start_date","end_
 ('sub-za1001','user-alum-demo-1','plan-conecta','active',now() - interval '10 days',now() + interval '20 days',6,1,false,NULL,NULL,'mensual',200,1600,now()),
 ('sub-za1002','user-alum-demo-2','plan-inicia','active',now() - interval '5 days',now() + interval '25 days',3,0,false,NULL,NULL,'mensual',237.5,950,now()),
 ('sub-za1003','user-alum-demo-3','plan-activa','active',now() - interval '15 days',now() + interval '15 days',10,2,false,0.10,'evento_especial','mensual',150,1800,now()),
-('sub-za1004','user-alum-demo-4','plan-conecta','active',now() - interval '3 days',now() + interval '27 days',6,2,false,NULL,NULL,'mensual',200,1600,now()),
+('sub-za1004','user-alum-demo-4','plan-conecta','active',now() - interval '3 days',now() + interval '27 days',8,2,false,NULL,NULL,'mensual',200,1600,now()),
 ('sub-za1005','user-alum-demo-5','plan-descubre','active',now() - interval '20 days',now() + interval '10 days',0,0,false,NULL,NULL,'efectivo',270,270,now()),
 ('sub-za1006','user-alum-demo-6','plan-reinventa','active',now() - interval '8 days',now() + interval '22 days',18,1,false,NULL,NULL,'mensual',135,2700,now()),
 ('sub-za1007','user-alum-demo-7','plan-conecta','cancelled',now() - interval '40 days',now() - interval '10 days',0,0,false,NULL,NULL,'mensual',200,1600,now()),
@@ -165,10 +165,10 @@ ON CONFLICT ("id") DO NOTHING;
 
 -- ── 13. studio_kpi_snapshot ───────────────────────────────────────────────────
 
-INSERT INTO "studio_kpi_snapshot" ("id","period_label","period_start","period_end","total_classes","total_attendances","occupancy_rate","active_members","renewals","new_enrollments","cancellations","total_pass_active","target_occupancy","created_at") VALUES
-('kpi-2026-01','Enero 2026','2026-01-01','2026-01-31',120,98,0.82,42,8,5,2,3,0.85,now()),
-('kpi-2026-02','Febrero 2026','2026-02-01','2026-02-28',128,105,0.84,45,10,6,1,4,0.85,now()),
-('kpi-2026-03','Marzo 2026','2026-03-01','2026-03-31',132,110,0.86,48,12,7,3,5,0.85,now())
+INSERT INTO "studio_kpi_snapshot" ("id","period_label","period_start","period_end","total_classes","total_attendances","occupancy_rate","active_members","renewals","new_enrollments","cancellations","target_occupancy","created_at") VALUES
+('kpi-2026-01','Enero 2026','2026-01-01','2026-01-31',120,98,0.82,42,8,5,2,0.85,now()),
+('kpi-2026-02','Febrero 2026','2026-02-01','2026-02-28',128,105,0.84,45,10,6,1,0.85,now()),
+('kpi-2026-03','Marzo 2026','2026-03-01','2026-03-31',132,110,0.86,48,12,7,3,0.85,now())
 ON CONFLICT ("id") DO NOTHING;
 
 -- ── 14. studio_event ──────────────────────────────────────────────────────────

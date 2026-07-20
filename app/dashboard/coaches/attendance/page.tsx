@@ -10,18 +10,8 @@ import { Badge } from "@/components/shared/ui/badge"
 import { Button } from "@/components/shared/ui/button"
 import { dateRangeForDay, localTodayStr } from "@/lib/booking-slot-options"
 import { coachTeachesSlot, formatSlotInstructorLabel } from "@/lib/schedule-instructor"
+import { formatTimeRange12h } from "@/lib/time-utils"
 import { AttendanceMarkForm } from "./attendance-mark-form"
-
-function formatTime(t: string) {
-  const [h, m] = t.split(":")
-  const hour = Number.parseInt(h, 10)
-  const suffix = hour >= 12 ? "PM" : "AM"
-  let display: number
-  if (hour > 12) display = hour - 12
-  else if (hour === 0) display = 12
-  else display = hour
-  return `${display}:${m} ${suffix}`
-}
 
 type SearchParams = Promise<{ date?: string }>
 
@@ -164,8 +154,7 @@ export default async function CoachAttendancePage({
                 <div>
                   <p className="font-semibold text-base">{slot.className}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    {formatTime(slot.startTime)}
-                    {slot.endTime ? ` – ${formatTime(slot.endTime)}` : ""}
+                    {formatTimeRange12h(slot.startTime, slot.endTime)}
                     {slot.instructor ? ` · ${slot.instructor}` : ""}
                   </p>
                 </div>

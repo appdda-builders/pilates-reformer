@@ -22,6 +22,8 @@ import {
   type ListSortDir,
 } from "@/lib/list-sort"
 import { routes } from "@/lib/routes"
+import { ConfirmPaymentButton } from "./confirm-payment-button"
+import { ValidatePaymentCheck } from "./validate-payment-check"
 
 function statusBadge(status: string) {
   if (status === "succeeded") return <Badge className="bg-green-100 text-green-700 border-green-200">Exitoso</Badge>
@@ -77,6 +79,7 @@ export default async function PagosPage({ searchParams }: { searchParams: Search
       method: schema.payment.method,
       status: schema.payment.status,
       concept: schema.payment.concept,
+      validated: schema.payment.validated,
       createdAt: schema.payment.createdAt,
       userName: schema.user.name,
     })
@@ -154,12 +157,15 @@ export default async function PagosPage({ searchParams }: { searchParams: Search
               >
                 Fecha
               </SortableTableHead>
+              <TableHead className="text-muted-foreground font-normal text-sm text-right">
+                Acción
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pagos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                   Sin pagos registrados
                 </TableCell>
               </TableRow>
@@ -168,19 +174,33 @@ export default async function PagosPage({ searchParams }: { searchParams: Search
                 const date = p.createdAt instanceof Date
                   ? p.createdAt
                   : new Date(p.createdAt as unknown as number)
+                const amountLabel = new Intl.NumberFormat("es-MX", {
+                  style: "currency", currency: "MXN", maximumFractionDigits: 0,
+                }).format(p.amount)
                 return (
                   <TableRow key={p.id} className="border-b last:border-0">
                     <TableCell className="font-medium">{p.userName}</TableCell>
                     <TableCell className="text-muted-foreground">{p.concept ?? "—"}</TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat("es-MX", {
-                        style: "currency", currency: "MXN", maximumFractionDigits: 0,
-                      }).format(p.amount)}
-                    </TableCell>
+                    <TableCell>{amountLabel}</TableCell>
                     <TableCell className="text-muted-foreground capitalize">{p.method}</TableCell>
                     <TableCell>{statusBadge(p.status)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {date.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex items-center justify-end gap-3">
+                        <ValidatePaymentCheck
+                          paymentId={p.id}
+                          validated={p.validated}
+                        />
+                        {p.status === "pending" ? (
+                          <ConfirmPaymentButton
+                            paymentId={p.id}
+                            userName={p.userName}
+                            amountLabel={amountLabel}
+                          />
+                        ) : null}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )

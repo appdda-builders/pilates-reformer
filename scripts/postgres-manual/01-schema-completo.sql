@@ -6,7 +6,7 @@
 --
 -- Tablas: user, session, account, verification, plan, subscription, booking,
 -- payment, sale_item, refund, reformer, schedule_slot, coach_payroll_period,
--- studio_kpi_snapshot, studio_policy, studio_event, notification
+-- studio_kpi_snapshot, studio_policy, studio_event, notification, coupon
 
 BEGIN;
 
@@ -63,6 +63,20 @@ CREATE TABLE IF NOT EXISTS "notification" (
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "coupon" (
+	"id" text PRIMARY KEY NOT NULL,
+	"code" text NOT NULL UNIQUE,
+	"name" text NOT NULL,
+	"discount_type" text DEFAULT 'percent' NOT NULL,
+	"discount_value" double precision NOT NULL,
+	"max_uses" integer,
+	"used_count" integer DEFAULT 0 NOT NULL,
+	"valid_from" timestamp (3),
+	"valid_until" timestamp (3),
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp (3) DEFAULT now() NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "payment" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
@@ -74,6 +88,7 @@ CREATE TABLE IF NOT EXISTS "payment" (
 	"concept" text,
 	"collected_by" text,
 	"is_negative" boolean DEFAULT false NOT NULL,
+	"validated" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
 
@@ -87,6 +102,7 @@ CREATE TABLE IF NOT EXISTS "plan" (
 	"cost_per_class" double precision,
 	"duration_days" integer DEFAULT 30 NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"is_public" boolean DEFAULT true NOT NULL,
 	"is_add_on" boolean DEFAULT false NOT NULL,
 	"is_unlimited" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
@@ -146,6 +162,14 @@ CREATE TABLE IF NOT EXISTS "schedule_slot" (
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "schedule_slot_exception" (
+	"id" text PRIMARY KEY NOT NULL,
+	"schedule_slot_id" text NOT NULL,
+	"exception_date" timestamp (3) NOT NULL,
+	"reason" text,
+	"created_at" timestamp (3) DEFAULT now() NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp (3) NOT NULL,
@@ -185,7 +209,6 @@ CREATE TABLE IF NOT EXISTS "studio_kpi_snapshot" (
 	"renewals" integer DEFAULT 0 NOT NULL,
 	"new_enrollments" integer DEFAULT 0 NOT NULL,
 	"cancellations" integer DEFAULT 0 NOT NULL,
-	"total_pass_active" integer DEFAULT 0 NOT NULL,
 	"target_occupancy" double precision DEFAULT 0.85 NOT NULL,
 	"created_at" timestamp (3) DEFAULT now() NOT NULL
 );
@@ -209,6 +232,7 @@ Tu ID es: {{displayId}}
 	"no_show_penalty" boolean DEFAULT true NOT NULL,
 	"max_bookings_per_day" integer DEFAULT 1 NOT NULL,
 	"booking_window_days" integer DEFAULT 7 NOT NULL,
+	"booking_window_minutes" integer DEFAULT 5 NOT NULL,
 	"coach_rate_per_class" double precision DEFAULT 250 NOT NULL,
 	"total_reformers" integer DEFAULT 8 NOT NULL,
 	"cost_per_class_base" double precision DEFAULT 270 NOT NULL,
@@ -329,10 +353,16 @@ DO $$ BEGIN
  ALTER TABLE "subscription" ADD CONSTRAINT "subscription_plan_id_plan_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."plan"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
+DO $$ BEGIN
+ ALTER TABLE "schedule_slot_exception" ADD CONSTRAINT "schedule_slot_exception_schedule_slot_id_schedule_slot_id_fk" FOREIGN KEY ("schedule_slot_id") REFERENCES "public"."schedule_slot"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
 CREATE INDEX IF NOT EXISTS "account_userId_idx" ON "account" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "booking_userId_idx" ON "booking" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "booking_date_idx" ON "booking" USING btree ("booking_date");
 CREATE INDEX IF NOT EXISTS "payment_userId_idx" ON "payment" USING btree ("user_id");
+CREATE INDEX IF NOT EXISTS "schedule_slot_exception_slot_idx" ON "schedule_slot_exception" USING btree ("schedule_slot_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "schedule_slot_exception_slot_date_uidx" ON "schedule_slot_exception" USING btree ("schedule_slot_id","exception_date");
 CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "session" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "subscription_userId_idx" ON "subscription" USING btree ("user_id");
 CREATE INDEX IF NOT EXISTS "verification_identifier_idx" ON "verification" USING btree ("identifier");

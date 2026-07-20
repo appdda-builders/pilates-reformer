@@ -13,6 +13,7 @@ import {
 import { LoginLoadingOverlay } from "@/components/features/login/login-loading-overlay"
 import { DashboardBrand } from "@/components/features/admin/dashboard-brand"
 import { authClient } from "@/lib/auth-client"
+import { signInByDisplayId } from "@/lib/sign-in-by-display-id"
 import { routes } from "@/lib/routes"
 
 const CONNECTION_ERROR_MSG = "Problemas de conexión. Vuelva a intentar más tarde."
@@ -29,7 +30,7 @@ async function waitForSessionUser() {
 export function LoginForm(props: { studioName: string; logoUrl: string | null }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [overlayActive, setOverlayActive] = useState(false)
@@ -94,16 +95,11 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
     redirectingRef.current = true
     setOverlayActive(true)
 
-    const res = await authClient.signIn.email({ email, password })
-    if (res.error != null) {
+    const signIn = await signInByDisplayId(identifier, password)
+    if (!signIn.ok) {
       redirectingRef.current = false
       setOverlayActive(false)
-      const msg = res.error.message ?? ""
-      if (msg.toLowerCase().includes("inhabilitad")) {
-        setErrorMsg("Tu cuenta está inhabilitada. Contacta al estudio.")
-      } else {
-        setErrorMsg("Correo o contraseña incorrectos")
-      }
+      setErrorMsg(signIn.error)
       return
     }
 
@@ -140,17 +136,25 @@ export function LoginForm(props: { studioName: string; logoUrl: string | null })
         <Card className="w-full max-w-md border shadow-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Iniciar sesión</CardTitle>
-            <CardDescription>Ingresa tus credenciales para acceder al panel</CardDescription>
+            <CardDescription>
+              Usa tu correo o tu ID de usuario (ST) y tu contraseña
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <CardContent className="space-y-4">
               {errorMsg ? <p className="text-sm text-destructive">{errorMsg}</p> : null}
               <div className="space-y-2">
-                <Label htmlFor="email">Correo</Label>
+                <Label htmlFor="identifier">Correo o ID</Label>
                 <Input
-                  id="email" type="email" autoComplete="email"
-                  value={email} onChange={(e) => setEmail(e.target.value)}
-                  required disabled={overlayActive}
+                  id="identifier"
+                  type="text"
+                  autoComplete="username"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="correo@ejemplo.com o ST0001"
+                  required
+                  disabled={overlayActive}
+                  className="font-mono"
                 />
               </div>
               <div className="space-y-2">

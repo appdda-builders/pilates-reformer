@@ -1,6 +1,9 @@
 export function shouldUseSqlite(): boolean {
-  if (process.env.VERCEL === "1") return false
-  return process.env.DB_DRIVER === "sqlite"
+  if (process.env.DB_DRIVER === "postgres") return false
+  if (process.env.DB_DRIVER === "sqlite") return true
+  const dbUrl = process.env.DATABASE_URL ?? ""
+  if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) return false
+  return false
 }
 
 export function getPgDatabaseUrl(): string | undefined {

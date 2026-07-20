@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { setSlotDisabledForDate } from "@/lib/slot-exceptions"
 
 export type ActionState = {
   success: boolean
@@ -204,5 +205,63 @@ export async function toggleSlotAction(
     .where(eq(schema.scheduleSlot.id, id))
 
   revalidatePath("/dashboard/clases")
+  revalidatePath("/dashboard/calendario")
+  revalidatePath("/dashboard/reservas")
+  return { success: true }
+}
+
+export async function setSlotWeekAvailabilityAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableRefresh: true },
+  })
+  const role = (session?.user as { role?: string } | undefined)?.role
+  if (!session || !canManageClases(role)) {
+    return { success: false, error: "No autorizado" }
+  }
+
+  const id = formData.get("id")
+  const dateStr = formData.get("date")
+  const availableRaw = formData.get("available")
+  if (typeof id !== "string" || id.length === 0) {
+    return { success: false, error: "ID inválido" }
+  }
+  if (typeof dateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return { success: false, error: "Fecha inválida" }
+  }
+
+  const available = availableRaw === "true"
+  const db = getDb()
+
+  const [slot] = await db
+    .select({
+      id: schema.scheduleSlot.id,
+      dayOfWeek: schema.scheduleSlot.dayOfWeek,
+      isActive: schema.scheduleSlot.isActive,
+    })
+    .from(schema.scheduleSlot)
+    .where(eq(schema.scheduleSlot.id, id))
+    .limit(1)
+
+  if (slot == null) {
+    return { success: false, error: "Horario no encontrado" }
+  }
+  if (!slot.isActive) {
+    return { success: false, error: "Activa el horario recurrente antes de gestionar semanas" }
+  }
+
+  const bookingDow = new Date(`${dateStr}T12:00:00`).getDay()
+  if (bookingDow !== slot.dayOfWeek) {
+    return { success: false, error: "La fecha no coincide con el día de esta clase" }
+  }
+
+  await setSlotDisabledForDate(db, id, dateStr, !available)
+
+  revalidatePath("/dashboard/clases")
+  revalidatePath("/dashboard/calendario")
+  revalidatePath("/dashboard/reservas")
   return { success: true }
 }

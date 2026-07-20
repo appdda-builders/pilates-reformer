@@ -92,12 +92,24 @@ export const PUBLIC_RESERVACIONES_PLAN_IDS = [
 
 export const PLAN_DISPLAY_ORDER = STUDIO_PLAN_DEFINITIONS.map((p) => p.id)
 
+export const SINGLE_CLASS_LABEL = "Clase individual"
+
+export const FREE_SAMPLE_PLAN_ID = "plan-apertura"
+
+export const FREE_SAMPLE_CLASS_LABEL = "Clase muestra gratis"
+
 export type PublicPlan = {
   id: string
   name: string
   includes: string
   validity: string
   priceLabel: string
+  badge: string | null
+}
+
+export function planPromoBadge(planId: string): string | null {
+  if (planId === FREE_SAMPLE_PLAN_ID) return FREE_SAMPLE_CLASS_LABEL
+  return null
 }
 
 export type PlanLabelRow = {
@@ -114,7 +126,14 @@ export function formatPlanPrice(priceMxn: number) {
   }).format(priceMxn)
 }
 
-export function formatPublicPlanPrice(_planType: string, priceMxn: number): string {
+export function formatPlanTypeLabel(planType: string): string {
+  if (planType === "class_pack") return "Paquete de clases"
+  if (planType === "monthly") return "Mensual"
+  if (planType === "add_on") return "Complemento"
+  return planType
+}
+
+export function formatPublicPlanPrice(planType: string, priceMxn: number): string {
   return formatPlanPrice(priceMxn)
 }
 
@@ -129,7 +148,7 @@ export function formatPlanIncludes(
   isUnlimited: boolean,
 ): string {
   if (isUnlimited) return "Acceso flexible"
-  if (totalClasses === 1) return "1 clase"
+  if (totalClasses === 1) return SINGLE_CLASS_LABEL
   if (totalClasses != null && totalClasses > 1) return `${totalClasses} clases`
   return "—"
 }
@@ -153,6 +172,7 @@ export function planRowToPublicPlan(row: {
     includes: formatPlanIncludes(row.planType, row.totalClasses, row.isUnlimited),
     validity: formatPlanValidity(row.durationDays),
     priceLabel: formatPublicPlanPrice(row.planType, row.priceMxn),
+    badge: planPromoBadge(row.id),
   }
 }
 
@@ -169,13 +189,89 @@ export function sortPlansByDisplayOrder<T extends { id: string }>(rows: T[]): T[
 }
 
 export function sortPublicPlans<T extends { id: string }>(rows: T[]): T[] {
-  const order = new Map(PUBLIC_RESERVACIONES_PLAN_IDS.map((id, index) => [id, index]))
+  const preferred = new Map(
+    PUBLIC_RESERVACIONES_PLAN_IDS.map((id, index) => [id, index]),
+  )
+  const fallback = new Map(PLAN_DISPLAY_ORDER.map((id, index) => [id, index]))
   return [...rows].sort((a, b) => {
-    const ai = order.get(a.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
-    const bi = order.get(b.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
-    if (ai != null && bi != null) return ai - bi
-    if (ai != null) return -1
-    if (bi != null) return 1
-    return 0
+    const ap = preferred.get(a.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
+    const bp = preferred.get(b.id as (typeof PUBLIC_RESERVACIONES_PLAN_IDS)[number])
+    if (ap != null && bp != null) return ap - bp
+    if (ap != null) return -1
+    if (bp != null) return 1
+    const af = fallback.get(a.id)
+    const bf = fallback.get(b.id)
+    if (af != null && bf != null) return af - bf
+    if (af != null) return -1
+    if (bf != null) return 1
+    return a.id.localeCompare(b.id)
   })
+}
+
+export type PlanDuplicateCandidate = {
+  id: string
+  name: string
+  planType: string
+  daysPerWeek: number
+  totalClasses: number | null
+  priceMxn: number
+  durationDays: number
+  isActive: boolean
+}
+
+export type PlanDuplicateIncoming = {
+  name: string
+  planType: string
+  daysPerWeek: number
+  totalClasses: number | null
+  priceMxn: number
+  durationDays: number
+}
+
+export function normalizePlanName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase()
+}
+
+export function plansHaveSameName(a: string, b: string): boolean {
+  return normalizePlanName(a) === normalizePlanName(b)
+}
+
+export function plansHaveSameCharacteristics(
+  a: Omit<PlanDuplicateIncoming, "name">,
+  b: Omit<PlanDuplicateIncoming, "name">,
+): boolean {
+  return (
+    a.planType === b.planType &&
+    a.daysPerWeek === b.daysPerWeek &&
+    (a.totalClasses ?? null) === (b.totalClasses ?? null) &&
+    a.priceMxn === b.priceMxn &&
+    a.durationDays === b.durationDays
+  )
+}
+
+export function findDuplicatePlan(
+  candidates: PlanDuplicateCandidate[],
+  incoming: PlanDuplicateIncoming,
+  excludeId?: string,
+): { reason: "name" | "characteristics"; plan: PlanDuplicateCandidate } | null {
+  for (const plan of candidates) {
+    if (!plan.isActive) continue
+    if (excludeId != null && plan.id === excludeId) continue
+    if (plansHaveSameName(plan.name, incoming.name)) {
+      return { reason: "name", plan }
+    }
+    if (plansHaveSameCharacteristics(plan, incoming)) {
+      return { reason: "characteristics", plan }
+    }
+  }
+  return null
+}
+
+export function duplicatePlanErrorMessage(
+  duplicate: { reason: "name" | "characteristics"; plan: PlanDuplicateCandidate },
+): string {
+  if (duplicate.reason === "name") {
+    return `Ya existe un plan activo con el nombre "${duplicate.plan.name}".`
+  }
+  return `Ya existe un plan activo con las mismas características ("${duplicate.plan.name}").`
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip,
+  Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend,
 } from "recharts"
 
 type ChartData = { month: string; clases: number }
@@ -36,6 +36,7 @@ export function ClassesBarChart({ data }: { data: ChartData[] }) {
             borderRadius: "8px",
           }}
         />
+        <Legend wrapperStyle={{ fontSize: "12px" }} />
         <Bar dataKey="clases" name="Clases" fill="#1b2d6e" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

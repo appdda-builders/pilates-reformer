@@ -1,7 +1,66 @@
 import { isAtLeastAge } from "@/lib/birthdate"
+import { subscriptionCoversDate } from "@/lib/subscription-dates"
 
 export const SENIOR_CLASS_START_TIME = "11:00"
 export const SENIOR_MIN_AGE = 60
+
+export function startOfStudioWeek(d: Date): Date {
+  const copy = new Date(d)
+  copy.setHours(12, 0, 0, 0)
+  const day = copy.getDay()
+  const diffFromMonday = day === 0 ? -6 : 1 - day
+  copy.setDate(copy.getDate() + diffFromMonday)
+  copy.setHours(0, 0, 0, 0)
+  return copy
+}
+
+export function isFutureBookingWeek(bookingDate: Date, now: Date = new Date()): boolean {
+  return startOfStudioWeek(bookingDate).getTime() > startOfStudioWeek(now).getTime()
+}
+
+export type StudentSelfReleaseCheck =
+  | { ok: true }
+  | { ok: false; message: string }
+
+export function evaluateStudentSelfRelease(params: {
+  bookingDate: Date
+  subscriptionStatus: string
+  subscriptionStartDate: Date | string
+  subscriptionEndDate: Date | number
+  now?: Date
+}): StudentSelfReleaseCheck {
+  const now = params.now ?? new Date()
+
+  if (!isFutureBookingWeek(params.bookingDate, now)) {
+    return {
+      ok: false,
+      message:
+        "Solo puedes liberar horarios de una semana futura. Para esta semana contacta al estudio.",
+    }
+  }
+
+  if (params.subscriptionStatus !== "active") {
+    return {
+      ok: false,
+      message: "No tienes un paquete activo para liberar este horario.",
+    }
+  }
+
+  if (
+    !subscriptionCoversDate(
+      params.subscriptionStartDate,
+      params.subscriptionEndDate,
+      params.bookingDate,
+    )
+  ) {
+    return {
+      ok: false,
+      message: "Tu paquete no cubre esa fecha, así que no puedes liberar el horario tú misma.",
+    }
+  }
+
+  return { ok: true }
+}
 
 export function normalizeStartTime(startTime: string): string {
   const parts = startTime.trim().split(":")
@@ -75,5 +134,39 @@ export function validateBookingAgeForSlot(
     }
     return { ok: true }
   }
+  return { ok: true }
+}
+
+export const DEFAULT_BOOKING_WINDOW_MINUTES = 5
+
+export type BookingTimeWindowCheck =
+  | { ok: true }
+  | { ok: false; message: string }
+
+export function evaluateBookingTimeWindow(params: {
+  now: Date
+  classEnd: Date
+  bookingWindowMinutes: number
+}): BookingTimeWindowCheck {
+  const minutesUntilEnd =
+    (params.classEnd.getTime() - params.now.getTime()) / (1000 * 60)
+  const cutoff = Math.max(0, params.bookingWindowMinutes)
+
+  if (minutesUntilEnd < cutoff) {
+    if (minutesUntilEnd <= 0) {
+      return {
+        ok: false,
+        message: "No se puede reservar: la clase ya terminó.",
+      }
+    }
+    return {
+      ok: false,
+      message:
+        cutoff === 1
+          ? "No se puede reservar: falta menos de 1 minuto para que termine la clase."
+          : `No se puede reservar: faltan menos de ${cutoff} minutos para que termine la clase.`,
+    }
+  }
+
   return { ok: true }
 }

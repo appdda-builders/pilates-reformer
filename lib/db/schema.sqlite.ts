@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm"
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -81,6 +81,7 @@ export const plan = sqliteTable("plan", {
   costPerClass: real("cost_per_class"),
   durationDays: integer("duration_days").notNull().default(30),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  isPublic: integer("is_public", { mode: "boolean" }).notNull().default(true),
   isAddOn: integer("is_add_on", { mode: "boolean" }).notNull().default(false),
   isUnlimited: integer("is_unlimited", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
@@ -108,6 +109,23 @@ export const scheduleSlot = sqliteTable("schedule_slot", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 })
+
+export const scheduleSlotException = sqliteTable(
+  "schedule_slot_exception",
+  {
+    id: text("id").primaryKey(),
+    scheduleSlotId: text("schedule_slot_id")
+      .notNull()
+      .references(() => scheduleSlot.id, { onDelete: "cascade" }),
+    exceptionDate: integer("exception_date", { mode: "timestamp_ms" }).notNull(),
+    reason: text("reason"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+  },
+  (t) => [
+    index("schedule_slot_exception_slot_idx").on(t.scheduleSlotId),
+    uniqueIndex("schedule_slot_exception_slot_date_uidx").on(t.scheduleSlotId, t.exceptionDate),
+  ],
+)
 
 export const subscription = sqliteTable(
   "subscription",
@@ -165,6 +183,7 @@ export const payment = sqliteTable(
     concept: text("concept"),
     collectedBy: text("collected_by"),
     isNegative: integer("is_negative", { mode: "boolean" }).notNull().default(false),
+    validated: integer("validated", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
   },
   (t) => [index("payment_userId_idx").on(t.userId)],
@@ -225,8 +244,21 @@ export const studioKpiSnapshot = sqliteTable("studio_kpi_snapshot", {
   renewals: integer("renewals").notNull().default(0),
   newEnrollments: integer("new_enrollments").notNull().default(0),
   cancellations: integer("cancellations").notNull().default(0),
-  totalPassActive: integer("total_pass_active").notNull().default(0),
   targetOccupancy: real("target_occupancy").notNull().default(0.85),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+})
+
+export const coupon = sqliteTable("coupon", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  discountType: text("discount_type").notNull().default("percent"),
+  discountValue: real("discount_value").notNull(),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  validFrom: integer("valid_from", { mode: "timestamp_ms" }),
+  validUntil: integer("valid_until", { mode: "timestamp_ms" }),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 })
 
@@ -249,6 +281,7 @@ export const studioPolicy = sqliteTable("studio_policy", {
   noShowPenalty: integer("no_show_penalty", { mode: "boolean" }).notNull().default(true),
   maxBookingsPerDay: integer("max_bookings_per_day").notNull().default(1),
   bookingWindowDays: integer("booking_window_days").notNull().default(7),
+  bookingWindowMinutes: integer("booking_window_minutes").notNull().default(5),
   coachRatePerClass: real("coach_rate_per_class").notNull().default(250),
   totalReformers: integer("total_reformers").notNull().default(8),
   costPerClassBase: real("cost_per_class_base").notNull().default(270),
@@ -315,6 +348,14 @@ export const reformerRelations = relations(reformer, ({ many }) => ({
 
 export const scheduleSlotRelations = relations(scheduleSlot, ({ many }) => ({
   bookings: many(booking),
+  exceptions: many(scheduleSlotException),
+}))
+
+export const scheduleSlotExceptionRelations = relations(scheduleSlotException, ({ one }) => ({
+  scheduleSlot: one(scheduleSlot, {
+    fields: [scheduleSlotException.scheduleSlotId],
+    references: [scheduleSlot.id],
+  }),
 }))
 
 export const subscriptionRelations = relations(subscription, ({ one, many }) => ({

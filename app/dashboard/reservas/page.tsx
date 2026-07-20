@@ -4,16 +4,18 @@ import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
-import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm"
+import { and, asc, count, eq, gte, lte } from "drizzle-orm"
 import { coachScheduleSlotSql, getCoachSessionInfo } from "@/lib/coach-schedule-visibility"
 import { isAlumnoRole, getSessionUserId } from "@/lib/alumno-scope"
+import { evaluateStudentSelfRelease } from "@/lib/booking-rules"
+import { pickPrimarySubscription } from "@/lib/subscription-display"
 import { ListPagination } from "@/components/features/admin/list-pagination"
 import { LIST_PAGE_SIZE, listPaginationOffset, parseListPage } from "@/lib/list-pagination"
 import { routes } from "@/lib/routes"
 import { PageHeader } from "@/components/features/admin/page-header"
 import { Button } from "@/components/shared/ui/button"
-import { dateRangeForDay, localTodayStr, resolveBookingDefaultDate } from "@/lib/booking-slot-options"
-import { NewBookingDialog } from "./new-booking-dialog"
+import { dateRangeForDay, localTodayStr } from "@/lib/booking-slot-options"
+import Link from "next/link"
 import { ReservaCard } from "./reserva-card"
 
 function isAdminOrRoot(role: string) {
@@ -48,9 +50,47 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
   const isAdminRoot = isAdminOrRoot(role)
   const isCoach = role === "coach"
   const canManage = isAdminRoot
-  const canCancel = isAdminRoot || isCoach
+  const staffCanCancel = isAdminRoot || isCoach
 
   const db = getDb()
+
+  let alumnoSubscription: {
+    status: string
+    startDate: Date
+    endDate: Date
+  } | null = null
+
+  if (isAlumno && userId != null) {
+    const subs = await db
+      .select({
+        id: schema.subscription.id,
+        userId: schema.subscription.userId,
+        status: schema.subscription.status,
+        startDate: schema.subscription.startDate,
+        endDate: schema.subscription.endDate,
+      })
+      .from(schema.subscription)
+      .where(
+        and(
+          eq(schema.subscription.userId, userId),
+          eq(schema.subscription.status, "active"),
+        ),
+      )
+    const primary = pickPrimarySubscription(subs)
+    if (primary != null) {
+      alumnoSubscription = {
+        status: primary.status,
+        startDate:
+          primary.startDate instanceof Date
+            ? primary.startDate
+            : new Date(primary.startDate as unknown as number),
+        endDate:
+          primary.endDate instanceof Date
+            ? primary.endDate
+            : new Date(primary.endDate as unknown as number),
+      }
+    }
+  }
 
   let alumnas: { id: string; name: string; displayId: string | null }[] = []
   if (isAdminRoot) {
@@ -63,46 +103,6 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
       .from(schema.user)
       .where(eq(schema.user.role, "alumno"))
       .orderBy(schema.user.name)
-  }
-
-  let bookingSlots: {
-    id: string
-    dayOfWeek: number
-    startTime: string
-    endTime: string | null
-    className: string
-    instructor: string | null
-  }[] = []
-
-  if (!isAlumno) {
-    const slotConditions = [eq(schema.scheduleSlot.isActive, true)]
-    if (coachSession != null) {
-      slotConditions.push(coachScheduleSlotSql(schema.scheduleSlot, coachSession))
-    }
-
-    const slotRows = await db
-      .select({
-        id: schema.scheduleSlot.id,
-        className: schema.scheduleSlot.className,
-        dayOfWeek: schema.scheduleSlot.dayOfWeek,
-        startTime: schema.scheduleSlot.startTime,
-        endTime: schema.scheduleSlot.endTime,
-        instructor: schema.scheduleSlot.instructor,
-        alternateInstructor: schema.scheduleSlot.alternateInstructor,
-        scheduleMode: schema.scheduleSlot.scheduleMode,
-      })
-      .from(schema.scheduleSlot)
-      .where(and(...slotConditions))
-      .orderBy(schema.scheduleSlot.dayOfWeek, schema.scheduleSlot.startTime)
-
-    bookingSlots = slotRows.map((row) => ({
-      id: row.id,
-      dayOfWeek: row.dayOfWeek,
-      startTime: row.startTime,
-      endTime: row.endTime,
-      className: row.className,
-      instructor: row.instructor,
-    }))
   }
 
   const bookingConditions = [
@@ -134,6 +134,7 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
     .select({
       id: schema.booking.id,
       status: schema.booking.status,
+      bookingDate: schema.booking.bookingDate,
       userName: schema.user.name,
       displayId: schema.user.displayId,
       className: schema.scheduleSlot.className,
@@ -152,6 +153,23 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
     .offset(offset)
 
   const showAlumnaOnCard = !isAlumno
+  const now = new Date()
+
+  function alumnoCanCancelBooking(bookingDateRaw: Date | unknown): boolean {
+    if (!isAlumno || alumnoSubscription == null) return false
+    const bookingDate =
+      bookingDateRaw instanceof Date
+        ? bookingDateRaw
+        : new Date(bookingDateRaw as number)
+    const check = evaluateStudentSelfRelease({
+      bookingDate,
+      subscriptionStatus: alumnoSubscription.status,
+      subscriptionStartDate: alumnoSubscription.startDate,
+      subscriptionEndDate: alumnoSubscription.endDate,
+      now,
+    })
+    return check.ok
+  }
 
   const description = isAlumno
     ? `${totalItems} ${totalItems === 1 ? "reserva tuya" : "reservas tuyas"} en este día`
@@ -172,11 +190,10 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Reservas" description={description}>
-        {canManage ? (
-          <NewBookingDialog
-            slots={bookingSlots}
-            defaultDate={resolveBookingDefaultDate(dateStr, bookingSlots)}
-          />
+        {canManage || isAlumno ? (
+          <Button asChild className="gap-2">
+            <Link href={routes.agendar}>Agendar clase</Link>
+          </Button>
         ) : null}
       </PageHeader>
 
@@ -244,7 +261,10 @@ export default async function ReservasPage({ searchParams }: { searchParams: Sea
                   studentDisplayId: r.displayId,
                 }}
                 showAlumna={showAlumnaOnCard}
-                canCancel={canCancel}
+                canCancel={
+                  staffCanCancel || (isAlumno && alumnoCanCancelBooking(r.bookingDate))
+                }
+                cancelMode={isAlumno ? "self" : "admin"}
               />
             </div>
           ))}

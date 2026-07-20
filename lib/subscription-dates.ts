@@ -33,3 +33,14 @@ export function computeSubscriptionEndDate(startDate: Date, durationDays: number
   end.setDate(end.getDate() + durationDays)
   return end
 }
+
+export function subscriptionCoversDate(
+  startDate: Date | string,
+  endDate: Date | number,
+  date: Date | string,
+): boolean {
+  const start = toSubscriptionLocalDate(startDate)
+  const end = subscriptionEndOfDay(endDate)
+  const target = toSubscriptionLocalDate(date)
+  return target.getTime() >= start.getTime() && target.getTime() <= end.getTime()
+}

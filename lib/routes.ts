@@ -1,7 +1,9 @@
 export const routes = {
   registry: "/registry",
   login: "/login",
+  agendar: "/agendar",
   dashboard: "/dashboard",
+  cuenta: "/dashboard",
   usuarios: "/dashboard/usuarios",
   usuarioDetail: (id: string) => `/dashboard/usuarios/${id}`,
   clases: "/dashboard/clases",
@@ -9,6 +11,7 @@ export const routes = {
   pagos: "/dashboard/pagos",
   suscripciones: "/dashboard/suscripciones",
   planes: "/dashboard/planes",
+  cupones: "/dashboard/cupones",
   coaches: "/dashboard/coaches",
   coachAttendance: "/dashboard/coaches/attendance",
   coachSchedule: "/dashboard/coaches/schedule",

@@ -24,6 +24,7 @@ const bookingSchema = z.object({
   noShowPenalty: z.enum(["true", "false"]),
   maxBookingsPerDay: z.coerce.number().min(1).max(50),
   bookingWindowDays: z.coerce.number().min(1).max(365),
+  bookingWindowMinutes: z.coerce.number().min(0).max(1440),
 })
 
 const alertsSchema = z.object({
@@ -159,6 +160,7 @@ export async function saveConfigAction(formData: FormData): Promise<ConfigAction
         noShowPenalty: formData.get("noShowPenalty"),
         maxBookingsPerDay: formData.get("maxBookingsPerDay"),
         bookingWindowDays: formData.get("bookingWindowDays"),
+        bookingWindowMinutes: formData.get("bookingWindowMinutes"),
       })
       if (!parsed.success) {
         return { success: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" }
@@ -173,6 +175,7 @@ export async function saveConfigAction(formData: FormData): Promise<ConfigAction
           noShowPenalty: parsed.data.noShowPenalty === "true",
           maxBookingsPerDay: parsed.data.maxBookingsPerDay,
           bookingWindowDays: parsed.data.bookingWindowDays,
+          bookingWindowMinutes: parsed.data.bookingWindowMinutes,
           updatedAt: new Date(),
         })
         .where(eq(schema.studioPolicy.id, "main"))

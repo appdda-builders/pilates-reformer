@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/shared/ui/card"
 import { filterSlotsForCoach, getCoachSessionInfo } from "@/lib/coach-schedule-visibility"
 import { isAlumnoRole, getSessionUserId } from "@/lib/alumno-scope"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
+import { formatTimeRange12h } from "@/lib/time-utils"
 
 const DAY_NAMES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 
@@ -110,8 +111,7 @@ export default async function CoachSchedulePage() {
                           </div>
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <p>
-                              {row.startTime}
-                              {row.endTime ? ` – ${row.endTime}` : ""}
+                              {formatTimeRange12h(row.startTime, row.endTime)}
                             </p>
                             <p>
                               Instructor:{" "}
@@ -179,8 +179,7 @@ export default async function CoachSchedulePage() {
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <p>
-                          {slot.startTime}
-                          {slot.endTime ? ` – ${slot.endTime}` : ""}
+                          {formatTimeRange12h(slot.startTime, slot.endTime)}
                         </p>
                         <p>
                           Instructor:{" "}

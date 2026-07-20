@@ -5,6 +5,7 @@ import {
   computeSubscriptionEndDate,
   toSubscriptionLocalDate,
 } from "@/lib/subscription-dates"
+import { incrementCouponUsedCount, resolveCouponForPrice } from "@/lib/coupons"
 
 export async function activateSubscriptionForUser(
   db: AnyDb,
@@ -15,6 +16,7 @@ export async function activateSubscriptionForUser(
     billingCycle?: string
     discountPct?: number | null
     discountReason?: string | null
+    couponCode?: string | null
   },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const [selectedPlan] = await db
@@ -34,9 +36,23 @@ export async function activateSubscriptionForUser(
   const startDate = toSubscriptionLocalDate(params.startDate ?? new Date())
   const endDate = computeSubscriptionEndDate(startDate, selectedPlan.durationDays)
 
-  const discountPct = params.discountPct ?? null
-  const finalPrice =
+  let discountPct = params.discountPct ?? null
+  let discountReason = params.discountReason ?? null
+  let finalPrice =
     discountPct != null ? selectedPlan.priceMxn * (1 - discountPct) : selectedPlan.priceMxn
+  let couponIdToIncrement: string | null = null
+
+  const couponCode = params.couponCode?.trim() ?? ""
+  if (couponCode !== "") {
+    const resolved = await resolveCouponForPrice(db, couponCode, selectedPlan.priceMxn)
+    if (!resolved.ok) {
+      return { ok: false, error: resolved.message }
+    }
+    finalPrice = resolved.finalPrice
+    discountPct = resolved.discountPct
+    discountReason = resolved.discountReason
+    couponIdToIncrement = resolved.coupon.id
+  }
 
   const costPerClass =
     selectedPlan.totalClasses != null && selectedPlan.totalClasses > 0
@@ -48,6 +64,13 @@ export async function activateSubscriptionForUser(
 
   const billingCycle = params.billingCycle ?? "mensual"
   const subId = crypto.randomUUID()
+
+  const discountNote =
+    discountReason != null && discountReason.startsWith("cupon:")
+      ? ` (cupón ${discountReason.slice("cupon:".length)})`
+      : discountPct
+        ? ` (${Math.round(discountPct * 100)}% desc.)`
+        : ""
 
   await db.insert(schema.subscription).values({
     id: subId,
@@ -61,7 +84,7 @@ export async function activateSubscriptionForUser(
     isUnlimited,
     billingCycle,
     discountPct,
-    discountReason: params.discountReason ?? null,
+    discountReason,
     costPerClass,
     paidAmount: finalPrice,
   })
@@ -73,8 +96,12 @@ export async function activateSubscriptionForUser(
     amount: finalPrice,
     method: billingCycle === "efectivo" ? "efectivo" : "transferencia",
     status: "pending",
-    concept: `Suscripción: ${selectedPlan.name}${discountPct ? ` (${Math.round(discountPct * 100)}% desc.)` : ""}`,
+    concept: `Suscripción: ${selectedPlan.name}${discountNote}`,
   })
+
+  if (couponIdToIncrement != null) {
+    await incrementCouponUsedCount(db, couponIdToIncrement)
+  }
 
   return { ok: true }
 }

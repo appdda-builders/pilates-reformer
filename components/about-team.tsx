@@ -44,10 +44,10 @@ export default function AboutTeam() {
           </p>
           <div className="rounded py-4">
             <p className="text-3xl font-semibold leading-tight md:text-4xl font-display">
-              Nuestra Misión:
+              Nuestra Misión
             </p>
-            <p className="text-base text-black/70">
-              Brindar clases de pilates reformer accesibles y de alta calidad, promoviendo el bienestar integral, la confianza y el respeto por los procesos individuales de cada alumno.
+            <p className="mt-2 text-base text-black/70">
+              Brindar clases de Pilates Reformer accesibles y de alta calidad, promoviendo el bienestar integral, la confianza y el respeto por los procesos individuales de cada alumno.
             </p>
           </div>
         </motion.div>

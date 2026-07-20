@@ -2,6 +2,10 @@ import type { AnyDb } from "@/lib/db"
 import * as schema from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import {
+  DEFAULT_BOOKING_WINDOW_MINUTES,
+  evaluateBookingTimeWindow,
+} from "@/lib/booking-rules"
+import {
   studioDateStrFromInstant,
   studioLocalDateTimeToInstant,
 } from "@/lib/studio-month"
@@ -9,6 +13,7 @@ import {
 export type StudioCancellationPolicy = {
   cancelMinutes: number
   lateCancelPenalty: boolean
+  bookingWindowMinutes: number
 }
 
 export type CancellationCheckResult =
@@ -37,7 +42,7 @@ export function classEndFromBooking(
   return new Date(start.getTime() + 60 * 60 * 1000)
 }
 
-export const BOOKING_CUTOFF_MINUTES_BEFORE_END = 5
+export const BOOKING_CUTOFF_MINUTES_BEFORE_END = DEFAULT_BOOKING_WINDOW_MINUTES
 
 export function hoursUntilClass(now: Date, classStart: Date): number {
   return (classStart.getTime() - now.getTime()) / (1000 * 60 * 60)
@@ -86,6 +91,18 @@ export function evaluateCancellation(
   return { ok: true, restoreClass: true, late: false }
 }
 
+export function evaluateAlumnoSelfCancellation(
+  now: Date,
+  classStart: Date,
+  policy: StudioCancellationPolicy,
+  selfRelease: { ok: true } | { ok: false; message: string },
+): CancellationCheckResult {
+  if (!selfRelease.ok) {
+    return { ok: false, message: selfRelease.message }
+  }
+  return evaluateCancellation(now, classStart, policy)
+}
+
 export function minutesUntilClassEnd(now: Date, classEnd: Date): number {
   return (classEnd.getTime() - now.getTime()) / (1000 * 60)
 }
@@ -93,17 +110,21 @@ export function minutesUntilClassEnd(now: Date, classEnd: Date): number {
 export function evaluateBookingAllowed(
   now: Date,
   classEnd: Date,
+  policy?: Pick<StudioCancellationPolicy, "bookingWindowMinutes"> | number,
 ): CancellationCheckResult {
-  const minutesUntilEnd = minutesUntilClassEnd(now, classEnd)
+  const windowMinutes =
+    typeof policy === "number"
+      ? policy
+      : (policy?.bookingWindowMinutes ?? DEFAULT_BOOKING_WINDOW_MINUTES)
 
-  if (minutesUntilEnd < BOOKING_CUTOFF_MINUTES_BEFORE_END) {
-    return {
-      ok: false,
-      message:
-        minutesUntilEnd <= 0
-          ? "No se puede reservar: la clase ya terminó."
-          : "No se puede reservar: faltan menos de 5 minutos para que termine la clase.",
-    }
+  const check = evaluateBookingTimeWindow({
+    now,
+    classEnd,
+    bookingWindowMinutes: windowMinutes,
+  })
+
+  if (!check.ok) {
+    return { ok: false, message: check.message }
   }
 
   return { ok: true, restoreClass: true, late: false }
@@ -115,6 +136,7 @@ export async function loadStudioCancellationPolicy(db: AnyDb): Promise<StudioCan
       cancelMinutes: schema.studioPolicy.cancelMinutes,
       cancelHours: schema.studioPolicy.cancelHours,
       lateCancelPenalty: schema.studioPolicy.lateCancelPenalty,
+      bookingWindowMinutes: schema.studioPolicy.bookingWindowMinutes,
     })
     .from(schema.studioPolicy)
     .where(eq(schema.studioPolicy.id, "main"))
@@ -127,5 +149,6 @@ export async function loadStudioCancellationPolicy(db: AnyDb): Promise<StudioCan
   return {
     cancelMinutes,
     lateCancelPenalty: row?.lateCancelPenalty ?? true,
+    bookingWindowMinutes: row?.bookingWindowMinutes ?? DEFAULT_BOOKING_WINDOW_MINUTES,
   }
 }

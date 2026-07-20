@@ -8,6 +8,8 @@ import * as schema from "@/lib/db/schema"
 import { and, asc, eq, gte, lte } from "drizzle-orm"
 import { birthdateMonthDayKey } from "@/lib/birthdate"
 import { formatSlotInstructorLabel } from "@/lib/schedule-instructor"
+import { listDisabledSlotDateKeys } from "@/lib/slot-exceptions"
+import { formatTime12h } from "@/lib/time-utils"
 import type { CalendarFeedEvent } from "./calendar-types"
 import { CalendarShell } from "./calendar-shell"
 
@@ -84,6 +86,7 @@ export default async function CalendarioPage() {
     .orderBy(asc(schema.scheduleSlot.dayOfWeek), asc(schema.scheduleSlot.startTime))
 
   const slotById = new Map(slots.map((s) => [s.id, s]))
+  const disabledKeys = await listDisabledSlotDateKeys(db, rangeStart, rangeEnd)
 
   const studioRows = await db.select().from(schema.studioEvent)
   for (const ev of studioRows) {
@@ -262,6 +265,7 @@ export default async function CalendarioPage() {
     const d = new Date(t)
     const dow = d.getDay()
     const dayKey = dayStart(d).getTime()
+    const dateStr = localDateStr(d)
     for (const slot of slots) {
       if (slot.dayOfWeek !== dow) continue
       const bookingKey = `${slot.id}_${dayKey}`
@@ -275,7 +279,26 @@ export default async function CalendarioPage() {
         end = new Date(d)
         end.setHours(eh, em ?? 0, 0, 0)
       }
-      const timeLabel = slot.startTime.slice(0, 5)
+      const timeLabel = formatTime12h(slot.startTime)
+      const disabled = disabledKeys.has(`${slot.id}|${dateStr}`)
+      if (disabled) {
+        eventsOut.push({
+          id: `slot-off:${slot.id}:${dayKey}`,
+          title: `${timeLabel} · ${slot.className} (no disponible)`,
+          start: localIsoFromDate(start),
+          ...(end != null ? { end: localIsoFromDate(end) } : {}),
+          backgroundColor: "#f3f4f6",
+          borderColor: "#9ca3af",
+          textColor: "#6b7280",
+          classNames: ["cal-event-schedule-off"],
+          extendedProps: {
+            source: "schedule",
+            description: "Inhabilitada esta semana",
+            eventType: "class",
+          },
+        })
+        continue
+      }
       eventsOut.push({
         id: `slot:${slot.id}:${dayKey}`,
         title: `${timeLabel} · ${slot.className} (libre)`,

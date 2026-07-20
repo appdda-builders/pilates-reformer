@@ -34,6 +34,7 @@ export type StudioPolicyFormValues = {
   noShowPenalty: boolean
   maxBookingsPerDay: number
   bookingWindowDays: number
+  bookingWindowMinutes: number
   alertLastClassThreshold: number
   alertDaysBeforeExpiry: number
   welcomeMessage: string
@@ -145,7 +146,7 @@ export function ConfigFormsClient(props: {
                 <div className="flex flex-col gap-1 py-1">
                   <Label className="py-1" htmlFor="cancelMinutes">Anticipación mínima para cancelar (minutos)</Label>
                   <p className="text-xs text-muted-foreground py-1">
-                    Con menos tiempo no se puede cancelar. Las reservas nuevas se permiten hasta 5 minutos antes de que termine la clase.
+                    Con menos tiempo no se puede cancelar. El cierre de reservas nuevas se controla con la ventana en minutos.
                   </p>
                   <Input className="py-1" id="cancelMinutes" name="cancelMinutes" type="number" min={0} step={15} required defaultValue={props.policy.cancelMinutes} />
                 </div>
@@ -190,6 +191,13 @@ export function ConfigFormsClient(props: {
                 <div className="flex flex-col gap-1 py-1">
                   <Label className="py-1" htmlFor="bookingWindowDays">Ventana de reserva (días)</Label>
                   <Input className="py-1" id="bookingWindowDays" name="bookingWindowDays" type="number" min={1} required defaultValue={props.policy.bookingWindowDays} />
+                </div>
+                <div className="flex flex-col gap-1 py-1">
+                  <Label className="py-1" htmlFor="bookingWindowMinutes">Ventana de reserva (minutos)</Label>
+                  <p className="text-xs text-muted-foreground py-1">
+                    Minutos antes de que termine la clase hasta cuando se permite una reserva nueva.
+                  </p>
+                  <Input className="py-1" id="bookingWindowMinutes" name="bookingWindowMinutes" type="number" min={0} step={1} required defaultValue={props.policy.bookingWindowMinutes} />
                 </div>
                 <div className="py-1 pt-4">
                   <Button
